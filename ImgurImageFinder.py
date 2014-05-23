@@ -1,8 +1,5 @@
-from imageFinder import ImageFinder
 from image import Image
-from bs4 import BeautifulSoup
-import ast
-import re
+import requests
 
 
 class ImgurLinkTypeEnum():
@@ -11,24 +8,68 @@ class ImgurLinkTypeEnum():
     ALBUM = 3
 
 
-class ImgurImageFinder(ImageFinder):
-    __slots__ = 'imgurLinkType'
+class ImgurImageFinder():
+    __slots__ = ('URL', 'CLIENT_ID', 'imgurLinkType')
 
     def __init__(self, URL):
-        super().__init__(URL)
 
+        self.URL = URL
+        self.CLIENT_ID = 'e0ea61b57d4c3c9' # imgur client ID for API access
         self.imgurLinkType = self.getImgurLinkType()
 
     def validURLImage(self, url):
         #Determine if the file is good to download.
         #Status Code must be 200 (valid page)
-        #/removed. can't be in the URL, as imgur sometimes redirects to imgur.com/removed.jpg if the file is removed
-        #content-length in the header, if it exists, cannot be 503 bytes (This is the size of the removed image
-        # warning if not redirected)
-        isValid, response = super().validURLImage(url)
-        if (not "/removed." in response.url) and (not response.headers.get('content-length') == '503'):
+        #Must have valid data response
+        headers = {'Authorization': 'Client-ID ' + self.CLIENT_ID}
+        apiURL = 'https://api.imgur.com/3/'
+        if self.imgurLinkType == ImgurLinkTypeEnum.DIRECT:
+            imgurHashID = url[url.rfind('/') + 1:url.rfind('.')]
+            apiURL += 'image/' + imgurHashID + '.json'
+        elif self.imgurLinkType == ImgurLinkTypeEnum.SINGLE_PAGE:
+            imgurHashID = url[url.rfind('/') + 1:]
+            apiURL += 'image/' + imgurHashID + '.json'
+        else:
+            imgurHashID = url[url.rfind('/') + 1:]
+            apiURL += 'album/' + imgurHashID + '.json'
+        response = requests.get(apiURL, headers=headers, stream=True)
+        json = response.json()
+        status = json.get('status')
+        success = json.get('success')
+        if (status is None and json.get('error') is not None) or (not success):
+            return False, None
+        elif (status is not None and status == 200) and (json.get('image') is not None or json.get('data') is not None) and success:
             return True, response
-        return False, response
+        else:
+            return False, None
+
+    def getImageURLs(self, url):
+        valid, response = self.validURLImage(url)
+        imageURLs = []
+        if valid:
+            if self.imgurLinkType == ImgurLinkTypeEnum.DIRECT:
+                data = response.json().get('data')
+                if data is not None:
+                    link = data.get('link')
+                    if link is not None:
+                        imageURLs.append(link)
+            elif self.imgurLinkType == ImgurLinkTypeEnum.SINGLE_PAGE:
+                image = response.json().get('image')
+                if image is not None:
+                    links = image.get('links')
+                    if links is not None:
+                        original = links.get('original')
+                        imageURLs.append(original)
+            else:
+                data = response.json().get('data')
+                if data is not None:
+                    images = data.get('images')
+                    if images is not None:
+                        for image in images:
+                            link = image.get('link')
+                            if link is not None:
+                                imageURLs.append(link)
+        return imageURLs
 
     def getImgurLinkType(self):
         if "i.imgur.com" in self.URL:
@@ -38,96 +79,27 @@ class ImgurImageFinder(ImageFinder):
         else:
             return ImgurLinkTypeEnum.SINGLE_PAGE
 
-    def getFileType(self, URL):
-        fileType = URL[URL.rfind("."):]
-        return self.getValidFileType(fileType)
-
     @staticmethod
-    def getValidFileType(fileType):
-        fileType = re.sub("\?", "", fileType)  # get rid of question marks that may appear
-        fileType = re.sub("\d", "", fileType)  # get rid of numbers that may appear
+    def getFileType(URL):
+        fileType = URL[URL.rfind("."):]
         return fileType
 
-    def makeDirectLinkedImage(self, user, postID, URL, redditPostURL, defaultPath):
+    def makeImage(self, user, postID, URL, redditPostURL, defaultPath, count):
+        response = requests.get(URL, stream=True)
         fileType = self.getFileType(URL)
-        isValid, response = self.validURLImage(URL)
-        if isValid:
-            image = Image(user, postID, fileType, defaultPath, URL, redditPostURL, response.iter_content(4096))
-            return image
-        return None
-
-    def searchSingleImagePageWithRegex(self):
-        imageJPG = re.findall("http://i\.imgur\.com/[a-zA-Z0-9]+\.jpg", self.htmlSource)
-        imageJPEG = re.findall("http://i\.imgur\.com/[a-zA-Z0-9]+\.jpeg", self.htmlSource)
-        imageGIF = re.findall("http://i\.imgur\.com/[a-zA-Z0-9]+\.gif", self.htmlSource)
-        imagePNG = re.findall("http://i\.imgur\.com/[a-zA-Z0-9]+\.png", self.htmlSource)
-        imageAPNG = re.findall("http://i\.imgur\.com/[a-zA-Z0-9]+\.apng", self.htmlSource)
-        if len(imageJPG) > 0:
-            return imageJPG[0]
-        elif len(imageJPEG) > 0:
-            return imageJPG[0]
-        elif len(imageGIF) > 0:
-            return imageGIF[0]
-        elif len(imagePNG) > 0:
-            return imagePNG[0]
-        elif len(imageAPNG) > 0:
-            return imageAPNG[0]
+        if response.status_code == 200:
+            return Image(user, postID, fileType, defaultPath, URL, redditPostURL, response.iter_content(4096), str(count))
         else:
             return None
 
-    def makeSinglePageLinkedImage(self, user, postID, URL, redditPostURL, defaultPath):
-        if self.htmlSource is None:
-            return None
-        soup = BeautifulSoup(self.htmlSource)
-        try:
-            imageUrl = soup.select('.image a')[0]['href']
-            imageUrl = "http:" + imageUrl
-        except IndexError:
-            imageUrl = self.searchSingleImagePageWithRegex()
-            if imageUrl is None:
-                return
-        standardParams = (user, postID, imageUrl, redditPostURL, defaultPath)
-        return self.makeDirectLinkedImage(*standardParams)
-
-    def getAlbumImageURLsAndFileTypes(self):
-        albumImageURLs = []
-        if self.htmlSource is None:
-            return []
-        match = self.imageURLRegex.search(self.htmlSource)
-        if match is not None:
-            match = match.group(0)
-            match = match[match.find("{"):]
-            match = self.nullToNoneRegex.sub("None", match)
-            imageData = ast.literal_eval(match)
-            if imageData.get('count') > 0:
-                images = imageData.get('items')
-                if imageData.get('count') == len(images):
-                    for image in images:
-                        fileType = image.get('ext')
-                        fileType = self.getValidFileType(fileType)
-                        albumImageURLs.append(('http://i.imgur.com/' + image.get('hash') + fileType, fileType))
-        return albumImageURLs
-
-    def makeAlbumImages(self, user, postID, URL, redditPostURL, defaultPath):
-        images = []
-        dataLst = self.getAlbumImageURLsAndFileTypes()
-        count = 1
-        for data in dataLst:
-            fileType = data[1]  # data is a tuple, the second item is the file type
-            isValid, response = self.validURLImage(data[0])  # data[0] is the url
-            if isValid:
-                image = Image(user, postID, fileType, defaultPath, data[0], redditPostURL, response.iter_content(4096), str(count))
-                images.append(image)
-                count += 1
-        return images
-
     def getImages(self, post, defaultPath):
         images = []
-        standardParams = (post.author.name, post.id, post.url, post.permalink, defaultPath)
-        if self.imgurLinkType == ImgurLinkTypeEnum.DIRECT:
-            images.append(self.makeDirectLinkedImage(*standardParams))
-        elif self.imgurLinkType == ImgurLinkTypeEnum.SINGLE_PAGE:
-            images.append(self.makeSinglePageLinkedImage(*standardParams))
-        elif self.imgurLinkType == ImgurLinkTypeEnum.ALBUM:
-            images.extend(self.makeAlbumImages(*standardParams))
+        imageURLs = self.getImageURLs(post.url)
+        count = 1
+        for imageURL in imageURLs:
+            params = (post.author.name, post.id, imageURL, post.permalink, defaultPath, count)
+            image = self.makeImage(*params)
+            if image is not None:
+                images.append(image)
+                count += 1
         return images

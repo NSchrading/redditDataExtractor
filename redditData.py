@@ -26,10 +26,12 @@ class RedditData():
         self.defaultPath = defaultPath
         if subredditSets is None:
             self.subredditSets = {'Default Subs': validSubreddits}
+        else:
+            self.subredditSets = subredditSets
         if userLists is None:
             self.userLists = {'Default User List': UserListModel([])}
-        self.subredditSets = subredditSets
-        self.userLists = userLists
+        else:
+            self.userLists = userLists
         self.currentSubredditSetName = currentSubredditSetName
         self.currentUserListName = currentUserListName
         self.defaultSubredditSetName = defaultSubredditSetName
@@ -137,7 +139,7 @@ class RedditData():
             print("Saving program")
             successful = True
         except KeyError:
-            print("fail")
+            print("save fail")
             successful = False
         finally:
             shelf.close()
