@@ -37,6 +37,9 @@ class UserListModel(QAbstractListModel):
         elif role == Qt.EditRole:
             return self.users[index.row()].name
 
+    def getUser(self, index):
+        return self.users[index.row()]
+
     def flags(self, index):
         # All items have these properties so we don't care about index
         return Qt.ItemIsEditable | Qt.ItemIsSelectable | Qt.ItemIsEnabled

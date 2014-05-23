@@ -334,11 +334,15 @@ class rddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.rddtScraper.currentSubredditSetName = subredditListName
 
     def viewDownloadedUserPosts(self):
-        currentUser = self.userList.currentItem()
-        if currentUser is None:
-            QMessageBox.information(self, "Reddit Scraper", "To view a user's downloaded posts, please select a user in the user list.")
-        else:
-            downloadedUserPosts = self.rddtScraper.downloadedUserPosts.get(currentUser.text())
+        model = self.rddtScraper.userLists.get(self.rddtScraper.currentUserListName)
+        indices = self.userList.selectedIndexes() # indices is a list of QModelIndex
+        index = None
+        if len(indices) > 0:
+            index = indices[0] # only one thing should be selectable at a time
+        if model is not None and index is not None:
+            selectedUser = model.getUser(index)
+            downloadedUserPosts = selectedUser.posts
+            print(downloadedUserPosts)
             if downloadedUserPosts is not None:
                 downloadedUserPostsGUI = DownloadedUserPostsGUI()
                 for post in downloadedUserPosts:
@@ -346,11 +350,14 @@ class rddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                     labelWidget = QLabel()
                     labelWidget.setOpenExternalLinks(True)
                     labelWidget.setTextFormat(Qt.RichText)
-                    labelWidget.setText(post)
+                    postTitle = post[post[0:-1].rfind("/")+1:-1]
+                    labelWidget.setText('<a href="' + post + '">' + postTitle + '</a>')
                     downloadedUserPostsGUI.downloadedUserPostsList.setItemWidget(item, labelWidget)
                 ret = downloadedUserPostsGUI.exec_()
             else:
                 QMessageBox.information(self, "Reddit Scraper", "The selected user has no downloaded posts. Download some by hitting the download button.")
+        elif index is None:
+            QMessageBox.information(self, "Reddit Scraper", "To view a user's downloaded posts, please select a user in the user list.")
 
 
     def setUnsavedChanges(self, unsaved):
@@ -392,28 +399,13 @@ class rddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             self.logPrint("Ignoring close attempt.")
             event.ignore()
 
-
-    def saveState(self):
-        userListModels = self.rddtScraper.userLists
-        userListSettings = {} # Use this to save normally unpickleable stuff
-        for key, val in userListModels.items():
-            userListSettings[key] = val.users
-        try:
-            shelf = shelve.open("settings.db")
-            self.rddtScraper.userLists = None # QAbstractListModel is not pickleable so set this to None
-            shelf['rddtScraper'] = self.rddtScraper
-            shelf['userLists'] = userListSettings # Save QAbstractList data as a simple dict of list
-            self.setUnsavedChanges(False)
-            self.rddtScraper.userLists = userListModels # Restore the user lists in case the user is not exiting program
-            self.logPrint("Saving program.")
-        except KeyError:
-            pass
-        finally:
-            shelf.close()
-
     def logPrint(self, str):
         if self.log:
             print(str)
+
+    def saveState(self):
+        successful = self.rddtScraper.saveState()
+        self.setUnsavedChanges(not successful)
 
 def loadState():
     print("attempting to load state")

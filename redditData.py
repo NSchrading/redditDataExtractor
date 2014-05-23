@@ -7,7 +7,6 @@ import optparse
 import pprint
 import shelve
 import threading
-import multiprocessing
 from bs4 import BeautifulSoup
 from imageFinder import ImageFinder
 from ImgurImageFinder import ImgurImageFinder
@@ -34,27 +33,24 @@ class RedditData():
         self.currentUserListName = currentUserListName
         self.defaultSubredditSetName = defaultSubredditSetName
         self.defaultUserListName = defaultUserListName
-        self.downloadedUserPosts = {}
         self.r = praw.Reddit(user_agent = 'RedditUserScraper by /u/VoidXC')
 
-
     def downloadUserProcess(self, user):
-        print("Starting download for: " + user)
-        self.makeDirectoryForUser(user)
-        if userNotInBlacklist(user, self.defaultPath):
+        userName = user.name
+        print("Starting download for: " + userName)
+        self.makeDirectoryForUser(userName)
+        if userNotInBlacklist(userName, self.defaultPath):
             try:
-                user = self.r.get_redditor(user)
+                redditor = self.r.get_redditor(userName)
             except requests.exceptions.HTTPError:
-                addUserToBlacklist(user, self.defaultPath)
+                addUserToBlacklist(userName, self.defaultPath)
             # Temporary
             refresh = None
             #numPosts = None if options.refresh == 0 else options.refresh
-            submitted = user.get_submitted(limit=refresh)
-            posts = self.getValidPosts(submitted)
-            ''' TEMP: Add link posts to images so we can delete images via gui by specifying post
-            for post in posts:
-                self.addPostToUserDownloads(post)
-            '''
+            submitted = redditor.get_submitted(limit=refresh)
+            posts = self.getValidPosts(submitted, user)
+            postURLs = [post.permalink for post in posts]
+            user.posts.update(postURLs)
             images = self.getImages(posts)
             for image in images:
                 if image is not None:
@@ -62,12 +58,14 @@ class RedditData():
 
     def downloadThread(self):
         jobs = []
-        for user in self.userLists.get(self.currentUserListName):
-            process = multiprocessing.Process(target=self.downloadUserProcess, args=(user,))
-            jobs.append(process)
-        for process in jobs:
-            process.start()
-            
+        model = self.userLists.get(self.currentUserListName)
+        for user in model.users:
+            thread = threading.Thread(target=self.downloadUserProcess, args=(user,))
+            jobs.append(thread)
+        for thread in jobs:
+            thread.start()
+        for thread in jobs:
+            thread.join()
         # Save changes made during downloading (e.g. downloadedUserPosts)
         self.saveState()
 
@@ -94,15 +92,15 @@ class RedditData():
         else:
             self.downloadedUserPosts.get(user).add(link)
 
-    def getValidPosts(self, submitted):
+    def getValidPosts(self, submitted, user):
         posts = []
         for post in submitted:
             subreddit = post.subreddit.display_name
-            if subreddit.lower() in [sreddit.lower() for sreddit in self.subredditSets.get(self.currentSubredditSetName)] and self.isValidPost(post):
+            if subreddit.lower() in [sreddit.lower() for sreddit in self.subredditSets.get(self.currentSubredditSetName)] and self.isValidPost(post, user):
                 posts.append(post)
         return posts
 
-    def isValidPost(self, post):
+    def isValidPost(self, post, user):
         ''' Determines if this is a good post to download from
         Valid if:
             it is from imgur
@@ -110,14 +108,12 @@ class RedditData():
             it is not a xpost from another subreddit which is itself a valid subreddit (to avoid duplicate file downloads)
             it is not in a blacklist
         '''
-        return self.isNewSubmission(post) and self.isNotXPost(post) and isNotInBlacklist(post, self.defaultPath)
-    
+        return self.isNewSubmission(post, user) and self.isNotXPost(post) and isNotInBlacklist(post, self.defaultPath)
 
-    def isNewSubmission(self, post):
-        user = post.author.name
-        url = post.url
-        downloads = self.downloadedUserPosts.get(user)
-        return downloads is None or url not in downloads
+    def isNewSubmission(self, post, user):
+        url = post.permalink
+        downloads = user.posts
+        return len(downloads) <= 0 or url not in downloads
 
     def isNotXPost(self, post):
         xpostSynonyms = ['xpost', 'x-post', 'x post', 'crosspost', 'cross-post', 'cross post']
@@ -133,15 +129,25 @@ class RedditData():
             os.makedirs(directory)
 
     def saveState(self):
+        userListModels = self.userLists
+        userListSettings = {} # Use this to save normally unpickleable stuff
+        successful = False
+        for key, val in userListModels.items():
+            userListSettings[key] = val.users
         try:
             shelf = shelve.open("settings.db")
-            rddtScraper = shelf['rddtScraper']
-            rddtScraper.downloadedUserPosts = self.downloadedUserPosts
-            shelf['rddtScraper'] = rddtScraper
+            self.userLists = None # QAbstractListModel is not pickleable so set this to None
+            shelf['rddtScraper'] = self
+            shelf['userLists'] = userListSettings # Save QAbstractList data as a simple dict of list
+            self.userLists = userListModels # Restore the user lists in case the user is not exiting program
+            print("Saving program")
+            successful = True
         except KeyError:
-            pass
+            print("fail")
+            successful = False
         finally:
             shelf.close()
+        return successful
 
 def getUser():
     return input("Enter user to scrape info from: ")
