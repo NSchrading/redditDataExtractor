@@ -1,8 +1,8 @@
 from PyQt4.Qt import *
 from user import User
 
-class UserListModel(QAbstractListModel):
 
+class UserListModel(QAbstractListModel):
     def __init__(self, users, parent=None):
         super().__init__(parent)
         self.users = users
@@ -24,14 +24,14 @@ class UserListModel(QAbstractListModel):
             uniqueName = name + " " + str(count)
         return uniqueName
 
-    def rowCount(self, parent=None):
+    def rowCount(self, parent=QModelIndex()):
         return len(self.users)
 
-    def data(self, index, role):
+    def data(self, index, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
             return self.users[index.row()].name
         elif role == Qt.DecorationRole:
-            return None # can make it display a picture here
+            return None  # can make it display a picture here
         elif role == Qt.ToolTipRole:
             return "User name: " + self.users[index.row()].name
         elif role == Qt.EditRole:

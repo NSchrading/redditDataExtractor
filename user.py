@@ -1,5 +1,5 @@
 class User():
-    slots = ('name',' posts')
+    slots = ('name', 'posts')
 
     def __init__(self, name, posts=None):
         self.name = name
