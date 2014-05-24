@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'redditScraper.ui'
 #
-# Created: Wed May 21 16:04:23 2014
+# Created: Sat May 24 00:17:22 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -93,14 +93,14 @@ class Ui_RddtScrapeMainWindow(object):
         self.gridLayout.addLayout(self.horizontalLayout, 2, 0, 1, 1)
         spacerItem2 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.gridLayout.addItem(spacerItem2, 5, 0, 1, 1)
-        self.subredditList = QtGui.QListWidget(self.centralwidget)
-        self.subredditList.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
-        self.subredditList.setObjectName(_fromUtf8("subredditList"))
-        self.gridLayout.addWidget(self.subredditList, 1, 1, 1, 1)
         self.userList = QtGui.QListView(self.centralwidget)
         self.userList.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
         self.userList.setObjectName(_fromUtf8("userList"))
         self.gridLayout.addWidget(self.userList, 1, 0, 1, 1)
+        self.subredditList = QtGui.QListView(self.centralwidget)
+        self.subredditList.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
+        self.subredditList.setObjectName(_fromUtf8("subredditList"))
+        self.gridLayout.addWidget(self.subredditList, 1, 1, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout, 0, 0, 1, 1)
         RddtScrapeMainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(RddtScrapeMainWindow)

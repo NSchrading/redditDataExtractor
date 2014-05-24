@@ -7,34 +7,39 @@ import shelve
 import threading
 from imageFinder import ImageFinder
 from ImgurImageFinder import ImgurImageFinder
-from userListModel import UserListModel
+from listModel import ListModel
+from genericListModelObjects import GenericListModelObj, User
 
 nullToNoneRegex = re.compile("null")
-validSubreddits = {"adviceanimals", "aww", "books", "earthporn", "funny", "gaming", "gifs", "movies", "music", "pics",
-                   "science", "technology", "television", "videos", "wtf"}
 defaultPath = os.path.abspath(os.path.expanduser('Downloads'))
 
 
 class RedditData():
-    __slots__ = ('defaultPath', 'subredditSets', 'userLists', 'currentSubredditSetName', 'currentUserListName',
-                 'defaultSubredditSetName', 'defaultUserListName', 'downloadedUserPosts', 'r')
+    __slots__ = ('defaultPath', 'subredditLists', 'userLists', 'currentSubredditListName', 'currentUserListName',
+                 'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r')
 
-    def __init__(self, defaultPath=defaultPath, subredditSets=None, userLists=None,
-                 currentSubredditSetName='Default Subs',
-                 currentUserListName='Default User List', defaultSubredditSetName='Default Subs',
+    def __init__(self, defaultPath=defaultPath, subredditLists=None, userLists=None,
+                 currentSubredditListName='Default Subs',
+                 currentUserListName='Default User List', defaultSubredditListName='Default Subs',
                  defaultUserListName='Default User List'):
         self.defaultPath = defaultPath
-        if subredditSets is None:
-            self.subredditSets = {'Default Subs': validSubreddits}
+        if subredditLists is None:
+            self.subredditLists = {'Default Subs': ListModel(
+                [GenericListModelObj("adviceanimals"), GenericListModelObj("aww"), GenericListModelObj("books"),
+                 GenericListModelObj("earthporn"), GenericListModelObj("funny"), GenericListModelObj("gaming"),
+                 GenericListModelObj("gifs"), GenericListModelObj("movies"), GenericListModelObj("music"),
+                 GenericListModelObj("pics"),
+                 GenericListModelObj("science"), GenericListModelObj("technology"), GenericListModelObj("television"),
+                 GenericListModelObj("videos"), GenericListModelObj("wtf")], GenericListModelObj)}
         else:
-            self.subredditSets = subredditSets
+            self.subredditLists = subredditLists
         if userLists is None:
-            self.userLists = {'Default User List': UserListModel([])}
+            self.userLists = {'Default User List': ListModel([], User)}
         else:
             self.userLists = userLists
-        self.currentSubredditSetName = currentSubredditSetName
+        self.currentSubredditListName = currentSubredditListName
         self.currentUserListName = currentUserListName
-        self.defaultSubredditSetName = defaultSubredditSetName
+        self.defaultSubredditListName = defaultSubredditListName
         self.defaultUserListName = defaultUserListName
         self.r = praw.Reddit(user_agent='RedditUserScraper by /u/VoidXC')
 
@@ -62,7 +67,7 @@ class RedditData():
     def downloadThread(self):
         jobs = []
         model = self.userLists.get(self.currentUserListName)
-        for user in model.users:
+        for user in model.lst:
             thread = threading.Thread(target=self.downloadUserProcess, args=(user,))
             jobs.append(thread)
         for thread in jobs:
@@ -91,8 +96,8 @@ class RedditData():
         for post in submitted:
             subreddit = post.subreddit.display_name
             if subreddit.lower() in [sreddit.lower() for sreddit in
-                                     self.subredditSets.get(self.currentSubredditSetName)] and self.isValidPost(post,
-                                                                                                                user):
+                                     self.subredditLists.get(self.currentSubredditListName)] and self.isValidPost(post,
+                                                                                                                  user):
                 posts.append(post)
         return posts
 
@@ -114,7 +119,7 @@ class RedditData():
     def isNotXPost(self, post):
         xpostSynonyms = ['xpost', 'x-post', 'x post', 'crosspost', 'cross-post', 'cross post']
         title = post.title.lower()
-        for subreddit in self.subredditSets.get(self.currentSubredditSetName):
+        for subreddit in self.subredditLists.get(self.currentSubredditListName):
             if (subreddit in title) and any(syn in title for syn in xpostSynonyms):
                 return False
         return True
@@ -127,15 +132,22 @@ class RedditData():
     def saveState(self):
         userListModels = self.userLists
         userListSettings = {}  # Use this to save normally unpickleable stuff
+        subredditListModels = self.subredditLists
+        subredditListSettings = {}
         successful = False
         for key, val in userListModels.items():
-            userListSettings[key] = val.users
+            userListSettings[key] = val.lst
+        for key, val in subredditListModels.items():
+            subredditListSettings[key] = val.lst
         shelf = shelve.open("settings.db")
         try:
             self.userLists = None  # QAbstractListModel is not pickleable so set this to None
+            self.subredditLists = None
             shelf['rddtScraper'] = self
             shelf['userLists'] = userListSettings  # Save QAbstractList data as a simple dict of list
+            shelf['subredditLists'] = subredditListSettings
             self.userLists = userListModels  # Restore the user lists in case the user is not exiting program
+            self.subredditLists = subredditListModels
             print("Saving program")
             successful = True
         except KeyError:

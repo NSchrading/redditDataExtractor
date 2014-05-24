@@ -3,16 +3,16 @@ from settings_auto import Ui_SettingsDialog
 
 
 class SettingsGUI(QDialog, Ui_SettingsDialog):
-    def __init__(self, userLists, subredditSets, currentUserListName, currentSubredditSetName):
+    def __init__(self, userLists, subredditLists, currentUserListName, currentSubredditListName):
         QDialog.__init__(self)
 
         # Set up the user interface from Designer.
         self.setupUi(self)
 
         self.userLists = userLists
-        self.subredditSets = subredditSets
+        self.subredditLists = subredditLists
         self.currentUserListName = currentUserListName
-        self.currentSubredditSetName = currentSubredditSetName
+        self.currentSubredditListName = currentSubredditListName
 
         self.defaultUserListComboBox.activated.connect(self.chooseNewUserList)
         self.defaultSubredditListComboBox.activated.connect(self.chooseNewSubredditList)
@@ -23,13 +23,13 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
             self.defaultUserListComboBox.addItem(userListKey)
         index = self.defaultUserListComboBox.findText(self.currentUserListName)
         self.defaultUserListComboBox.setCurrentIndex(index)
-        for subredditSetName in self.subredditSets:
-            self.defaultSubredditListComboBox.addItem(subredditSetName)
-        index = self.defaultSubredditListComboBox.findText(self.currentSubredditSetName)
+        for subredditListKey in self.subredditLists:
+            self.defaultSubredditListComboBox.addItem(subredditListKey)
+        index = self.defaultSubredditListComboBox.findText(self.currentSubredditListName)
         self.defaultSubredditListComboBox.setCurrentIndex(index)
 
     def chooseNewUserList(self):
         self.currentUserListName = self.defaultUserListComboBox.currentText()
 
     def chooseNewSubredditList(self):
-        self.currentSubredditSetName = self.defaultSubredditListComboBox.currentText()
+        self.currentSubredditListName = self.defaultSubredditListComboBox.currentText()
