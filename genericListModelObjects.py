@@ -10,6 +10,6 @@ class User(GenericListModelObj):
     def __init__(self, name, posts=None):
         super().__init__(name)
         if posts is None:
-            self.posts = set([])
+            self.posts = {}
         else:
             self.posts = posts

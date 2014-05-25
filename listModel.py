@@ -3,7 +3,7 @@ from genericListModelObjects import GenericListModelObj, User
 
 
 class ListModel(QAbstractListModel):
-    def __init__(self, lst, type, parent=None):
+    def __init__(self, lst, type, parent=QObject()):
         super().__init__(parent)
         self.lst = lst
         self.type = type

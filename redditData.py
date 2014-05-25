@@ -95,8 +95,8 @@ class RedditData():
         posts = []
         for post in submitted:
             subreddit = post.subreddit.display_name
-            if subreddit.lower() in [sreddit.lower() for sreddit in
-                                     self.subredditLists.get(self.currentSubredditListName)] and self.isValidPost(post,
+            if subreddit.lower() in [sreddit.name.lower() for sreddit in
+                                     self.subredditLists.get(self.currentSubredditListName).lst] and self.isValidPost(post,
                                                                                                                   user):
                 posts.append(post)
         return posts
@@ -119,8 +119,8 @@ class RedditData():
     def isNotXPost(self, post):
         xpostSynonyms = ['xpost', 'x-post', 'x post', 'crosspost', 'cross-post', 'cross post']
         title = post.title.lower()
-        for subreddit in self.subredditLists.get(self.currentSubredditListName):
-            if (subreddit in title) and any(syn in title for syn in xpostSynonyms):
+        for subreddit in self.subredditLists.get(self.currentSubredditListName).lst:
+            if (subreddit.name in title) and any(syn in title for syn in xpostSynonyms):
                 return False
         return True
 

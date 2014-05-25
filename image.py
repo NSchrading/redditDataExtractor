@@ -6,7 +6,8 @@ warnings.filterwarnings("ignore", category=ResourceWarning)
 
 
 class Image():
-    __slots__ = ('user', 'postID', 'fileType', 'defaultPath', 'savePath', 'URL', 'redditPostURL', 'iterContent', 'numInSeq')
+    __slots__ = (
+    'user', 'postID', 'fileType', 'defaultPath', 'savePath', 'URL', 'redditPostURL', 'iterContent', 'numInSeq')
 
     def __init__(self, user, postID, fileType, defaultPath, URL, redditPostURL, iterContent, numInSeq=""):
         self.user = user
@@ -28,11 +29,13 @@ class Image():
         self.savePath = os.path.abspath(os.path.join(self.defaultPath, self.user, imageFile))
 
     def download(self, user):
+        if user.posts.get(
+                self.redditPostURL) is None:  # Add 1 representative picture for this post, even if it is an album with multiple pictures
+            user.posts[self.redditPostURL] = self.savePath
         print('Saving %s...' % self.savePath)
         with open(self.savePath, 'wb') as fo:
             for chunk in self.iterContent:
                 fo.write(chunk)
-        user.posts.add(self.redditPostURL) # only add post URLs we successfully saved images from
 
         '''
         DIRECT

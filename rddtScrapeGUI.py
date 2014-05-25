@@ -116,11 +116,13 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         model = self.rddtScraper.userLists.get(self.rddtScraper.currentUserListName)
         if model is not None:
             model.insertRows(model.rowCount(), 1)
+            self.setUnsavedChanges(True)
 
     def addSubredditToList(self):
         model = self.rddtScraper.subredditLists.get(self.rddtScraper.currentSubredditListName)
         if model is not None:
             model.insertRows(model.rowCount(), 1)
+            self.setUnsavedChanges(True)
 
     def deleteUserFromList(self):
         model = self.rddtScraper.userLists.get(self.rddtScraper.currentUserListName)
@@ -130,6 +132,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             index = indices[0].row()  # only one thing should be selectable at a time
         if model is not None and index is not None:
             model.removeRows(index, 1)
+            self.setUnsavedChanges(True)
 
     def deleteSubredditFromList(self):
         model = self.rddtScraper.subredditLists.get(self.rddtScraper.currentSubredditListName)
@@ -139,6 +142,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             index = indices[0].row()  # only one thing should be selectable at a time
         if model is not None and index is not None:
             model.removeRows(index, 1)
+            self.setUnsavedChanges(True)
 
     def showSettings(self):
         settings = SettingsGUI(self.rddtScraper.userLists, self.rddtScraper.subredditLists,
@@ -156,10 +160,15 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                                                        "New Subreddit List Name:",
                                                        QLineEdit.Normal, "New Subreddit List")
         if okay and len(subredditListName) > 0:
+            if any([subredditListName in lst for lst in self.rddtScraper.subredditLists]):
+                QMessageBox.information(QMessageBox(), "Reddit Scraper", "Duplicate subreddit list names not allowed.")
+                return
             self.subredditListChooser.addItem(subredditListName)
             self.subredditListChooser.setCurrentIndex(self.subredditListChooser.count() - 1)
             self.rddtScraper.subredditLists[subredditListName] =  ListModel([], GenericListModelObj)
             self.chooseNewSubredditList(self.subredditListChooser.count() - 1)
+            if self.rddtScraper.defaultSubredditListName is None: # becomes None if user deletes all subreddit lists
+                self.rddtScraper.defaultSubredditListName = subredditListName
             self.setUnsavedChanges(True)
 
     def makeNewUserList(self):
@@ -167,10 +176,15 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                                                   QLineEdit.Normal,
                                                   "New User List")
         if okay and len(userListName) > 0:
+            if any([userListName in lst for lst in self.rddtScraper.userLists]):
+                QMessageBox.information(QMessageBox(), "Reddit Scraper", "Duplicate user list names not allowed.")
+                return
             self.userListChooser.addItem(userListName)
             self.userListChooser.setCurrentIndex(self.userListChooser.count() - 1)
             self.rddtScraper.userLists[userListName] = ListModel([], User)
             self.chooseNewUserList(self.userListChooser.count() - 1)
+            if self.rddtScraper.defaultUserListName is None: # becomes None if user deletes all subreddit lists
+                self.rddtScraper.defaultUserListName = userListName
             self.setUnsavedChanges(True)
 
     def removeSubredditList(self):
@@ -209,6 +223,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                     self.rddtScraper.currentSubredditListName = None
                     self.rddtScraper.defaultSubredditListName = None
                     self.subredditList.setModel(ListModel([], GenericListModelObj))
+            self.setUnsavedChanges(True)
 
     def removeUserList(self):
         index = self.userListChooser.currentIndex()
@@ -248,6 +263,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                     self.rddtScraper.currentUserListName = None
                     self.rddtScraper.defaultUserListName = None
                     self.userList.setModel(ListModel([], User))
+            self.setUnsavedChanges(True)
 
     def chooseNewUserList(self, userListIndex):
         userListName = self.userListChooser.itemText(userListIndex)
@@ -273,15 +289,21 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             selectedUser = model.getObjectInLst(index)
             downloadedUserPosts = selectedUser.posts
             print(downloadedUserPosts)
-            if downloadedUserPosts is not None:
+            if downloadedUserPosts is not None and len(downloadedUserPosts) > 0:
                 downloadedUserPostsGUI = DownloadedUserPostsGUI()
                 for post in downloadedUserPosts:
                     item = QListWidgetItem("", downloadedUserPostsGUI.downloadedUserPostsList)
                     labelWidget = QLabel()
                     labelWidget.setOpenExternalLinks(True)
                     labelWidget.setTextFormat(Qt.RichText)
+                    size = QSize(128, 128)
+                    item.setSizeHint(size)
+                    pixmap = QPixmap(downloadedUserPosts.get(post)).scaled(size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                    height = pixmap.height()
+                    width = pixmap.width()
                     postTitle = post[post[0:-1].rfind("/") + 1:-1]
-                    labelWidget.setText('<a href="' + post + '">' + postTitle + '</a>')
+                    labelWidget.setText('<a href="' + post + '"><img src="' + downloadedUserPosts.get(post) + '" height="' + str(height) + '" width="' + str(width) + '">')
+                    #labelWidget.setPixmap(QPixmap(downloadedUserPosts.get(post)).scaled(size))
                     downloadedUserPostsGUI.downloadedUserPostsList.setItemWidget(item, labelWidget)
                 downloadedUserPostsGUI.exec_()
             else:
