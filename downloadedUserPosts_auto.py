@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'downloadedUserPosts.ui'
 #
-# Created: Mon May 26 00:46:43 2014
+# Created: Mon May 26 14:44:12 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_DownloadedUserPostsDialog(object):
     def setupUi(self, DownloadedUserPostsDialog):
         DownloadedUserPostsDialog.setObjectName(_fromUtf8("DownloadedUserPostsDialog"))
-        DownloadedUserPostsDialog.resize(200, 412)
+        DownloadedUserPostsDialog.resize(312, 412)
         self.horizontalLayout = QtGui.QHBoxLayout(DownloadedUserPostsDialog)
         self.horizontalLayout.setSizeConstraint(QtGui.QLayout.SetDefaultConstraint)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))

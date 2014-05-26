@@ -9,22 +9,28 @@ class ImgurLinkTypeEnum():
 
 
 class ImgurImageFinder():
-    __slots__ = ('URL', 'CLIENT_ID', 'imgurLinkType')
+    __slots__ = ('CLIENT_ID', 'imgurLinkType', 'avoidDuplicates', 'alreadyDownloadedImgurURLs', 'alreadyQueriedURLs')
 
-    def __init__(self, URL):
+    def __init__(self, alreadyDownloadedImgurURLs, avoidDuplicates):
 
-        self.URL = URL
         self.CLIENT_ID = 'e0ea61b57d4c3c9'  # imgur client ID for API access
-        self.imgurLinkType = self.getImgurLinkType()
+        self.imgurLinkType = None
+        self.avoidDuplicates = avoidDuplicates
+        self.alreadyDownloadedImgurURLs = alreadyDownloadedImgurURLs
+        self.alreadyQueriedURLs = set([])
 
     def validURLImage(self, url):
         #Determine if the file is good to download.
+        #Must not be an already-downloaded imgur url
         #Status Code must be 200 (valid page)
         #Must have valid data response
+        if self.avoidDuplicates and url in self.alreadyDownloadedImgurURLs:
+            return False, None
         headers = {'Authorization': 'Client-ID ' + self.CLIENT_ID}
         apiURL = 'https://api.imgur.com/3/'
         if self.imgurLinkType == ImgurLinkTypeEnum.DIRECT:
-            imgurHashID = url[url.rfind('/') + 1:url.rfind('.')]
+            imgurHashID = url[url.rfind('/') + 1:]
+            imgurHashID = imgurHashID[:imgurHashID.rfind('.')]
             apiURL += 'image/' + imgurHashID + '.json'
         elif self.imgurLinkType == ImgurLinkTypeEnum.SINGLE_PAGE:
             imgurHashID = url[url.rfind('/') + 1:]
@@ -32,7 +38,10 @@ class ImgurImageFinder():
         else:
             imgurHashID = url[url.rfind('/') + 1:]
             apiURL += 'album/' + imgurHashID + '.json'
+        if apiURL in self.alreadyQueriedURLs: # Regardless of if we want to avoid duplicates, we always want to reduce API calls
+            return False, None
         response = requests.get(apiURL, headers=headers, stream=True)
+        self.alreadyQueriedURLs.add(apiURL)
         json = response.json()
         status = json.get('status')
         success = json.get('success')
@@ -72,10 +81,10 @@ class ImgurImageFinder():
                                 imageURLs.append(link)
         return imageURLs
 
-    def getImgurLinkType(self):
-        if "i.imgur.com" in self.URL:
+    def getImgurLinkType(self, url):
+        if "i.imgur.com" in url:
             return ImgurLinkTypeEnum.DIRECT
-        elif "imgur.com/a/" in self.URL:
+        elif "imgur.com/a/" in url:
             return ImgurLinkTypeEnum.ALBUM
         else:
             return ImgurLinkTypeEnum.SINGLE_PAGE
@@ -96,6 +105,7 @@ class ImgurImageFinder():
 
     def getImages(self, post, defaultPath):
         images = []
+        self.imgurLinkType = self.getImgurLinkType(post.url)
         imageURLs = self.getImageURLs(post.url)
         count = 1
         for imageURL in imageURLs:

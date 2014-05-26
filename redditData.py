@@ -9,16 +9,20 @@ from ImgurImageFinder import ImgurImageFinder
 from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User
 
+class DownloadType():
+    USER_SUBREDDIT_CONSTRAINED = 1
+    USER_SUBREDDIT_ALL = 2
+    SUBREDDIT_FRONTPAGE = 3
 
 class RedditData():
     __slots__ = ('defaultPath', 'subredditLists', 'userLists', 'currentSubredditListName', 'currentUserListName',
-                 'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r')
+                 'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r', 'downloadType', 'avoidDuplicates')
 
     def __init__(self, defaultPath=os.path.abspath(os.path.expanduser('Downloads')), subredditLists=None,
                  userLists=None,
                  currentSubredditListName='Default Subs',
                  currentUserListName='Default User List', defaultSubredditListName='Default Subs',
-                 defaultUserListName='Default User List'):
+                 defaultUserListName='Default User List', avoidDuplicates=True):
 
         self.defaultPath = defaultPath
         if subredditLists is None:
@@ -40,6 +44,8 @@ class RedditData():
         self.defaultSubredditListName = defaultSubredditListName
         self.defaultUserListName = defaultUserListName
         self.r = praw.Reddit(user_agent='RedditUserScraper by /u/VoidXC')
+        self.downloadType = DownloadType.USER_SUBREDDIT_CONSTRAINED
+        self.avoidDuplicates = avoidDuplicates
 
     def downloadUserProcess(self, user):
         userName = user.name
@@ -57,9 +63,9 @@ class RedditData():
                 #numPosts = None if options.refresh == 0 else options.refresh
                 submitted = redditor.get_submitted(limit=refresh)
                 posts = self.getValidPosts(submitted, user)
-                images = self.getImages(posts)
+                images = self.getImages(posts, user)
                 with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                    future = [executor.submit(image.download, user) for image in images if image is not None]
+                    future = [executor.submit(image.download, user, self.avoidDuplicates) for image in images if image is not None]
                     concurrent.futures.wait(future)
 
     def downloadThread(self):
@@ -79,11 +85,12 @@ class RedditData():
         thread = threading.Thread(target=self.downloadThread)
         thread.start()
 
-    def getImages(self, posts):
+    def getImages(self, posts, user):
         images = []
+        imgurImageFinder = ImgurImageFinder(user.imgurPosts, self.avoidDuplicates)
         for post in posts:
             if 'imgur' in post.domain:
-                imageFinder = ImgurImageFinder(post.url)
+                imageFinder = imgurImageFinder
             else:
                 imageFinder = ImageFinder(post.url)
             images.extend(imageFinder.getImages(post, self.defaultPath))
@@ -91,12 +98,13 @@ class RedditData():
 
     def getValidPosts(self, submitted, user):
         posts = []
+        validSubreddits = None
+        if self.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED:
+            validSubreddits = self.subredditLists.get(self.currentSubredditListName).stringsInLst
         for post in submitted:
             subreddit = post.subreddit.display_name
-            if subreddit.lower() in [sreddit.name.lower() for sreddit in
-                                     self.subredditLists.get(self.currentSubredditListName).lst] and self.isValidPost(
-                    post,
-                    user):
+            validSubreddit = validSubreddits is None or subreddit.lower() in validSubreddits
+            if validSubreddit and self.isValidPost(post, user):
                 posts.append(post)
         return posts
 
@@ -111,17 +119,27 @@ class RedditData():
 
     @staticmethod
     def isNewSubmission(post, user):
-        url = post.permalink
-        downloads = user.posts
-        return len(downloads) <= 0 or url not in downloads
+        redditURL = post.permalink
+        downloads = user.redditPosts
+        return len(downloads) <= 0 or redditURL not in downloads
 
     def isNotXPost(self, post):
+        if not self.avoidDuplicates:
+            return True
         xpostSynonyms = ['xpost', 'x-post', 'x post', 'crosspost', 'cross-post', 'cross post']
         title = post.title.lower()
-        for subreddit in self.subredditLists.get(self.currentSubredditListName).lst:
-            if (subreddit.name in title) and any(syn in title for syn in xpostSynonyms):
+        if self.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED:
+            validSubreddits = self.subredditLists.get(self.currentSubredditListName).stringsInLst
+            for subreddit in validSubreddits:
+                if (subreddit in title) and any(syn in title for syn in xpostSynonyms):
+                    return False
+        elif self.downloadType == DownloadType.USER_SUBREDDIT_ALL:
+            if any(syn in title for syn in xpostSynonyms):
                 return False
         return True
+
+    def changeDownloadType(self, downloadType):
+        self.downloadType = downloadType
 
     def makeDirectoryForUser(self, user):
         directory = os.path.abspath(os.path.join(self.defaultPath, user))

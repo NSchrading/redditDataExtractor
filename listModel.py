@@ -7,20 +7,20 @@ class ListModel(QAbstractListModel):
         super().__init__(parent)
         self.lst = lst
         self.lstObjType = lstObjType
-        self.stringsInLst = set([user.name for user in self.lst])
+        self.stringsInLst = set([lstObj.name.lower() for lstObj in self.lst])
 
     def swapStrs(self, oldStr, newStr):
-        self.stringsInLst.remove(oldStr)
-        self.stringsInLst.add(newStr)
+        self.stringsInLst.remove(oldStr.lower())
+        self.stringsInLst.add(newStr.lower())
         print(self.stringsInLst)
 
     def removeFromStringsInLst(self, string):
-        self.stringsInLst.remove(string)
+        self.stringsInLst.remove(string.lower())
 
     def generateUniqueStr(self, name="New List Item"):
         count = 1
         uniqueName = name + " " + str(count)
-        while uniqueName in self.stringsInLst:
+        while uniqueName.lower() in self.stringsInLst:
             count += 1
             uniqueName = name + " " + str(count)
         return uniqueName
@@ -54,7 +54,7 @@ class ListModel(QAbstractListModel):
             row = index.row()
             obj = self.lst[row]
             oldName = obj.name
-            if value in self.stringsInLst:
+            if value.lower() in self.stringsInLst:
                 # Can't add duplicates
                 return False
             else:
@@ -70,7 +70,7 @@ class ListModel(QAbstractListModel):
         for i in range(rows):
             newName = self.generateUniqueStr()
             newObj = self.lstObjType(newName)
-            self.stringsInLst.add(newName)
+            self.stringsInLst.add(newName.lower())
             self.lst.insert(position, newObj)
         self.endInsertRows()
         return True

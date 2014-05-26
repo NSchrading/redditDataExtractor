@@ -6,15 +6,16 @@ class GenericListModelObj():
 
 
 class User(GenericListModelObj):
-    slots = ('name', 'posts', 'blacklist')
+    slots = ('name', 'redditPosts', 'imgurPosts' 'blacklist')
 
-    def __init__(self, name, posts=None):
+    def __init__(self, name, redditPosts=None):
         super().__init__(name)
-        if posts is None:
-            self.posts = {}
+        if redditPosts is None:
+            self.redditPosts = {}
         else:
-            self.posts = posts
+            self.redditPosts = redditPosts
         self.blacklist = set([])
+        self.imgurPosts = set([])
 
-    def isNotInBlacklist(self, post):
-        return post not in self.blacklist
+    def isNotInBlacklist(self, redditPost):
+        return redditPost not in self.blacklist

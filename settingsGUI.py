@@ -3,7 +3,7 @@ from settings_auto import Ui_SettingsDialog
 
 
 class SettingsGUI(QDialog, Ui_SettingsDialog):
-    def __init__(self, userLists, subredditLists, currentUserListName, currentSubredditListName):
+    def __init__(self, userLists, subredditLists, currentUserListName, currentSubredditListName, avoidDuplicates):
         QDialog.__init__(self)
 
         # Set up the user interface from Designer.
@@ -16,6 +16,8 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
 
         self.defaultUserListComboBox.activated.connect(self.chooseNewUserList)
         self.defaultSubredditListComboBox.activated.connect(self.chooseNewSubredditList)
+        self.avoidDuplCheckBox.clicked.connect(self.changeAvoidDuplicates)
+        self.avoidDuplicates = avoidDuplicates
         self.initSettings()
 
     def initSettings(self):
@@ -27,9 +29,13 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
             self.defaultSubredditListComboBox.addItem(subredditListKey)
         index = self.defaultSubredditListComboBox.findText(self.currentSubredditListName)
         self.defaultSubredditListComboBox.setCurrentIndex(index)
+        self.avoidDuplCheckBox.setChecked(self.avoidDuplicates)
 
     def chooseNewUserList(self):
         self.currentUserListName = self.defaultUserListComboBox.currentText()
 
     def chooseNewSubredditList(self):
         self.currentSubredditListName = self.defaultSubredditListComboBox.currentText()
+
+    def changeAvoidDuplicates(self):
+        self.avoidDuplicates = self.avoidDuplCheckBox.isChecked()

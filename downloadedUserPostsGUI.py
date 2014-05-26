@@ -36,7 +36,7 @@ class DownloadedUserPostsGUI(QDialog, Ui_DownloadedUserPostsDialog):
         selectedIndex = self.downloadedUserPostsList.currentRow()
         print(selectedIndex)
         post = self.posts[selectedIndex]
-        imagePath = self.user.posts.get(post)
+        imagePath = self.user.redditPosts.get(post)
         imagePath = imagePath[:imagePath.rfind(" ")]  # strip out any number indicators
         fileExtension = os.path.splitext(imagePath)[1]
         images = glob.glob(imagePath + "*" + fileExtension)
@@ -45,7 +45,7 @@ class DownloadedUserPostsGUI(QDialog, Ui_DownloadedUserPostsDialog):
             "This will delete these files: \n" + files + "Are you sure you want to delete them?")
         ret = msgBox.exec_()
         if ret == QMessageBox.Yes:
-            del self.user.posts[post]
+            del self.user.redditPosts[post]
             self.posts.remove(post)
             item = self.downloadedUserPostsList.takeItem(selectedIndex)
             del item

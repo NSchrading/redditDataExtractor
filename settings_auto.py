@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'settings.ui'
 #
-# Created: Sun Mar 30 23:25:00 2014
+# Created: Mon May 26 16:53:47 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_SettingsDialog(object):
     def setupUi(self, SettingsDialog):
         SettingsDialog.setObjectName(_fromUtf8("SettingsDialog"))
-        SettingsDialog.resize(400, 300)
+        SettingsDialog.resize(485, 356)
         self.verticalLayout = QtGui.QVBoxLayout(SettingsDialog)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.formLayout = QtGui.QFormLayout()
@@ -46,6 +46,10 @@ class Ui_SettingsDialog(object):
         self.defaultSubredditListComboBox = QtGui.QComboBox(SettingsDialog)
         self.defaultSubredditListComboBox.setObjectName(_fromUtf8("defaultSubredditListComboBox"))
         self.formLayout.setWidget(1, QtGui.QFormLayout.FieldRole, self.defaultSubredditListComboBox)
+        self.avoidDuplCheckBox = QtGui.QCheckBox(SettingsDialog)
+        self.avoidDuplCheckBox.setChecked(True)
+        self.avoidDuplCheckBox.setObjectName(_fromUtf8("avoidDuplCheckBox"))
+        self.formLayout.setWidget(2, QtGui.QFormLayout.LabelRole, self.avoidDuplCheckBox)
         self.verticalLayout.addLayout(self.formLayout)
         self.dialogButtonBox = QtGui.QDialogButtonBox(SettingsDialog)
         self.dialogButtonBox.setOrientation(QtCore.Qt.Horizontal)
@@ -62,4 +66,5 @@ class Ui_SettingsDialog(object):
         SettingsDialog.setWindowTitle(_translate("SettingsDialog", "Settings", None))
         self.defaultUserListLabel.setText(_translate("SettingsDialog", "Default User List", None))
         self.defaultSubredditListLabel.setText(_translate("SettingsDialog", "Default Subreddit List", None))
+        self.avoidDuplCheckBox.setText(_translate("SettingsDialog", "Avoid Downloading Duplicate Images If Possible", None))
 

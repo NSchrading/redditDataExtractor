@@ -27,14 +27,16 @@ class Image():
             imageFile = self.postID + self.fileType
         self.savePath = os.path.abspath(os.path.join(self.defaultPath, self.user, imageFile))
 
-    def download(self, user):
-        if user.posts.get(
+    def download(self, user, avoidDuplicates):
+        if user.redditPosts.get(
                 self.redditPostURL) is None:  # Add 1 representative picture for this post, even if it is an album with multiple pictures
-            user.posts[self.redditPostURL] = self.savePath
-        print('Saving %s...' % self.savePath)
-        with open(self.savePath, 'wb') as fo:
-            for chunk in self.iterContent:
-                fo.write(chunk)
+            user.redditPosts[self.redditPostURL] = self.savePath
+        if (not avoidDuplicates) or (avoidDuplicates and self.URL not in user.imgurPosts):
+            user.imgurPosts.add(self.URL)
+            print('Saving %s...' % self.savePath)
+            with open(self.savePath, 'wb') as fo:
+                for chunk in self.iterContent:
+                    fo.write(chunk)
 
         '''
         DIRECT

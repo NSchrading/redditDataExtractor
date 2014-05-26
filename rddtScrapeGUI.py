@@ -5,7 +5,7 @@ import shelve
 from PyQt4.Qt import *
 from rddtScrape_auto import Ui_RddtScrapeMainWindow
 from settingsGUI import SettingsGUI
-from redditData import RedditData
+from redditData import RedditData, DownloadType
 from downloadedUserPostsGUI import DownloadedUserPostsGUI
 from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User
@@ -68,6 +68,10 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
 
         self.downloadBtn.clicked.connect(self.rddtScraper.download)
 
+        self.userSubBtn.clicked.connect(lambda: self.rddtScraper.changeDownloadType(DownloadType.USER_SUBREDDIT_CONSTRAINED))
+        self.allUserBtn.clicked.connect(lambda: self.rddtScraper.changeDownloadType(DownloadType.USER_SUBREDDIT_ALL))
+        self.allSubBtn.clicked.connect(lambda: self.rddtScraper.changeDownloadType(DownloadType.SUBREDDIT_FRONTPAGE))
+
         self.init()
 
     def initUserList(self):
@@ -79,6 +83,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.userList.setModel(model)
         index = self.userListChooser.findText(self.rddtScraper.defaultUserListName)
         self.userListChooser.setCurrentIndex(index)
+        self.rddtScraper.currentUserListName = self.rddtScraper.defaultUserListName
 
     def initSubredditList(self):
         for subredditListKey in self.rddtScraper.subredditLists:
@@ -89,6 +94,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.subredditList.setModel(model)
         index = self.subredditListChooser.findText(self.rddtScraper.defaultSubredditListName)
         self.subredditListChooser.setCurrentIndex(index)
+        self.rddtScraper.currentSubredditListName = self.rddtScraper.defaultSubredditListName
 
     def init(self):
         self.initUserList()
@@ -100,22 +106,6 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             self.rddtScraper.defaultPath = directory
             self.directoryBox.setText(directory)
             self.setUnsavedChanges(True)
-
-    def generateUniqueUserName(self, name):
-        count = 1
-        uniqueName = name + str(count)
-        while uniqueName in self.rddtScraper.userSets.get(self.rddtScraper.currentUserSetName):
-            count += 1
-            uniqueName = name + str(count)
-        return uniqueName
-
-    def generateUniqueSubredditName(self, name):
-        count = 1
-        uniqueName = name + str(count)
-        while uniqueName in self.rddtScraper.subredditSets.get(self.rddtScraper.currentSubredditSetName):
-            count += 1
-            uniqueName = name + str(count)
-        return uniqueName
 
     def addUserToList(self):
         model = self.rddtScraper.userLists.get(self.rddtScraper.currentUserListName)
@@ -151,7 +141,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
 
     def showSettings(self):
         settings = SettingsGUI(self.rddtScraper.userLists, self.rddtScraper.subredditLists,
-                               self.rddtScraper.defaultUserListName, self.rddtScraper.defaultSubredditListName)
+                               self.rddtScraper.defaultUserListName, self.rddtScraper.defaultSubredditListName, self.rddtScraper.avoidDuplicates)
         ret = settings.exec_()
         if ret == QDialog.Accepted:
             self.logPrint(
@@ -159,6 +149,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                     settings.currentSubredditListName))
             self.rddtScraper.defaultUserListName = settings.currentUserListName
             self.rddtScraper.defaultSubredditListName = settings.currentSubredditListName
+            self.rddtScraper.avoidDuplicates = settings.avoidDuplicates
             self.saveState()
 
     def makeNewSubredditList(self):
@@ -311,7 +302,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             index = indices[0]  # only one thing should be selectable at a time
         if model is not None and index is not None:
             selectedUser = model.getObjectInLst(index)
-            downloadedUserPosts = selectedUser.posts
+            downloadedUserPosts = selectedUser.redditPosts
             print(downloadedUserPosts)
             if downloadedUserPosts is not None and len(downloadedUserPosts) > 0:
                 downloadedUserPostsGUI = DownloadedUserPostsGUI(selectedUser, self.confirmDialog, self.saveState)
@@ -320,16 +311,17 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                     labelWidget = QLabel()
                     labelWidget.setOpenExternalLinks(True)
                     labelWidget.setTextFormat(Qt.RichText)
-                    size = QSize(128, 128)
+                    size = QSize(128, 158)
                     item.setSizeHint(size)
+                    size = QSize(128, 128)
                     pixmap = QPixmap(downloadedUserPosts.get(post)).scaled(size, Qt.KeepAspectRatio,
                                                                            Qt.SmoothTransformation)
                     height = pixmap.height()
                     width = pixmap.width()
-                    #postTitle = post[post[0:-1].rfind("/") + 1:-1]
+                    postTitle = post[post[0:-1].rfind("/") + 1:-1]
                     labelWidget.setText(
                         '<a href="' + post + '"><img src="' + downloadedUserPosts.get(post) + '" height="' + str(
-                            height) + '" width="' + str(width) + '">')
+                            height) + '" width="' + str(width) + '"><p>' + postTitle)
                     downloadedUserPostsGUI.downloadedUserPostsList.setItemWidget(item, labelWidget)
                     downloadedUserPostsGUI.posts.append(post)
                 downloadedUserPostsGUI.exec_()
