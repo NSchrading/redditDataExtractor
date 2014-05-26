@@ -4,6 +4,7 @@ from downloadedUserPosts_auto import Ui_DownloadedUserPostsDialog
 import os
 import glob
 
+
 class DownloadedUserPostsGUI(QDialog, Ui_DownloadedUserPostsDialog):
     def __init__(self, user, confirmDialog, saveState):
         QDialog.__init__(self)
@@ -12,8 +13,8 @@ class DownloadedUserPostsGUI(QDialog, Ui_DownloadedUserPostsDialog):
         self.setupUi(self)
         self.actionDelete_Post = QtGui.QAction(self)
         self.actionDelete_Post_And_Blacklist = QtGui.QAction(self)
-        self.actionDelete_Post.setText(QtGui.QApplication.translate("Downloaded User Posts GUI", "Delete post", None))
-        self.actionDelete_Post_And_Blacklist.setText(QtGui.QApplication.translate("Downloaded User Posts GUI", "Delete post and never download again", None))
+        self.actionDelete_Post.setText("Delete post")
+        self.actionDelete_Post_And_Blacklist.setText("Delete post and never download again")
         self.downloadedUserPostsList.addAction(self.actionDelete_Post)
         self.downloadedUserPostsList.addAction(self.actionDelete_Post_And_Blacklist)
         self.actionDelete_Post.triggered.connect(self.deletePost)
@@ -36,11 +37,12 @@ class DownloadedUserPostsGUI(QDialog, Ui_DownloadedUserPostsDialog):
         print(selectedIndex)
         post = self.posts[selectedIndex]
         imagePath = self.user.posts.get(post)
-        imagePath = imagePath[:imagePath.rfind(" ")] # strip out any number indicators
+        imagePath = imagePath[:imagePath.rfind(" ")]  # strip out any number indicators
         fileExtension = os.path.splitext(imagePath)[1]
         images = glob.glob(imagePath + "*" + fileExtension)
         files = "".join([str(file) + "\n" for file in images])
-        msgBox = self.confirmDialog("This will delete these files: \n" + files + "Are you sure you want to delete them?")
+        msgBox = self.confirmDialog(
+            "This will delete these files: \n" + files + "Are you sure you want to delete them?")
         ret = msgBox.exec_()
         if ret == QMessageBox.Yes:
             del self.user.posts[post]

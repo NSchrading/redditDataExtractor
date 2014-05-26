@@ -193,7 +193,8 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                 self.rddtScraper.defaultUserListName = userListName
             self.setUnsavedChanges(True)
 
-    def confirmDialog(self, message):
+    @staticmethod
+    def confirmDialog(message):
         msgBox = QMessageBox()
         msgBox.setText(message)
         msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
@@ -211,6 +212,8 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             name = self.rddtScraper.currentSubredditListName
             lstChooser = self.subredditListChooser
             chooseFunc = self.chooseNewSubredditList
+        else:
+            return
         index = lstChooser.findText(name)
         lstChooser.setCurrentIndex(index)
         chooseFunc(index)
@@ -230,6 +233,8 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             defaultName = modelName
             lstChooser = self.subredditListChooser
             chooseFunc = self.chooseNewSubredditList
+        else:
+            return
         index = lstChooser.findText(defaultName)
         lstChooser.setCurrentIndex(index)
         chooseFunc(index)
@@ -244,6 +249,8 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             self.rddtScraper.currentSubredditListName = None
             self.rddtScraper.defaultSubredditListName = None
             lst = self.subredditList
+        else:
+            return
         lst.setModel(ListModel([], GenericListModelObj))
 
     def removeLst(self, lstType):
@@ -261,6 +268,8 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             defaultName = self.rddtScraper.defaultSubredditListName
             message = "Are you sure you want to delete subreddit list: " + name + "?"
             lst = self.rddtScraper.subredditLists
+        else:
+            return
         msgBox = self.confirmDialog(message)
         ret = msgBox.exec_()
         if ret == QMessageBox.Yes:
@@ -317,7 +326,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                                                                            Qt.SmoothTransformation)
                     height = pixmap.height()
                     width = pixmap.width()
-                    postTitle = post[post[0:-1].rfind("/") + 1:-1]
+                    #postTitle = post[post[0:-1].rfind("/") + 1:-1]
                     labelWidget.setText(
                         '<a href="' + post + '"><img src="' + downloadedUserPosts.get(post) + '" height="' + str(
                             height) + '" width="' + str(width) + '">')

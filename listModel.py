@@ -3,10 +3,10 @@ from genericListModelObjects import GenericListModelObj, User
 
 
 class ListModel(QAbstractListModel):
-    def __init__(self, lst, type, parent=QObject()):
+    def __init__(self, lst, lstObjType, parent=QObject()):
         super().__init__(parent)
         self.lst = lst
-        self.type = type
+        self.lstObjType = lstObjType
         self.stringsInLst = set([user.name for user in self.lst])
 
     def swapStrs(self, oldStr, newStr):
@@ -58,7 +58,7 @@ class ListModel(QAbstractListModel):
                 # Can't add duplicates
                 return False
             else:
-                newObj = self.type(value)
+                newObj = self.lstObjType(value)
                 self.lst[row] = newObj
                 self.swapStrs(oldName, value)
                 self.dataChanged.emit(index, index)
@@ -69,7 +69,7 @@ class ListModel(QAbstractListModel):
         self.beginInsertRows(QModelIndex(), position, position + rows - 1)
         for i in range(rows):
             newName = self.generateUniqueStr()
-            newObj = self.type(newName)
+            newObj = self.lstObjType(newName)
             self.stringsInLst.add(newName)
             self.lst.insert(position, newObj)
         self.endInsertRows()

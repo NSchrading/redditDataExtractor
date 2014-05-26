@@ -1,7 +1,6 @@
 import concurrent.futures
 import praw
 import requests
-import re
 import os
 import shelve
 import threading
@@ -10,18 +9,17 @@ from ImgurImageFinder import ImgurImageFinder
 from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User
 
-nullToNoneRegex = re.compile("null")
-defaultPath = os.path.abspath(os.path.expanduser('Downloads'))
-
 
 class RedditData():
     __slots__ = ('defaultPath', 'subredditLists', 'userLists', 'currentSubredditListName', 'currentUserListName',
                  'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r')
 
-    def __init__(self, defaultPath=defaultPath, subredditLists=None, userLists=None,
+    def __init__(self, defaultPath=os.path.abspath(os.path.expanduser('Downloads')), subredditLists=None,
+                 userLists=None,
                  currentSubredditListName='Default Subs',
                  currentUserListName='Default User List', defaultSubredditListName='Default Subs',
                  defaultUserListName='Default User List'):
+
         self.defaultPath = defaultPath
         if subredditLists is None:
             self.subredditLists = {'Default Subs': ListModel(
@@ -96,22 +94,23 @@ class RedditData():
         for post in submitted:
             subreddit = post.subreddit.display_name
             if subreddit.lower() in [sreddit.name.lower() for sreddit in
-                                     self.subredditLists.get(self.currentSubredditListName).lst] and self.isValidPost(post,
-                                                                                                                  user):
+                                     self.subredditLists.get(self.currentSubredditListName).lst] and self.isValidPost(
+                    post,
+                    user):
                 posts.append(post)
         return posts
 
     def isValidPost(self, post, user):
-        ''' Determines if this is a good post to download from
+        """ Determines if this is a good post to download from
         Valid if:
-            it is from imgur
             it is a new submission (meaning the files have not been downloaded from this post already)
             it is not a xpost from another subreddit which is itself a valid subreddit (to avoid duplicate file downloads)
-            it is not in a blacklist
-        '''
+            it is not in a blacklisted post for the user
+        """
         return self.isNewSubmission(post, user) and self.isNotXPost(post) and user.isNotInBlacklist(post.permalink)
 
-    def isNewSubmission(self, post, user):
+    @staticmethod
+    def isNewSubmission(post, user):
         url = post.permalink
         downloads = user.posts
         return len(downloads) <= 0 or url not in downloads

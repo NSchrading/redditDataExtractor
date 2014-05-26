@@ -1,13 +1,12 @@
 import os
 import warnings
-import threading
 
 warnings.filterwarnings("ignore", category=ResourceWarning)
 
 
 class Image():
     __slots__ = (
-    'user', 'postID', 'fileType', 'defaultPath', 'savePath', 'URL', 'redditPostURL', 'iterContent', 'numInSeq')
+        'user', 'postID', 'fileType', 'defaultPath', 'savePath', 'URL', 'redditPostURL', 'iterContent', 'numInSeq')
 
     def __init__(self, user, postID, fileType, defaultPath, URL, redditPostURL, iterContent, numInSeq=""):
         self.user = user

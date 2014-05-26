@@ -14,7 +14,7 @@ class ImgurImageFinder():
     def __init__(self, URL):
 
         self.URL = URL
-        self.CLIENT_ID = 'e0ea61b57d4c3c9' # imgur client ID for API access
+        self.CLIENT_ID = 'e0ea61b57d4c3c9'  # imgur client ID for API access
         self.imgurLinkType = self.getImgurLinkType()
 
     def validURLImage(self, url):
@@ -38,7 +38,8 @@ class ImgurImageFinder():
         success = json.get('success')
         if (status is None and json.get('error') is not None) or (not success):
             return False, None
-        elif (status is not None and status == 200) and (json.get('image') is not None or json.get('data') is not None) and success:
+        elif (status is not None and status == 200) and (
+                json.get('image') is not None or json.get('data') is not None) and success:
             return True, response
         else:
             return False, None
@@ -88,7 +89,8 @@ class ImgurImageFinder():
         response = requests.get(URL, stream=True)
         fileType = self.getFileType(URL)
         if response.status_code == 200:
-            return Image(user, postID, fileType, defaultPath, URL, redditPostURL, response.iter_content(4096), str(count))
+            return Image(user, postID, fileType, defaultPath, URL, redditPostURL, response.iter_content(4096),
+                         str(count))
         else:
             return None
 
