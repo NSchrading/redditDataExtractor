@@ -11,6 +11,11 @@ from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User
 
 
+class ListType():
+    USER = 1
+    SUBREDDIT = 2
+
+
 class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
     def __init__(self, rddtScraper):
         QMainWindow.__init__(self)
@@ -47,8 +52,8 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.actionUser_List.triggered.connect(self.makeNewUserList)
         self.actionSave.triggered.connect(self.saveState)
 
-        self.actionRemove_Subreddit_List.triggered.connect(self.removeSubredditList)
-        self.actionRemove_User_List.triggered.connect(self.removeUserList)
+        self.actionRemove_Subreddit_List.triggered.connect(lambda: self.removeLst(ListType.SUBREDDIT))
+        self.actionRemove_User_List.triggered.connect(lambda: self.removeLst(ListType.USER))
 
         self.userListChooser.addAction(self.actionUser_List)
         self.subredditListChooser.addAction(self.actionSubreddit_List)
@@ -150,7 +155,8 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         ret = settings.exec_()
         if ret == QDialog.Accepted:
             self.logPrint(
-                "Saving settings:\n" + str(settings.currentUserListName) + "\n" + str(settings.currentSubredditListName))
+                "Saving settings:\n" + str(settings.currentUserListName) + "\n" + str(
+                    settings.currentSubredditListName))
             self.rddtScraper.defaultUserListName = settings.currentUserListName
             self.rddtScraper.defaultSubredditListName = settings.currentSubredditListName
             self.saveState()
@@ -165,9 +171,9 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                 return
             self.subredditListChooser.addItem(subredditListName)
             self.subredditListChooser.setCurrentIndex(self.subredditListChooser.count() - 1)
-            self.rddtScraper.subredditLists[subredditListName] =  ListModel([], GenericListModelObj)
+            self.rddtScraper.subredditLists[subredditListName] = ListModel([], GenericListModelObj)
             self.chooseNewSubredditList(self.subredditListChooser.count() - 1)
-            if self.rddtScraper.defaultSubredditListName is None: # becomes None if user deletes all subreddit lists
+            if self.rddtScraper.defaultSubredditListName is None:  # becomes None if user deletes all subreddit lists
                 self.rddtScraper.defaultSubredditListName = subredditListName
             self.setUnsavedChanges(True)
 
@@ -183,86 +189,95 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             self.userListChooser.setCurrentIndex(self.userListChooser.count() - 1)
             self.rddtScraper.userLists[userListName] = ListModel([], User)
             self.chooseNewUserList(self.userListChooser.count() - 1)
-            if self.rddtScraper.defaultUserListName is None: # becomes None if user deletes all subreddit lists
+            if self.rddtScraper.defaultUserListName is None:  # becomes None if user deletes all subreddit lists
                 self.rddtScraper.defaultUserListName = userListName
             self.setUnsavedChanges(True)
 
-    def removeSubredditList(self):
-        index = self.subredditListChooser.currentIndex()
-        name = self.subredditListChooser.currentText()
+    def confirmDialog(self, message):
         msgBox = QMessageBox()
-        msgBox.setText("Are you sure you want to delete subreddit list: " + name + "?")
+        msgBox.setText(message)
         msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         msgBox.setDefaultButton(QMessageBox.No)
+        return msgBox
+
+    def removeNonDefaultLst(self, lstType):
+        if lstType == ListType.USER:
+            self.rddtScraper.currentUserListName = self.rddtScraper.defaultUserListName
+            name = self.rddtScraper.currentUserListName
+            lstChooser = self.userListChooser
+            chooseFunc = self.chooseNewUserList
+        elif lstType == ListType.SUBREDDIT:
+            self.rddtScraper.currentSubredditListName = self.rddtScraper.defaultSubredditListName
+            name = self.rddtScraper.currentSubredditListName
+            lstChooser = self.subredditListChooser
+            chooseFunc = self.chooseNewSubredditList
+        index = lstChooser.findText(name)
+        lstChooser.setCurrentIndex(index)
+        chooseFunc(index)
+
+    def removeDefaultLst(self, lstType):
+        if lstType == ListType.USER:
+            modelName = list(self.rddtScraper.userLists)[0]
+            self.rddtScraper.currentUserListName = modelName
+            self.rddtScraper.defaultUserListName = modelName
+            defaultName = modelName
+            lstChooser = self.userListChooser
+            chooseFunc = self.chooseNewUserList
+        elif lstType == ListType.SUBREDDIT:
+            modelName = list(self.rddtScraper.subredditLists)[0]
+            self.rddtScraper.currentSubredditListName = modelName
+            self.rddtScraper.defaultSubredditListName = modelName
+            defaultName = modelName
+            lstChooser = self.subredditListChooser
+            chooseFunc = self.chooseNewSubredditList
+        index = lstChooser.findText(defaultName)
+        lstChooser.setCurrentIndex(index)
+        chooseFunc(index)
+
+    def removeLastLst(self, lstType):
+        print('deleting last list')
+        if lstType == ListType.USER:
+            self.rddtScraper.currentUserListName = None
+            self.rddtScraper.defaultUserListName = None
+            lst = self.userList
+        elif lstType == ListType.SUBREDDIT:
+            self.rddtScraper.currentSubredditListName = None
+            self.rddtScraper.defaultSubredditListName = None
+            lst = self.subredditList
+        lst.setModel(ListModel([], GenericListModelObj))
+
+    def removeLst(self, lstType):
+        if lstType == ListType.USER:
+            lstChooser = self.userListChooser
+            index = lstChooser.currentIndex()
+            name = lstChooser.currentText()
+            defaultName = self.rddtScraper.defaultUserListName
+            message = "Are you sure you want to delete user list: " + name + "?"
+            lst = self.rddtScraper.userLists
+        elif lstType == ListType.SUBREDDIT:
+            lstChooser = self.subredditListChooser
+            index = lstChooser.currentIndex()
+            name = lstChooser.currentText()
+            defaultName = self.rddtScraper.defaultSubredditListName
+            message = "Are you sure you want to delete subreddit list: " + name + "?"
+            lst = self.rddtScraper.subredditLists
+        msgBox = self.confirmDialog(message)
         ret = msgBox.exec_()
         if ret == QMessageBox.Yes:
-            if len(self.rddtScraper.subredditLists) <= 0:
+            if len(lst) <= 0:
                 QMessageBox.information(QMessageBox(), "Reddit Scraper", "There are no more lists left to delete.")
                 return
-            self.subredditListChooser.removeItem(index)
-            del self.rddtScraper.subredditLists[name]
+            lstChooser.removeItem(index)
+            del lst[name]
             # if default is not being removed, just remove and switch to default
-            if name != self.rddtScraper.defaultSubredditListName:
-                self.rddtScraper.currentSubredditListName = self.rddtScraper.defaultSubredditListName
-                index = self.subredditListChooser.findText(self.rddtScraper.defaultSubredditListName)
-                self.subredditListChooser.setCurrentIndex(index)
-                self.chooseNewSubredditList(index)
+            if name != defaultName:
+                self.removeNonDefaultLst(lstType)
             else:
                 if len(self.rddtScraper.subredditLists) > 0:
                     # just choose the first model
-                    modelName = list(self.rddtScraper.subredditLists)[0]
-                    model = self.rddtScraper.userLists.get(modelName)
-                    self.rddtScraper.currentSubredditListName = modelName
-                    self.rddtScraper.defaultUserListName = modelName
-                    defaultName = modelName
-                    index = self.subredditListChooser.findText(defaultName)
-                    self.subredditListChooser.setCurrentIndex(index)
-                    self.chooseNewSubredditList(index)
+                    self.removeDefaultLst(lstType)
                 else:
-                    print('deleting last list')
-                    self.rddtScraper.currentSubredditListName = None
-                    self.rddtScraper.defaultSubredditListName = None
-                    self.subredditList.setModel(ListModel([], GenericListModelObj))
-            self.setUnsavedChanges(True)
-
-    def removeUserList(self):
-        index = self.userListChooser.currentIndex()
-        name = self.userListChooser.currentText()
-        msgBox = QMessageBox()
-        msgBox.setText("Are you sure you want to delete list: " + name + "?")
-        msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        msgBox.setDefaultButton(QMessageBox.No)
-        ret = msgBox.exec_()
-        if ret == QMessageBox.Yes:
-            if len(self.rddtScraper.userLists) <= 0:
-                QMessageBox.information(QMessageBox(), "Reddit Scraper", "There are no more lists left to delete.")
-                return
-            self.userListChooser.removeItem(index)
-            del self.rddtScraper.userLists[name]
-            # if default is not being removed, just remove and switch to default
-            if name != self.rddtScraper.defaultUserListName:
-                self.rddtScraper.currentUserListName = self.rddtScraper.defaultUserListName
-                index = self.userListChooser.findText(self.rddtScraper.defaultUserListName)
-                self.userListChooser.setCurrentIndex(index)
-                self.chooseNewUserList(index)
-            else:
-                print('removing default')
-                if len(self.rddtScraper.userLists) > 0:
-                    print('not deleting last list')
-                    # just choose the first model
-                    modelName = list(self.rddtScraper.userLists)[0]
-                    model = self.rddtScraper.userLists.get(modelName)
-                    self.rddtScraper.currentUserListName = modelName
-                    self.rddtScraper.defaultUserListName = modelName
-                    defaultName = modelName
-                    index = self.userListChooser.findText(defaultName)
-                    self.userListChooser.setCurrentIndex(index)
-                    self.chooseNewUserList(index)
-                else:
-                    print('deleting last list')
-                    self.rddtScraper.currentUserListName = None
-                    self.rddtScraper.defaultUserListName = None
-                    self.userList.setModel(ListModel([], User))
+                    self.removeLastLst(lstType)
             self.setUnsavedChanges(True)
 
     def chooseNewUserList(self, userListIndex):
@@ -290,7 +305,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             downloadedUserPosts = selectedUser.posts
             print(downloadedUserPosts)
             if downloadedUserPosts is not None and len(downloadedUserPosts) > 0:
-                downloadedUserPostsGUI = DownloadedUserPostsGUI()
+                downloadedUserPostsGUI = DownloadedUserPostsGUI(selectedUser, self.confirmDialog, self.saveState)
                 for post in downloadedUserPosts:
                     item = QListWidgetItem("", downloadedUserPostsGUI.downloadedUserPostsList)
                     labelWidget = QLabel()
@@ -298,13 +313,16 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                     labelWidget.setTextFormat(Qt.RichText)
                     size = QSize(128, 128)
                     item.setSizeHint(size)
-                    pixmap = QPixmap(downloadedUserPosts.get(post)).scaled(size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                    pixmap = QPixmap(downloadedUserPosts.get(post)).scaled(size, Qt.KeepAspectRatio,
+                                                                           Qt.SmoothTransformation)
                     height = pixmap.height()
                     width = pixmap.width()
                     postTitle = post[post[0:-1].rfind("/") + 1:-1]
-                    labelWidget.setText('<a href="' + post + '"><img src="' + downloadedUserPosts.get(post) + '" height="' + str(height) + '" width="' + str(width) + '">')
-                    #labelWidget.setPixmap(QPixmap(downloadedUserPosts.get(post)).scaled(size))
+                    labelWidget.setText(
+                        '<a href="' + post + '"><img src="' + downloadedUserPosts.get(post) + '" height="' + str(
+                            height) + '" width="' + str(width) + '">')
                     downloadedUserPostsGUI.downloadedUserPostsList.setItemWidget(item, labelWidget)
+                    downloadedUserPostsGUI.posts.append(post)
                 downloadedUserPostsGUI.exec_()
             else:
                 QMessageBox.information(QMessageBox(), "Reddit Scraper",
@@ -312,7 +330,6 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         elif index is None:
             QMessageBox.information(QMessageBox(), "Reddit Scraper",
                                     "To view a user's downloaded posts, please select a user in the user list.")
-
 
     def setUnsavedChanges(self, unsaved):
         self.unsavedChanges = unsaved

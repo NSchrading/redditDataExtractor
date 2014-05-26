@@ -109,7 +109,7 @@ class RedditData():
             it is not a xpost from another subreddit which is itself a valid subreddit (to avoid duplicate file downloads)
             it is not in a blacklist
         '''
-        return self.isNewSubmission(post, user) and self.isNotXPost(post) and self.isNotInBlacklist(post)
+        return self.isNewSubmission(post, user) and self.isNotXPost(post) and user.isNotInBlacklist(post.permalink)
 
     def isNewSubmission(self, post, user):
         url = post.permalink

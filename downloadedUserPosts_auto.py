@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'downloadedUserPosts.ui'
 #
-# Created: Sun Mar 30 23:58:23 2014
+# Created: Mon May 26 00:46:43 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_DownloadedUserPostsDialog(object):
     def setupUi(self, DownloadedUserPostsDialog):
         DownloadedUserPostsDialog.setObjectName(_fromUtf8("DownloadedUserPostsDialog"))
-        DownloadedUserPostsDialog.resize(510, 397)
+        DownloadedUserPostsDialog.resize(200, 412)
         self.horizontalLayout = QtGui.QHBoxLayout(DownloadedUserPostsDialog)
         self.horizontalLayout.setSizeConstraint(QtGui.QLayout.SetDefaultConstraint)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
@@ -36,6 +36,8 @@ class Ui_DownloadedUserPostsDialog(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.downloadedUserPostsList.sizePolicy().hasHeightForWidth())
         self.downloadedUserPostsList.setSizePolicy(sizePolicy)
+        self.downloadedUserPostsList.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+        self.downloadedUserPostsList.setVerticalScrollMode(QtGui.QAbstractItemView.ScrollPerPixel)
         self.downloadedUserPostsList.setResizeMode(QtGui.QListView.Fixed)
         self.downloadedUserPostsList.setWordWrap(False)
         self.downloadedUserPostsList.setObjectName(_fromUtf8("downloadedUserPostsList"))
