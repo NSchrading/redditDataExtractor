@@ -28,12 +28,11 @@ class ImgurImageFinder():
             return False, None
         headers = {'Authorization': 'Client-ID ' + self.CLIENT_ID}
         apiURL = 'https://api.imgur.com/3/'
-        if self.imgurLinkType == ImgurLinkTypeEnum.DIRECT:
+        if self.imgurLinkType == ImgurLinkTypeEnum.DIRECT or self.imgurLinkType == ImgurLinkTypeEnum.SINGLE_PAGE:
             imgurHashID = url[url.rfind('/') + 1:]
-            imgurHashID = imgurHashID[:imgurHashID.rfind('.')]
-            apiURL += 'image/' + imgurHashID + '.json'
-        elif self.imgurLinkType == ImgurLinkTypeEnum.SINGLE_PAGE:
-            imgurHashID = url[url.rfind('/') + 1:]
+            dotIndex = imgurHashID.rfind('.')
+            if dotIndex != -1:
+                imgurHashID = imgurHashID[:imgurHashID.rfind('.')]
             apiURL += 'image/' + imgurHashID + '.json'
         else:
             imgurHashID = url[url.rfind('/') + 1:]
@@ -42,6 +41,7 @@ class ImgurImageFinder():
             return False, None
         response = requests.get(apiURL, headers=headers, stream=True)
         self.alreadyQueriedURLs.add(apiURL)
+        print(apiURL)
         json = response.json()
         status = json.get('status')
         success = json.get('success')
@@ -53,32 +53,43 @@ class ImgurImageFinder():
         else:
             return False, None
 
+    def getImageURLsDirect(self, response, imageURLs):
+        data = response.json().get('data')
+        if data is not None:
+            link = data.get('link')
+            if link is not None:
+                imageURLs.append(link)
+
+    def getImageURLsPage(self, response, imageURLs):
+        image = response.json().get('image')
+        if image is not None:
+            links = image.get('links')
+            if links is not None:
+                original = links.get('original')
+                imageURLs.append(original)
+        if len(imageURLs) <= 0: # if the above method doesn't work, try direct
+            self.getImageURLsDirect(response, imageURLs)
+
+    def getImageURLsAlbum(self, response, imageURLs):
+        data = response.json().get('data')
+        if data is not None:
+            images = data.get('images')
+            if images is not None:
+                for image in images:
+                    link = image.get('link')
+                    if link is not None:
+                        imageURLs.append(link)
+
     def getImageURLs(self, url):
         valid, response = self.validURLImage(url)
         imageURLs = []
         if valid:
             if self.imgurLinkType == ImgurLinkTypeEnum.DIRECT:
-                data = response.json().get('data')
-                if data is not None:
-                    link = data.get('link')
-                    if link is not None:
-                        imageURLs.append(link)
+                self.getImageURLsDirect(response, imageURLs)
             elif self.imgurLinkType == ImgurLinkTypeEnum.SINGLE_PAGE:
-                image = response.json().get('image')
-                if image is not None:
-                    links = image.get('links')
-                    if links is not None:
-                        original = links.get('original')
-                        imageURLs.append(original)
+                self.getImageURLsPage(response, imageURLs)
             else:
-                data = response.json().get('data')
-                if data is not None:
-                    images = data.get('images')
-                    if images is not None:
-                        for image in images:
-                            link = image.get('link')
-                            if link is not None:
-                                imageURLs.append(link)
+                self.getImageURLsAlbum(response, imageURLs)
         return imageURLs
 
     def getImgurLinkType(self, url):

@@ -2,7 +2,7 @@ class GenericListModelObj():
     slots = 'name'
 
     def __init__(self, name):
-        self.name = name
+        self.name = name.lower()
 
 
 class User(GenericListModelObj):

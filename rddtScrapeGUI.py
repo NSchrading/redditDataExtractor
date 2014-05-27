@@ -9,15 +9,35 @@ from redditData import RedditData, DownloadType
 from downloadedUserPostsGUI import DownloadedUserPostsGUI
 from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User
-
+from GUIFuncs import confirmDialog
+from queue import Queue
+from downloader import Downloader
 
 class ListType():
     USER = 1
     SUBREDDIT = 2
 
 
+# A QObject (to be run in a QThread) which sits waiting for data to come through a Queue.Queue().
+# It blocks until data is available, and one it has got something from the queue, it sends
+# it to the "MainThread" by emitting a Qt Signal
+class MyReceiver(QObject):
+    mysignal = pyqtSignal(str)
+    finished = pyqtSignal()
+
+    def __init__(self,queue,*args,**kwargs):
+        QObject.__init__(self,*args,**kwargs)
+        self.queue = queue
+
+    @pyqtSlot()
+    def run(self):
+        while True:
+            text = self.queue.get()
+            self.mysignal.emit(text)
+
+
 class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
-    def __init__(self, rddtScraper):
+    def __init__(self, rddtScraper, queue):
         QMainWindow.__init__(self)
 
         # Set up the user interface from Designer.
@@ -31,6 +51,8 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.unsavedChanges = False
 
         self.log = True
+
+        self.queue = queue
 
         # Custom Set ups
         self.setup()
@@ -66,7 +88,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.userList.addAction(self.actionDownloaded_Reddit_User_Posts)
         self.actionDownloaded_Reddit_User_Posts.triggered.connect(self.viewDownloadedUserPosts)
 
-        self.downloadBtn.clicked.connect(self.rddtScraper.download)
+        self.downloadBtn.clicked.connect(self.download)
 
         self.userSubBtn.clicked.connect(lambda: self.rddtScraper.changeDownloadType(DownloadType.USER_SUBREDDIT_CONSTRAINED))
         self.allUserBtn.clicked.connect(lambda: self.rddtScraper.changeDownloadType(DownloadType.USER_SUBREDDIT_ALL))
@@ -99,6 +121,29 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
     def init(self):
         self.initUserList()
         self.initSubredditList()
+
+    @pyqtSlot()
+    def download(self):
+        self.downloadBtn.setText("Downloading...")
+        self.downloadBtn.setEnabled(False)
+        self.thread = QThread()
+        self.downloader = Downloader(self.rddtScraper, self.queue)
+        self.downloader.moveToThread(self.thread)
+        self.thread.started.connect(self.downloader.run)
+        self.downloader.finished.connect(self.thread.quit)
+        self.downloader.finished.connect(self.activateDownloadBtn)
+        self.downloader.finished.connect(self.downloader.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.start()
+
+    @pyqtSlot(str)
+    def append_text(self,text):
+        self.logTextEdit.moveCursor(QTextCursor.End)
+        self.logTextEdit.insertPlainText( text )
+
+    def activateDownloadBtn(self):
+        self.downloadBtn.setText("Download!")
+        self.downloadBtn.setEnabled(True)
 
     def selectDirectory(self):
         directory = QFileDialog.getExistingDirectory(QFileDialog())
@@ -184,14 +229,6 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                 self.rddtScraper.defaultUserListName = userListName
             self.setUnsavedChanges(True)
 
-    @staticmethod
-    def confirmDialog(message):
-        msgBox = QMessageBox()
-        msgBox.setText(message)
-        msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        msgBox.setDefaultButton(QMessageBox.No)
-        return msgBox
-
     def removeNonDefaultLst(self, lstType):
         if lstType == ListType.USER:
             self.rddtScraper.currentUserListName = self.rddtScraper.defaultUserListName
@@ -261,7 +298,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             lst = self.rddtScraper.subredditLists
         else:
             return
-        msgBox = self.confirmDialog(message)
+        msgBox = confirmDialog(message)
         ret = msgBox.exec_()
         if ret == QMessageBox.Yes:
             if len(lst) <= 0:
@@ -305,7 +342,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             downloadedUserPosts = selectedUser.redditPosts
             print(downloadedUserPosts)
             if downloadedUserPosts is not None and len(downloadedUserPosts) > 0:
-                downloadedUserPostsGUI = DownloadedUserPostsGUI(selectedUser, self.confirmDialog, self.saveState)
+                downloadedUserPostsGUI = DownloadedUserPostsGUI(selectedUser, confirmDialog, self.saveState)
                 for post in downloadedUserPosts:
                     item = QListWidgetItem("", downloadedUserPostsGUI.downloadedUserPostsList)
                     labelWidget = QLabel()
@@ -314,8 +351,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                     size = QSize(128, 158)
                     item.setSizeHint(size)
                     size = QSize(128, 128)
-                    pixmap = QPixmap(downloadedUserPosts.get(post)).scaled(size, Qt.KeepAspectRatio,
-                                                                           Qt.SmoothTransformation)
+                    pixmap = QPixmap(downloadedUserPosts.get(post)).scaled(size, Qt.KeepAspectRatio)
                     height = pixmap.height()
                     width = pixmap.width()
                     postTitle = post[post[0:-1].rfind("/") + 1:-1]
@@ -396,8 +432,8 @@ def loadState():
         for key, val in subredditListSettings.items():
             print("loading from saved " + key)
             rddtScraper.subredditLists[key] = ListModel(val, GenericListModelObj)
-    except KeyError:
-        print("here")
+    except KeyError as e:
+        print(e)
     finally:
         shelf.close()
         return rddtScraper
@@ -409,9 +445,17 @@ def main():
     if rddtScraper is None:
         print("rddt data client was None, making new one")
         rddtScraper = RedditData()
-    w = RddtScrapeGUI(rddtScraper)
+    queue = Queue()
+    w = RddtScrapeGUI(rddtScraper, queue)
     w.show()
-    #a.connect(a, SIGNAL('aboutToQuit()'), w.checkSaveState)
+
+    thread = QThread()
+    recv = MyReceiver(queue)
+    recv.mysignal.connect(w.append_text)
+    recv.moveToThread(thread)
+    thread.started.connect(recv.run)
+    thread.start()
+
     sys.exit(a.exec_())
 
 

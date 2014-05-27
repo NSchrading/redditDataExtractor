@@ -45,6 +45,15 @@ class ListModel(QAbstractListModel):
     def getObjectInLst(self, index):
         return self.lst[index.row()]
 
+    def getIndexOfName(self, name):
+        for i in range(len(self.lst)):
+            obj = self.lst[i]
+            print(obj.name, name)
+            if obj.name == name:
+                return i
+        return -1
+
+
     def flags(self, index):
         # All items have these properties so we don't care about index
         return Qt.ItemIsEditable | Qt.ItemIsSelectable | Qt.ItemIsEnabled

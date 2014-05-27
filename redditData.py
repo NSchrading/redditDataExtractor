@@ -8,6 +8,8 @@ from imageFinder import ImageFinder
 from ImgurImageFinder import ImgurImageFinder
 from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User
+from GUIFuncs import confirmDialog
+from PyQt4.Qt import QMessageBox
 
 class DownloadType():
     USER_SUBREDDIT_CONSTRAINED = 1
@@ -47,43 +49,51 @@ class RedditData():
         self.downloadType = DownloadType.USER_SUBREDDIT_CONSTRAINED
         self.avoidDuplicates = avoidDuplicates
 
-    def downloadUserProcess(self, user):
+    def downloadUserProcess(self, user, redditor):
         userName = user.name
         print("Starting download for: " + userName)
         self.makeDirectoryForUser(userName)
-        if self.userNotInBlacklist(userName):
-            redditor = None
-            try:
-                redditor = self.r.get_redditor(userName)
-            except requests.exceptions.HTTPError:
-                self.addUserToBlacklist(userName)
-            if redditor is not None:
-                # Temporary
-                refresh = None
-                #numPosts = None if options.refresh == 0 else options.refresh
-                submitted = redditor.get_submitted(limit=refresh)
-                posts = self.getValidPosts(submitted, user)
-                images = self.getImages(posts, user)
-                with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                    future = [executor.submit(image.download, user, self.avoidDuplicates) for image in images if image is not None]
-                    concurrent.futures.wait(future)
+        # Temporary
+        refresh = None
+        #numPosts = None if options.refresh == 0 else options.refresh
+        submitted = redditor.get_submitted(limit=refresh)
+        posts = self.getValidPosts(submitted, user)
+        images = self.getImages(posts, user)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+            future = [executor.submit(image.download, user, self.avoidDuplicates) for image in images if image is not None]
+            concurrent.futures.wait(future)
 
-    def downloadThread(self):
-        jobs = []
-        model = self.userLists.get(self.currentUserListName)
-        for user in model.lst:
-            thread = threading.Thread(target=self.downloadUserProcess, args=(user,))
-            jobs.append(thread)
-        for thread in jobs:
-            thread.start()
-        for thread in jobs:
-            thread.join()
+    def downloadThread(self, validRedditors):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            future = [executor.submit(self.downloadUserProcess, user, redditor) for user, redditor in validRedditors]
+            concurrent.futures.wait(future)
         # Save changes made during downloading (e.g. downloadedUserPosts)
         self.saveState()
 
     def download(self):
-        thread = threading.Thread(target=self.downloadThread)
-        thread.start()
+        if self.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED or self.downloadType == DownloadType.USER_SUBREDDIT_ALL:
+            validRedditors = self.getValidRedditors()
+        if len(validRedditors) > 0:
+            thread = threading.Thread(target=self.downloadThread, args=(validRedditors,))
+            thread.start()
+
+    def getValidRedditors(self):
+        model = self.userLists.get(self.currentUserListName)
+        users = set(model.lst) # create a new set so we don't change set size during iteration if we remove a user
+        validRedditors = []
+        for user in users:
+            userName = user.name
+            redditor = self.getRedditor(userName)
+            if redditor is None:
+                msgBox = confirmDialog("The user " + userName + " does not exist. Remove from list?")
+                ret = msgBox.exec_()
+                if ret == QMessageBox.Yes:
+                    index = model.getIndexOfName(userName)
+                    if index != -1:
+                        model.removeRows(index, 1)
+            else:
+                validRedditors.append((user, redditor))
+        return validRedditors
 
     def getImages(self, posts, user):
         images = []
@@ -203,3 +213,10 @@ class RedditData():
                     if user in line:
                         return False
         return True
+
+    def getRedditor(self, userName):
+        try:
+            redditor = self.r.get_redditor(userName)
+        except requests.exceptions.HTTPError:
+            redditor = None
+        return redditor
