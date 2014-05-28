@@ -127,8 +127,10 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.downloadBtn.setText("Downloading...")
         self.downloadBtn.setEnabled(False)
         self.logTextEdit.clear()
+        if self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED or self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_ALL:
+            validRedditors = self.getValidRedditors()
         self.thread = QThread()
-        self.downloader = Downloader(self.rddtScraper, self.queue)
+        self.downloader = Downloader(self.rddtScraper, validRedditors, self.queue)
         self.downloader.moveToThread(self.thread)
         self.thread.started.connect(self.downloader.run)
         self.downloader.finished.connect(self.thread.quit)
@@ -145,6 +147,24 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
     def activateDownloadBtn(self):
         self.downloadBtn.setText("Download!")
         self.downloadBtn.setEnabled(True)
+
+    def getValidRedditors(self):
+        model = self.rddtScraper.userLists.get(self.rddtScraper.currentUserListName)
+        users = set(model.lst) # create a new set so we don't change set size during iteration if we remove a user
+        validRedditors = []
+        for user in users:
+            userName = user.name
+            redditor = self.rddtScraper.getRedditor(userName)
+            if redditor is None:
+                msgBox = confirmDialog("The user " + userName + " does not exist. Remove from list?")
+                ret = msgBox.exec_()
+                if ret == QMessageBox.Yes:
+                    index = model.getIndexOfName(userName)
+                    if index != -1:
+                        model.removeRows(index, 1)
+            else:
+                validRedditors.append((user, redditor))
+        return validRedditors
 
     def selectDirectory(self):
         directory = QFileDialog.getExistingDirectory(QFileDialog())

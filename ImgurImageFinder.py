@@ -24,7 +24,7 @@ class ImgurImageFinder():
         #Must not be an already-downloaded imgur url
         #Status Code must be 200 (valid page)
         #Must have valid data response
-        if self.avoidDuplicates and url in self.alreadyDownloadedImgurURLs:
+        if self.avoidDuplicates and self.alreadyDownloadedImgurURLs is not None and url in self.alreadyDownloadedImgurURLs:
             return False, None
         headers = {'Authorization': 'Client-ID ' + self.CLIENT_ID}
         apiURL = 'https://api.imgur.com/3/'

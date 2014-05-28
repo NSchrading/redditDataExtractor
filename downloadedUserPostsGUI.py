@@ -46,6 +46,7 @@ class DownloadedUserPostsGUI(QDialog, Ui_DownloadedUserPostsDialog):
         ret = msgBox.exec_()
         if ret == QMessageBox.Yes:
             del self.user.redditPosts[post]
+            del self.user.externalDownloads[post]
             self.posts.remove(post)
             item = self.downloadedUserPostsList.takeItem(selectedIndex)
             del item

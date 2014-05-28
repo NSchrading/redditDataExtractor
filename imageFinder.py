@@ -12,6 +12,7 @@ class ImageFinder():
         self.nullToNoneRegex = re.compile("null")
 
     def getHTMLSource(self):
+        print(self.URL)
         response = requests.get(self.URL, stream=True)
         HTMLSource = None
         if response.status_code == 200:

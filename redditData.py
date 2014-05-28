@@ -77,33 +77,27 @@ class RedditData():
             thread = threading.Thread(target=self.downloadThread, args=(validRedditors,))
             thread.start()
 
-    def getValidRedditors(self):
-        model = self.userLists.get(self.currentUserListName)
-        users = set(model.lst) # create a new set so we don't change set size during iteration if we remove a user
-        validRedditors = []
-        for user in users:
-            userName = user.name
-            redditor = self.getRedditor(userName)
-            if redditor is None:
-                msgBox = confirmDialog("The user " + userName + " does not exist. Remove from list?")
-                ret = msgBox.exec_()
-                if ret == QMessageBox.Yes:
-                    index = model.getIndexOfName(userName)
-                    if index != -1:
-                        model.removeRows(index, 1)
-            else:
-                validRedditors.append((user, redditor))
-        return validRedditors
-
+    '''
     def getImages(self, posts, user):
         images = []
-        imgurImageFinder = ImgurImageFinder(user.imgurPosts, self.avoidDuplicates)
+        imgurImageFinder = ImgurImageFinder(user.externalDownloads, self.avoidDuplicates)
         for post in posts:
             if 'imgur' in post.domain:
                 imageFinder = imgurImageFinder
             else:
                 imageFinder = ImageFinder(post.url)
             images.extend(imageFinder.getImages(post, self.defaultPath))
+        return images
+    '''
+
+    def getImages(self, post, user):
+        images = []
+        imgurImageFinder = ImgurImageFinder(user.externalDownloads.get(post.id), self.avoidDuplicates)
+        if 'imgur' in post.domain:
+            imageFinder = imgurImageFinder
+        else:
+            imageFinder = ImageFinder(post.url)
+        images.extend(imageFinder.getImages(post, self.defaultPath))
         return images
 
     def getValidPosts(self, submitted, user):
