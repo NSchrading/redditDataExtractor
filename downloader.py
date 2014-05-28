@@ -17,7 +17,6 @@ class Downloader(QObject):
             validRedditors = self.rddtScraper.getValidRedditors()
         if len(validRedditors) > 0:
             for user, redditor in validRedditors:
-                self.queue.put("Starting download for " + user.name + "\n")
                 userWorker = UserWorker(self.rddtScraper, user, redditor, self.queue)
                 self.userPool.start(userWorker)
             self.userPool.waitForDone()
@@ -37,6 +36,7 @@ class UserWorker(QRunnable):
 
     def run(self):
         userName = self.user.name
+        self.queue.put("Starting download for " + userName + "\n")
         self.rddtScraper.makeDirectoryForUser(userName)
         # Temporary
         refresh = None
@@ -61,4 +61,4 @@ class ImageWorker(QRunnable):
 
     def run(self):
         if self.image.download(self.user, self.avoidDuplicates):
-            self.queue.put('Saving %s...' % self.image.savePath + "\n")
+            self.queue.put('Saved %s' % self.image.savePath + "\n")

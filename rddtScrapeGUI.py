@@ -126,6 +126,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
     def download(self):
         self.downloadBtn.setText("Downloading...")
         self.downloadBtn.setEnabled(False)
+        self.logTextEdit.clear()
         self.thread = QThread()
         self.downloader = Downloader(self.rddtScraper, self.queue)
         self.downloader.moveToThread(self.thread)
