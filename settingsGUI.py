@@ -3,7 +3,7 @@ from settings_auto import Ui_SettingsDialog
 
 
 class SettingsGUI(QDialog, Ui_SettingsDialog):
-    def __init__(self, userLists, subredditLists, currentUserListName, currentSubredditListName, avoidDuplicates):
+    def __init__(self, userLists, subredditLists, currentUserListName, currentSubredditListName, avoidDuplicates, subSort):
         QDialog.__init__(self)
 
         # Set up the user interface from Designer.
@@ -17,7 +17,14 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.defaultUserListComboBox.activated.connect(self.chooseNewUserList)
         self.defaultSubredditListComboBox.activated.connect(self.chooseNewSubredditList)
         self.avoidDuplCheckBox.clicked.connect(self.changeAvoidDuplicates)
+        self.hotBtn.clicked.connect(lambda: self.changeSubSort("hot"))
+        self.newBtn.clicked.connect(lambda: self.changeSubSort("new"))
+        self.risingBtn.clicked.connect(lambda: self.changeSubSort("rising"))
+        self.controversialBtn.clicked.connect(lambda: self.changeSubSort("controversial"))
+        self.topBtn.clicked.connect(lambda: self.changeSubSort("top"))
+
         self.avoidDuplicates = avoidDuplicates
+        self.subSort = subSort
         self.initSettings()
 
     def initSettings(self):
@@ -30,6 +37,19 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         index = self.defaultSubredditListComboBox.findText(self.currentSubredditListName)
         self.defaultSubredditListComboBox.setCurrentIndex(index)
         self.avoidDuplCheckBox.setChecked(self.avoidDuplicates)
+        self.initSubSort()
+
+    def initSubSort(self):
+        if self.subSort == "hot":
+            self.hotBtn.setChecked(True)
+        elif self.subSort == "new":
+            self.newBtn.setChecked(True)
+        elif self.subSort == "rising":
+            self.risingBtn.setChecked(True)
+        elif self.subSort == "controversial":
+            self.controversialBtn.setChecked(True)
+        else:
+            self.topBtn.setChecked(True)
 
     def chooseNewUserList(self):
         self.currentUserListName = self.defaultUserListComboBox.currentText()
@@ -39,3 +59,6 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
 
     def changeAvoidDuplicates(self):
         self.avoidDuplicates = self.avoidDuplCheckBox.isChecked()
+
+    def changeSubSort(self, subSort):
+        self.subSort = subSort

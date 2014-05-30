@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'settings.ui'
 #
-# Created: Mon May 26 16:53:47 2014
+# Created: Fri May 30 17:34:36 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -50,6 +50,28 @@ class Ui_SettingsDialog(object):
         self.avoidDuplCheckBox.setChecked(True)
         self.avoidDuplCheckBox.setObjectName(_fromUtf8("avoidDuplCheckBox"))
         self.formLayout.setWidget(2, QtGui.QFormLayout.LabelRole, self.avoidDuplCheckBox)
+        self.horizontalLayout = QtGui.QHBoxLayout()
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.label = QtGui.QLabel(SettingsDialog)
+        self.label.setObjectName(_fromUtf8("label"))
+        self.horizontalLayout.addWidget(self.label)
+        self.hotBtn = QtGui.QRadioButton(SettingsDialog)
+        self.hotBtn.setChecked(True)
+        self.hotBtn.setObjectName(_fromUtf8("hotBtn"))
+        self.horizontalLayout.addWidget(self.hotBtn)
+        self.newBtn = QtGui.QRadioButton(SettingsDialog)
+        self.newBtn.setObjectName(_fromUtf8("newBtn"))
+        self.horizontalLayout.addWidget(self.newBtn)
+        self.risingBtn = QtGui.QRadioButton(SettingsDialog)
+        self.risingBtn.setObjectName(_fromUtf8("risingBtn"))
+        self.horizontalLayout.addWidget(self.risingBtn)
+        self.controversialBtn = QtGui.QRadioButton(SettingsDialog)
+        self.controversialBtn.setObjectName(_fromUtf8("controversialBtn"))
+        self.horizontalLayout.addWidget(self.controversialBtn)
+        self.topBtn = QtGui.QRadioButton(SettingsDialog)
+        self.topBtn.setObjectName(_fromUtf8("topBtn"))
+        self.horizontalLayout.addWidget(self.topBtn)
+        self.formLayout.setLayout(3, QtGui.QFormLayout.SpanningRole, self.horizontalLayout)
         self.verticalLayout.addLayout(self.formLayout)
         self.dialogButtonBox = QtGui.QDialogButtonBox(SettingsDialog)
         self.dialogButtonBox.setOrientation(QtCore.Qt.Horizontal)
@@ -67,4 +89,10 @@ class Ui_SettingsDialog(object):
         self.defaultUserListLabel.setText(_translate("SettingsDialog", "Default User List", None))
         self.defaultSubredditListLabel.setText(_translate("SettingsDialog", "Default Subreddit List", None))
         self.avoidDuplCheckBox.setText(_translate("SettingsDialog", "Avoid Downloading Duplicate Images If Possible", None))
+        self.label.setText(_translate("SettingsDialog", "Sort Subreddit Content by: ", None))
+        self.hotBtn.setText(_translate("SettingsDialog", "Hot", None))
+        self.newBtn.setText(_translate("SettingsDialog", "New", None))
+        self.risingBtn.setText(_translate("SettingsDialog", "Rising", None))
+        self.controversialBtn.setText(_translate("SettingsDialog", "Controversial", None))
+        self.topBtn.setText(_translate("SettingsDialog", "Top", None))
 

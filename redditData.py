@@ -10,8 +10,6 @@ from minusImageFinder import MinusImageFinder
 from vidbleImageFinder import VidbleImageFinder
 from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User
-from GUIFuncs import confirmDialog
-from PyQt4.Qt import QMessageBox
 
 class DownloadType():
     USER_SUBREDDIT_CONSTRAINED = 1
@@ -20,13 +18,13 @@ class DownloadType():
 
 class RedditData():
     __slots__ = ('defaultPath', 'subredditLists', 'userLists', 'currentSubredditListName', 'currentUserListName',
-                 'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r', 'downloadType', 'avoidDuplicates')
+                 'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r', 'downloadType', 'avoidDuplicates', 'subSort')
 
     def __init__(self, defaultPath=os.path.abspath(os.path.expanduser('Downloads')), subredditLists=None,
                  userLists=None,
                  currentSubredditListName='Default Subs',
                  currentUserListName='Default User List', defaultSubredditListName='Default Subs',
-                 defaultUserListName='Default User List', avoidDuplicates=True):
+                 defaultUserListName='Default User List', avoidDuplicates=True, subSort='hot'):
 
         self.defaultPath = defaultPath
         if subredditLists is None:
@@ -50,6 +48,7 @@ class RedditData():
         self.r = praw.Reddit(user_agent='RedditUserScraper by /u/VoidXC')
         self.downloadType = DownloadType.USER_SUBREDDIT_CONSTRAINED
         self.avoidDuplicates = avoidDuplicates
+        self.subSort = subSort
 
     def downloadUserProcess(self, user, redditor):
         userName = user.name

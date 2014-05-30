@@ -129,6 +129,28 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.logTextEdit.clear()
         if self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED or self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_ALL:
             validRedditors = self.getValidRedditors()
+        elif self.rddtScraper.downloadType == DownloadType.SUBREDDIT_FRONTPAGE:
+            pass
+            '''
+            basic idea:
+            for all subreddits:
+                subreddit = self.rddtscraper.r.get_subreddit('subredditName')
+                if self.rddtScraper.subSort == 'new':
+                    submissions = subreddit.get_new(limit=subLimit)
+                    for submission in submissions:
+                        get comments if wanted
+                        get title if wanted
+                        get picture if available and wanted
+                        get external content (maybe use goose) if wanted
+                        get self text if available and wanted
+                        save it all
+                if self.rddtScraper.subSort == 'hot':
+                    get_hot
+                    same as above
+                etc
+
+            need settings for subLimit
+            '''
         self.thread = QThread()
         self.downloader = Downloader(self.rddtScraper, validRedditors, self.queue)
         self.downloader.moveToThread(self.thread)
@@ -207,7 +229,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
 
     def showSettings(self):
         settings = SettingsGUI(self.rddtScraper.userLists, self.rddtScraper.subredditLists,
-                               self.rddtScraper.defaultUserListName, self.rddtScraper.defaultSubredditListName, self.rddtScraper.avoidDuplicates)
+                               self.rddtScraper.defaultUserListName, self.rddtScraper.defaultSubredditListName, self.rddtScraper.avoidDuplicates, self.rddtScraper.subSort)
         ret = settings.exec_()
         if ret == QDialog.Accepted:
             self.logPrint(
@@ -216,6 +238,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             self.rddtScraper.defaultUserListName = settings.currentUserListName
             self.rddtScraper.defaultSubredditListName = settings.currentSubredditListName
             self.rddtScraper.avoidDuplicates = settings.avoidDuplicates
+            self.rddtScraper.subSort = settings.subSort
             self.saveState()
 
     def makeNewSubredditList(self):

@@ -16,8 +16,9 @@ class ImageFinder():
     def validURLImage(self, url):
         #Determine if the file is good to download.
         #Status Code must be 200 (valid page)
+        #Must have 'image' in the response header
         response = requests.get(url, stream=True)
-        if response.status_code == 200:
+        if response.status_code == 200 and 'image' in response.headers['Content-Type']:
             return True, response
         return False, response
 
