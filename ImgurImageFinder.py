@@ -1,4 +1,4 @@
-from image import Image
+from imageFinder import ImageFinder
 import requests
 
 
@@ -8,11 +8,11 @@ class ImgurLinkTypeEnum():
     ALBUM = 3
 
 
-class ImgurImageFinder():
+class ImgurImageFinder(ImageFinder):
     __slots__ = ('CLIENT_ID', 'imgurLinkType', 'avoidDuplicates', 'alreadyDownloadedImgurURLs', 'alreadyQueriedURLs')
 
     def __init__(self, alreadyDownloadedImgurURLs, avoidDuplicates):
-
+        super().__init__()
         self.CLIENT_ID = 'e0ea61b57d4c3c9'  # imgur client ID for API access
         self.imgurLinkType = None
         self.avoidDuplicates = avoidDuplicates
@@ -100,27 +100,14 @@ class ImgurImageFinder():
         else:
             return ImgurLinkTypeEnum.SINGLE_PAGE
 
-    @staticmethod
-    def getFileType(URL):
-        fileType = URL[URL.rfind("."):]
-        return fileType
-
-    def makeImage(self, user, postID, URL, redditPostURL, defaultPath, count):
-        response = requests.get(URL, stream=True)
-        fileType = self.getFileType(URL)
-        if response.status_code == 200:
-            return Image(user, postID, fileType, defaultPath, URL, redditPostURL, response.iter_content(4096),
-                         str(count))
-        else:
-            return None
-
     def getImages(self, post, defaultPath):
         images = []
         self.imgurLinkType = self.getImgurLinkType(post.url)
         imageURLs = self.getImageURLs(post.url)
         count = 1
         for imageURL in imageURLs:
-            params = (post.author.name, post.id, imageURL, post.permalink, defaultPath, count)
+            response = requests.get(imageURL)
+            params = (post.author.name, post.id, imageURL, post.permalink, defaultPath, count, response)
             image = self.makeImage(*params)
             if image is not None:
                 images.append(image)

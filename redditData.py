@@ -6,6 +6,8 @@ import shelve
 import threading
 from imageFinder import ImageFinder
 from ImgurImageFinder import ImgurImageFinder
+from minusImageFinder import MinusImageFinder
+from vidbleImageFinder import VidbleImageFinder
 from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User
 from GUIFuncs import confirmDialog
@@ -92,12 +94,19 @@ class RedditData():
 
     def getImages(self, post, user):
         images = []
-        imgurImageFinder = ImgurImageFinder(user.externalDownloads.get(post.id), self.avoidDuplicates)
+        imgurImageFinder = ImgurImageFinder(user.externalDownloads.values(), self.avoidDuplicates)
+        minusImageFinder = MinusImageFinder(user.externalDownloads.values(), self.avoidDuplicates)
+        vidbleImageFinder = VidbleImageFinder(user.externalDownloads.values(), self.avoidDuplicates)
         if 'imgur' in post.domain:
             imageFinder = imgurImageFinder
+        elif 'i.minus' in post.domain:
+            imageFinder = minusImageFinder
+        elif 'vidble' in post.domain:
+            imageFinder = vidbleImageFinder
         else:
-            imageFinder = ImageFinder(post.url)
-        images.extend(imageFinder.getImages(post, self.defaultPath))
+            imageFinder = ImageFinder()
+        ims = imageFinder.getImages(post, self.defaultPath)
+        images.extend(ims)
         return images
 
     def getValidPosts(self, submitted, user):
