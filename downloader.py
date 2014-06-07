@@ -5,21 +5,30 @@ class Downloader(QObject):
 
     finished = pyqtSignal()
 
-    def __init__(self, rddtScraper, validRedditors, queue):
+    def __init__(self, rddtScraper, validData, queue, downloadType):
         super().__init__()
         self.rddtScraper = rddtScraper
-        self.validRedditors = validRedditors
+        self.validData = validData
         self.queue = queue
-        self.userPool = QThreadPool()
-        self.userPool.setMaxThreadCount(4)
+        self.downloadType = downloadType
+        self.dataPool = QThreadPool()
+        self.dataPool.setMaxThreadCount(4)
 
     @pyqtSlot()
     def run(self):
-        if len(self.validRedditors) > 0:
-            for user, redditor in self.validRedditors:
-                userWorker = UserWorker(self.rddtScraper, user, redditor, self.queue)
-                self.userPool.start(userWorker)
-            self.userPool.waitForDone()
+        if self.downloadType == DownloadType.SUBREDDIT_FRONTPAGE:
+            if len(self.validData) > 0:
+                for submissions in self.validData:
+                    submissionWorker = SubmissionWorker(self.rddtScraper, submissions, self.queue)
+                    self.dataPool.start(submissionWorker)
+                self.dataPool.waitForDone()
+        else:
+            if len(self.validData) > 0:
+                for user, redditor in self.validData:
+                    userWorker = UserWorker(self.rddtScraper, user, redditor, self.queue)
+                    self.dataPool.start(userWorker)
+                self.dataPool.waitForDone()
+
         self.rddtScraper.saveState()
         self.finished.emit()
 
@@ -37,7 +46,7 @@ class UserWorker(QRunnable):
     def run(self):
         userName = self.user.name
         self.queue.put("Starting download for " + userName + "\n")
-        self.rddtScraper.makeDirectoryForUser(userName)
+        self.rddtScraper.makeDirectory(userName)
         # Temporary
         refresh = None
         submitted = self.redditor.get_submitted(limit=refresh)
@@ -50,6 +59,21 @@ class UserWorker(QRunnable):
                     self.imagePool.start(imageWorker)
             self.imagePool.waitForDone()
 
+class SubmissionWorker(QRunnable):
+    def __init__(self, rddtScraper, allSubmissions, queue):
+        super().__init__()
+
+        self.rddtScraper = rddtScraper
+        self.allSubmissions = allSubmissions
+        self.queue = queue
+
+    def run(self):
+        subreddit, submissions = self.allSubmissions
+        for submission in submissions:
+            title = submission.title
+            self.rddtScraper.makeDirectory(subreddit)
+            self.rddtScraper.downloadSubmission(subreddit, submission)
+            self.queue.put("Saved submission: " + title + "\n")
 
 class ImageWorker(QRunnable):
     def __init__(self, image, user, avoidDuplicates, queue):

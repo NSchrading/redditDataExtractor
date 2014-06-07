@@ -4,6 +4,7 @@ import requests
 import os
 import shelve
 import threading
+import re
 from imageFinder import ImageFinder
 from ImgurImageFinder import ImgurImageFinder
 from minusImageFinder import MinusImageFinder
@@ -18,13 +19,13 @@ class DownloadType():
 
 class RedditData():
     __slots__ = ('defaultPath', 'subredditLists', 'userLists', 'currentSubredditListName', 'currentUserListName',
-                 'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r', 'downloadType', 'avoidDuplicates', 'subSort')
+                 'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r', 'downloadType', 'avoidDuplicates', 'subSort', 'subLimit')
 
     def __init__(self, defaultPath=os.path.abspath(os.path.expanduser('Downloads')), subredditLists=None,
                  userLists=None,
                  currentSubredditListName='Default Subs',
                  currentUserListName='Default User List', defaultSubredditListName='Default Subs',
-                 defaultUserListName='Default User List', avoidDuplicates=True, subSort='hot'):
+                 defaultUserListName='Default User List', avoidDuplicates=True, subSort='hot', subLimit=10):
 
         self.defaultPath = defaultPath
         if subredditLists is None:
@@ -49,6 +50,7 @@ class RedditData():
         self.downloadType = DownloadType.USER_SUBREDDIT_CONSTRAINED
         self.avoidDuplicates = avoidDuplicates
         self.subSort = subSort
+        self.subLimit = subLimit
 
     def downloadUserProcess(self, user, redditor):
         userName = user.name
@@ -150,11 +152,45 @@ class RedditData():
                 return False
         return True
 
+    def getSubredditSubmissions(self, validSubreddits):
+        submissions = []
+        for subreddit in validSubreddits:
+            if self.subSort == 'new':
+                contentFunc = subreddit.get_new
+            elif self.subSort == 'rising':
+                contentFunc = subreddit.get_rising
+            elif self.subSort == 'controversial':
+                contentFunc = subreddit.get_controversial
+            elif self.subSort == 'top':
+                contentFunc = subreddit.get_top
+            else:
+                contentFunc = subreddit.get_hot
+            submissions.append((subreddit.display_name, list(contentFunc(limit=self.subLimit))))
+        return submissions
+
+    def downloadSubmission(self, subreddit, submission):
+        directory = os.path.abspath(os.path.join(self.defaultPath, subreddit))
+        title = re.sub('[^\w\-_\. ]', '', submission.title)
+        with open(os.path.join(directory, title + '.txt'), 'w') as f:
+            f.write("Permalink: " + submission.permalink + "\n")
+            f.write("Title: " + submission.title + "\n")
+            f.write("Post ID: " + submission.id + "\n")
+            f.write("Upvotes: " + str(submission.ups) + "\n")
+            f.write("Downvotes: " + str(submission.downs) + "\n")
+            f.write("Domain: " + submission.domain + "\n")
+            if submission.is_self:
+                f.write("Self text: " + submission.selftext + "\n")
+            else:
+                f.write("External link: " + submission.url + "\n")
+            f.write("Comments:\n")
+            comments = [comment.body + "\n" for comment in praw.helpers.flatten_tree(submission.comments)]
+            f.writelines(comments)
+
     def changeDownloadType(self, downloadType):
         self.downloadType = downloadType
 
-    def makeDirectoryForUser(self, user):
-        directory = os.path.abspath(os.path.join(self.defaultPath, user))
+    def makeDirectory(self, dirName):
+        directory = os.path.abspath(os.path.join(self.defaultPath, dirName))
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -222,3 +258,10 @@ class RedditData():
         except requests.exceptions.HTTPError:
             redditor = None
         return redditor
+
+    def getSubreddit(self, subredditName):
+        try:
+            subreddit = self.r.get_subreddit(subredditName, fetch=True)
+        except requests.exceptions.HTTPError:
+            subreddit = None
+        return subreddit

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'settings.ui'
 #
-# Created: Fri May 30 17:34:36 2014
+# Created: Fri Jun  6 21:35:47 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -72,6 +72,14 @@ class Ui_SettingsDialog(object):
         self.topBtn.setObjectName(_fromUtf8("topBtn"))
         self.horizontalLayout.addWidget(self.topBtn)
         self.formLayout.setLayout(3, QtGui.QFormLayout.SpanningRole, self.horizontalLayout)
+        self.label_2 = QtGui.QLabel(SettingsDialog)
+        self.label_2.setObjectName(_fromUtf8("label_2"))
+        self.formLayout.setWidget(4, QtGui.QFormLayout.LabelRole, self.label_2)
+        self.subLimitTextEdit = QtGui.QLineEdit(SettingsDialog)
+        self.subLimitTextEdit.setCursorPosition(2)
+        self.subLimitTextEdit.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.subLimitTextEdit.setObjectName(_fromUtf8("subLimitTextEdit"))
+        self.formLayout.setWidget(4, QtGui.QFormLayout.FieldRole, self.subLimitTextEdit)
         self.verticalLayout.addLayout(self.formLayout)
         self.dialogButtonBox = QtGui.QDialogButtonBox(SettingsDialog)
         self.dialogButtonBox.setOrientation(QtCore.Qt.Horizontal)
@@ -95,4 +103,6 @@ class Ui_SettingsDialog(object):
         self.risingBtn.setText(_translate("SettingsDialog", "Rising", None))
         self.controversialBtn.setText(_translate("SettingsDialog", "Controversial", None))
         self.topBtn.setText(_translate("SettingsDialog", "Top", None))
+        self.label_2.setText(_translate("SettingsDialog", "Max Posts Retrieved in Subreddit Content Download [1-100]", None))
+        self.subLimitTextEdit.setText(_translate("SettingsDialog", "10", None))
 

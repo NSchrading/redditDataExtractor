@@ -3,7 +3,7 @@ from settings_auto import Ui_SettingsDialog
 
 
 class SettingsGUI(QDialog, Ui_SettingsDialog):
-    def __init__(self, userLists, subredditLists, currentUserListName, currentSubredditListName, avoidDuplicates, subSort):
+    def __init__(self, userLists, subredditLists, currentUserListName, currentSubredditListName, avoidDuplicates, subSort, subLimit):
         QDialog.__init__(self)
 
         # Set up the user interface from Designer.
@@ -13,6 +13,10 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.subredditLists = subredditLists
         self.currentUserListName = currentUserListName
         self.currentSubredditListName = currentSubredditListName
+        self.avoidDuplicates = avoidDuplicates
+        self.subSort = subSort
+        self.subLimit = subLimit
+        self.validator = QIntValidator(1, 100)
 
         self.defaultUserListComboBox.activated.connect(self.chooseNewUserList)
         self.defaultSubredditListComboBox.activated.connect(self.chooseNewSubredditList)
@@ -22,9 +26,10 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.risingBtn.clicked.connect(lambda: self.changeSubSort("rising"))
         self.controversialBtn.clicked.connect(lambda: self.changeSubSort("controversial"))
         self.topBtn.clicked.connect(lambda: self.changeSubSort("top"))
+        self.subLimitTextEdit.textChanged.connect(self.setSubLimit)
+        self.subLimitTextEdit.setValidator(self.validator)
+        self.subLimitTextEdit.setText(str(self.subLimit))
 
-        self.avoidDuplicates = avoidDuplicates
-        self.subSort = subSort
         self.initSettings()
 
     def initSettings(self):
@@ -62,3 +67,12 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
 
     def changeSubSort(self, subSort):
         self.subSort = subSort
+
+    def setSubLimit(self):
+        text = self.subLimitTextEdit.text()
+        print(text)
+        validState = self.validator.validate(text, 0)[0] # validate() returns a tuple, the state is the 0 index
+        if validState == QValidator.Acceptable:
+            print("valid: " + text + "\n---------------------------------")
+            self.subLimit = int(text)
+
