@@ -5,6 +5,7 @@ import os
 import shelve
 import threading
 import re
+import json
 from imageFinder import ImageFinder
 from ImgurImageFinder import ImgurImageFinder
 from minusImageFinder import MinusImageFinder
@@ -169,22 +170,42 @@ class RedditData():
         return submissions
 
     def downloadSubmission(self, subreddit, submission):
+        MAX_PATH = 260 # Windows is stupid and only lets you make paths up to a length of 260 chars
         directory = os.path.abspath(os.path.join(self.defaultPath, subreddit))
         title = re.sub('[^\w\-_\. ]', '', submission.title)
-        with open(os.path.join(directory, title + '.txt'), 'w') as f:
-            f.write("Permalink: " + submission.permalink + "\n")
-            f.write("Title: " + submission.title + "\n")
-            f.write("Post ID: " + submission.id + "\n")
-            f.write("Upvotes: " + str(submission.ups) + "\n")
-            f.write("Downvotes: " + str(submission.downs) + "\n")
-            f.write("Domain: " + submission.domain + "\n")
-            if submission.is_self:
-                f.write("Self text: " + submission.selftext + "\n")
-            else:
-                f.write("External link: " + submission.url + "\n")
-            f.write("Comments:\n")
-            comments = [comment.body + "\n" for comment in praw.helpers.flatten_tree(submission.comments)]
-            f.writelines(comments)
+        path = os.path.join(directory, title + '.txt')
+        if len(path) > MAX_PATH:
+            lenOver = len(path) - MAX_PATH
+            title = title[:-(lenOver+len('.txt'))]
+            path = os.path.join(directory, title + '.txt')
+        with open(path, 'w') as f:
+            json.dump(self.getSubmissionData(submission), f, ensure_ascii=True)
+
+    def getSubmissionData(self, submission):
+        submissionData = {"Permalink" : submission.permalink}
+        submissionData['Title'] = submission.title
+        submissionData['Post ID'] = submission.id
+        submissionData['Upvotes'] = submission.ups
+        submissionData['Downvotes'] = submission.downs
+        submissionData['Domain'] = submission.domain
+        submissionData['Selftext'] = submission.selftext
+        submissionData['URL'] = submission.url
+        submissionData['Comments'] = self.getAllComments(submission.comments)
+        self.getAllComments(submission.comments)
+        return submissionData
+
+    def getAllComments(self, curComments):
+        comments = {}
+        for comment in curComments:
+            if isinstance(comment, praw.objects.Comment):
+                author = comment.author
+                if author is None:
+                    author = "[Deleted]"
+                else:
+                    author = author.name
+                comments[author] = {'Body': comment.body, 'Replies': self.getAllComments(comment.replies)}
+        return comments
+
 
     def changeDownloadType(self, downloadType):
         self.downloadType = downloadType
