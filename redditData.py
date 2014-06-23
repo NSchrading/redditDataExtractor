@@ -10,6 +10,7 @@ from imageFinder import ImageFinder
 from ImgurImageFinder import ImgurImageFinder
 from minusImageFinder import MinusImageFinder
 from vidbleImageFinder import VidbleImageFinder
+from gfycatImageFinder import GfycatImageFinder
 from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User
 
@@ -99,12 +100,15 @@ class RedditData():
         imgurImageFinder = ImgurImageFinder(user.externalDownloads.values(), self.avoidDuplicates)
         minusImageFinder = MinusImageFinder(user.externalDownloads.values(), self.avoidDuplicates)
         vidbleImageFinder = VidbleImageFinder(user.externalDownloads.values(), self.avoidDuplicates)
+        gfycatImageFinder = GfycatImageFinder(user.externalDownloads.values(), self.avoidDuplicates)
         if 'imgur' in post.domain:
             imageFinder = imgurImageFinder
         elif 'i.minus' in post.domain:
             imageFinder = minusImageFinder
         elif 'vidble' in post.domain:
             imageFinder = vidbleImageFinder
+        elif 'gfycat' in post.domain:
+            imageFinder = gfycatImageFinder
         else:
             imageFinder = ImageFinder()
         ims = imageFinder.getImages(post, self.defaultPath)
