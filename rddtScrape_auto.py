@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'redditScraper.ui'
 #
-# Created: Tue May 27 02:41:47 2014
+# Created: Sat Jun 28 20:42:59 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -182,7 +182,7 @@ class Ui_RddtScrapeMainWindow(object):
         self.deleteUserBtn.setText(_translate("RddtScrapeMainWindow", "-", None))
         self.userSubBtn.setText(_translate("RddtScrapeMainWindow", "Constrain Selected Users To Selected Subreddits", None))
         self.allUserBtn.setText(_translate("RddtScrapeMainWindow", "Selected Users\' Content in All Subreddits", None))
-        self.allSubBtn.setText(_translate("RddtScrapeMainWindow", "Selected Subreddits\' Frontpage Content", None))
+        self.allSubBtn.setText(_translate("RddtScrapeMainWindow", "Selected Subreddits\' Content", None))
         self.downloadBtn.setText(_translate("RddtScrapeMainWindow", "Download!", None))
         self.menuType.setTitle(_translate("RddtScrapeMainWindow", "&File", None))
         self.menuNew.setTitle(_translate("RddtScrapeMainWindow", "&New", None))

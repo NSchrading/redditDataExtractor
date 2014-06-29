@@ -27,18 +27,18 @@ class ImageFinder():
             return True, response
         return False, response
 
-    def makeImage(self, user, postID, URL, redditPostURL, defaultPath, count, response):
+    def makeImage(self, user, postID, URL, redditPostURL, defaultPath, count, response, commentAuthor=None, commentAuthorURLCount=None):
         fileType = self.getFileType(URL)
         if response.status_code == 200:
             return Image(user, postID, fileType, defaultPath, URL, redditPostURL, response.iter_content(4096),
-                         str(count))
+                         str(count), commentAuthor, commentAuthorURLCount)
         else:
             return None
 
-    def getImages(self, post, defaultPath):
+    def getImages(self, post, defaultPath, commentAuthor=None, commentAuthorURLCount=None):
         valid, response = self.validURLImage(post.url)
         if valid:
-            params = (post.author.name, post.id, post.url, post.permalink, defaultPath, 1, response)
+            params = (post.author.name, post.id, post.url, post.permalink, defaultPath, 1, response, commentAuthor, commentAuthorURLCount)
             return [self.makeImage(*params)]
         return []
 
@@ -134,15 +134,14 @@ class ImgurImageFinder(ImageFinder):
         else:
             return ImgurLinkTypeEnum.SINGLE_PAGE
 
-    def getImages(self, post, defaultPath):
+    def getImages(self, post, defaultPath, commentAuthor=None, commentAuthorURLCount=None):
         images = []
         self.imgurLinkType = self.getImgurLinkType(post.url)
         imageURLs = self.getImageURLs(post.url)
         count = 1
         for imageURL in imageURLs:
-            print("url: " + imageURL)
             response = requests.get(imageURL)
-            params = (post.author.name, post.id, imageURL, post.permalink, defaultPath, count, response)
+            params = (post.author.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
             image = self.makeImage(*params)
             if image is not None:
                 images.append(image)
@@ -184,7 +183,7 @@ class GfycatImageFinder(ImageFinder):
         return validURLs
 
 
-    def getImages(self, post, defaultPath):
+    def getImages(self, post, defaultPath, commentAuthor=None, commentAuthorURLCount=None):
         images = []
         URL = post.url
         imageURLs = self.getImageURLs(URL)
@@ -192,7 +191,7 @@ class GfycatImageFinder(ImageFinder):
         for imageURL in imageURLs:
             valid, response = self.validURLImage(imageURL)
             if valid:
-                params = (post.author.name, post.id, imageURL, post.permalink, defaultPath, count, response)
+                params = (post.author.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
                 image = self.makeImage(*params)
                 if image is not None:
                     images.append(image)
@@ -220,13 +219,13 @@ class MinusImageFinder(ImageFinder):
         else:
             return False, None
 
-    def getImages(self, post, defaultPath):
+    def getImages(self, post, defaultPath, commentAuthor=None, commentAuthorURLCount=None):
         images = []
         imageURL = post.url
         valid, response = self.validURLImage(imageURL)
         if valid:
             count = 1
-            params = (post.author.name, post.id, imageURL, post.permalink, defaultPath, count, response)
+            params = (post.author.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
             image = self.makeImage(*params)
             if image is not None:
                 images.append(image)
@@ -283,7 +282,7 @@ class VidbleImageFinder(ImageFinder):
         return validURLs
 
 
-    def getImages(self, post, defaultPath):
+    def getImages(self, post, defaultPath, commentAuthor=None, commentAuthorURLCount=None):
         images = []
         URL = post.url
         imageURLs = self.getImageURLs(URL)
@@ -291,7 +290,7 @@ class VidbleImageFinder(ImageFinder):
         for imageURL in imageURLs:
             valid, response = self.validURLImage(imageURL)
             if valid:
-                params = (post.author.name, post.id, imageURL, post.permalink, defaultPath, count, response)
+                params = (post.author.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
                 image = self.makeImage(*params)
                 if image is not None:
                     images.append(image)

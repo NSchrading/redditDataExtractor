@@ -16,7 +16,7 @@ class Downloader(QObject):
 
     @pyqtSlot()
     def run(self):
-        if self.downloadType == DownloadType.SUBREDDIT_FRONTPAGE:
+        if self.downloadType == DownloadType.SUBREDDIT_CONTENT:
             if len(self.validData) > 0:
                 for submissions in self.validData:
                     submissionWorker = SubmissionWorker(self.rddtScraper, submissions, self.queue)
@@ -52,7 +52,10 @@ class UserWorker(QRunnable):
         submitted = self.redditor.get_submitted(limit=refresh)
         posts = self.rddtScraper.getValidPosts(submitted, self.user)
         for post in posts:
-            images = self.rddtScraper.getImages(post, self.user)
+            images = []
+            if self.rddtScraper.getCommentData:
+                images.extend(self.rddtScraper.getCommentImages(post, self.user))
+            images.extend(self.rddtScraper.getImages(post, self.user))
             for image in images:
                 if image is not None:
                     imageWorker = ImageWorker(image, self.user, self.rddtScraper.avoidDuplicates, self.queue)

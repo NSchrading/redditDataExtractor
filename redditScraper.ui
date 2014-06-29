@@ -176,7 +176,7 @@
         <item>
          <widget class="QRadioButton" name="allSubBtn">
           <property name="text">
-           <string>Selected Subreddits' Frontpage Content</string>
+           <string>Selected Subreddits' Content</string>
           </property>
          </widget>
         </item>

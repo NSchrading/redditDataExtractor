@@ -13,6 +13,7 @@ from GUIFuncs import confirmDialog
 from queue import Queue
 from downloader import Downloader
 
+
 class ListType():
     USER = 1
     SUBREDDIT = 2
@@ -25,8 +26,8 @@ class MyReceiver(QObject):
     mysignal = pyqtSignal(str)
     finished = pyqtSignal()
 
-    def __init__(self,queue,*args,**kwargs):
-        QObject.__init__(self,*args,**kwargs)
+    def __init__(self, queue, *args, **kwargs):
+        QObject.__init__(self, *args, **kwargs)
         self.queue = queue
 
     @pyqtSlot()
@@ -90,9 +91,10 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
 
         self.downloadBtn.clicked.connect(self.download)
 
-        self.userSubBtn.clicked.connect(lambda: self.rddtScraper.changeDownloadType(DownloadType.USER_SUBREDDIT_CONSTRAINED))
+        self.userSubBtn.clicked.connect(
+            lambda: self.rddtScraper.changeDownloadType(DownloadType.USER_SUBREDDIT_CONSTRAINED))
         self.allUserBtn.clicked.connect(lambda: self.rddtScraper.changeDownloadType(DownloadType.USER_SUBREDDIT_ALL))
-        self.allSubBtn.clicked.connect(lambda: self.rddtScraper.changeDownloadType(DownloadType.SUBREDDIT_FRONTPAGE))
+        self.allSubBtn.clicked.connect(lambda: self.rddtScraper.changeDownloadType(DownloadType.SUBREDDIT_CONTENT))
 
         self.init()
 
@@ -129,20 +131,12 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.logTextEdit.clear()
         if self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED or self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_ALL:
             validRedditors = self.getValidRedditors()
-            self.downloader = Downloader(self.rddtScraper, validRedditors, self.queue, DownloadType.USER_SUBREDDIT_CONSTRAINED)
-        elif self.rddtScraper.downloadType == DownloadType.SUBREDDIT_FRONTPAGE:
+            self.downloader = Downloader(self.rddtScraper, validRedditors, self.queue,
+                                         DownloadType.USER_SUBREDDIT_CONSTRAINED)
+        elif self.rddtScraper.downloadType == DownloadType.SUBREDDIT_CONTENT:
             validSubreddits = self.getValidSubreddits()
             submissions = self.rddtScraper.getSubredditSubmissions(validSubreddits)
-            self.downloader = Downloader(self.rddtScraper, submissions, self.queue, DownloadType.SUBREDDIT_FRONTPAGE)
-            '''
-                    for submission in submissions:
-                        get comments if wanted
-                        get title if wanted
-                        get picture if available and wanted
-                        get external content (maybe use goose) if wanted
-                        get self text if available and wanted
-                        save it all
-            '''
+            self.downloader = Downloader(self.rddtScraper, submissions, self.queue, DownloadType.SUBREDDIT_CONTENT)
         self.thread = QThread()
         self.downloader.moveToThread(self.thread)
         self.thread.started.connect(self.downloader.run)
@@ -153,9 +147,9 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.thread.start()
 
     @pyqtSlot(str)
-    def append_text(self,text):
+    def append_text(self, text):
         self.logTextEdit.moveCursor(QTextCursor.End)
-        self.logTextEdit.insertPlainText( text )
+        self.logTextEdit.insertPlainText(text)
 
     def activateDownloadBtn(self):
         self.downloadBtn.setText("Download!")
@@ -167,7 +161,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
          Could possibly do it in a separate QThread so we don't lock main GUI.
         """
         model = self.rddtScraper.userLists.get(self.rddtScraper.currentUserListName)
-        users = set(model.lst) # create a new set so we don't change set size during iteration if we remove a user
+        users = set(model.lst)  # create a new set so we don't change set size during iteration if we remove a user
         validRedditors = []
         for user in users:
             userName = user.name
@@ -189,7 +183,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
          Could possibly do it in a separate QThread so we don't lock main GUI.
         """
         model = self.rddtScraper.subredditLists.get(self.rddtScraper.currentSubredditListName)
-        subreddits = set(model.lst) # create a new set so we don't change set size during iteration if we remove a user
+        subreddits = set(model.lst)  # create a new set so we don't change set size during iteration if we remove a user
         validSubreddits = []
         for subreddit in subreddits:
             subredditName = subreddit.name
@@ -246,7 +240,9 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
 
     def showSettings(self):
         settings = SettingsGUI(self.rddtScraper.userLists, self.rddtScraper.subredditLists,
-                               self.rddtScraper.defaultUserListName, self.rddtScraper.defaultSubredditListName, self.rddtScraper.avoidDuplicates, self.rddtScraper.subSort, self.rddtScraper.subLimit)
+                               self.rddtScraper.defaultUserListName, self.rddtScraper.defaultSubredditListName,
+                               self.rddtScraper.avoidDuplicates, self.rddtScraper.getExternalDataSub,
+                               self.rddtScraper.getCommentData, self.rddtScraper.subSort, self.rddtScraper.subLimit)
         ret = settings.exec_()
         if ret == QDialog.Accepted:
             self.logPrint(
@@ -254,7 +250,11 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                     settings.currentSubredditListName))
             self.rddtScraper.defaultUserListName = settings.currentUserListName
             self.rddtScraper.defaultSubredditListName = settings.currentSubredditListName
+
             self.rddtScraper.avoidDuplicates = settings.avoidDuplicates
+            self.rddtScraper.getExternalDataSub = settings.getExternalDataSub
+            self.rddtScraper.getCommentData = settings.getCommentData
+
             self.rddtScraper.subSort = settings.subSort
             self.rddtScraper.subLimit = settings.subLimit
             self.saveState()

@@ -10,20 +10,24 @@ from imageFinder import ImageFinder, ImgurImageFinder, MinusImageFinder, VidbleI
 from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User
 
+
 class DownloadType():
     USER_SUBREDDIT_CONSTRAINED = 1
     USER_SUBREDDIT_ALL = 2
-    SUBREDDIT_FRONTPAGE = 3
+    SUBREDDIT_CONTENT = 3
+
 
 class RedditData():
     __slots__ = ('defaultPath', 'subredditLists', 'userLists', 'currentSubredditListName', 'currentUserListName',
-                 'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r', 'downloadType', 'avoidDuplicates', 'subSort', 'subLimit')
+                 'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r', 'downloadType',
+                 'avoidDuplicates', 'getExternalDataSub', 'getCommentData', 'subSort', 'subLimit', 'supportedDomains')
 
     def __init__(self, defaultPath=os.path.abspath(os.path.expanduser('Downloads')), subredditLists=None,
                  userLists=None,
                  currentSubredditListName='Default Subs',
                  currentUserListName='Default User List', defaultSubredditListName='Default Subs',
-                 defaultUserListName='Default User List', avoidDuplicates=True, subSort='hot', subLimit=10):
+                 defaultUserListName='Default User List', avoidDuplicates=True, getExternalDataSub=False,
+                 getCommentData=False, subSort='hot', subLimit=10, supportedDomains=None):
 
         self.defaultPath = defaultPath
         if subredditLists is None:
@@ -47,8 +51,14 @@ class RedditData():
         self.r = praw.Reddit(user_agent='RedditUserScraper by /u/VoidXC')
         self.downloadType = DownloadType.USER_SUBREDDIT_CONSTRAINED
         self.avoidDuplicates = avoidDuplicates
+        self.getExternalDataSub = getExternalDataSub
+        self.getCommentData = getCommentData
         self.subSort = subSort
         self.subLimit = subLimit
+        if supportedDomains is None:
+            self.supportedDomains = ['imgur', 'i.minus', 'vidble', 'gfycat']
+        else:
+            self.supportedDomains = supportedDomains
 
     def downloadUserProcess(self, user, redditor):
         userName = user.name
@@ -61,7 +71,8 @@ class RedditData():
         posts = self.getValidPosts(submitted, user)
         images = self.getImages(posts, user)
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-            future = [executor.submit(image.download, user, self.avoidDuplicates) for image in images if image is not None]
+            future = [executor.submit(image.download, user, self.avoidDuplicates) for image in images if
+                      image is not None]
             concurrent.futures.wait(future)
 
     def downloadThread(self, validRedditors):
@@ -78,36 +89,22 @@ class RedditData():
             thread = threading.Thread(target=self.downloadThread, args=(validRedditors,))
             thread.start()
 
-    '''
-    def getImages(self, posts, user):
+    def getImages(self, post, user, commentAuthor=None, commentAuthorURLCount=None):
         images = []
-        imgurImageFinder = ImgurImageFinder(user.externalDownloads, self.avoidDuplicates)
-        for post in posts:
-            if 'imgur' in post.domain:
-                imageFinder = imgurImageFinder
-            else:
-                imageFinder = ImageFinder(post.url)
-            images.extend(imageFinder.getImages(post, self.defaultPath))
-        return images
-    '''
+        imageFinder = None
+        imageFinderDomains = {self.supportedDomains[0]: ImgurImageFinder(user.externalDownloads.values(), self.avoidDuplicates),
+                              self.supportedDomains[1]: MinusImageFinder(user.externalDownloads.values(), self.avoidDuplicates),
+                              self.supportedDomains[2]: VidbleImageFinder(user.externalDownloads.values(), self.avoidDuplicates),
+                              self.supportedDomains[3]: GfycatImageFinder(user.externalDownloads.values(), self.avoidDuplicates)}
+        domains = imageFinderDomains.keys()
 
-    def getImages(self, post, user):
-        images = []
-        imgurImageFinder = ImgurImageFinder(user.externalDownloads.values(), self.avoidDuplicates)
-        minusImageFinder = MinusImageFinder(user.externalDownloads.values(), self.avoidDuplicates)
-        vidbleImageFinder = VidbleImageFinder(user.externalDownloads.values(), self.avoidDuplicates)
-        gfycatImageFinder = GfycatImageFinder(user.externalDownloads.values(), self.avoidDuplicates)
-        if 'imgur' in post.domain:
-            imageFinder = imgurImageFinder
-        elif 'i.minus' in post.domain:
-            imageFinder = minusImageFinder
-        elif 'vidble' in post.domain:
-            imageFinder = vidbleImageFinder
-        elif 'gfycat' in post.domain:
-            imageFinder = gfycatImageFinder
-        else:
-            imageFinder = ImageFinder()
-        ims = imageFinder.getImages(post, self.defaultPath)
+        for domain in domains:
+            if domain in post.domain:
+                imageFinder = imageFinderDomains.get(domain)
+                break
+        if imageFinder is None:
+            imageFinder = ImageFinder()  # default to a basic image finder if no supported domain is found
+        ims = imageFinder.getImages(post, self.defaultPath, commentAuthor, commentAuthorURLCount)
         images.extend(ims)
         return images
 
@@ -170,19 +167,19 @@ class RedditData():
         return submissions
 
     def downloadSubmission(self, subreddit, submission):
-        MAX_PATH = 260 # Windows is stupid and only lets you make paths up to a length of 260 chars
+        MAX_PATH = 260  # Windows is stupid and only lets you make paths up to a length of 260 chars
         directory = os.path.abspath(os.path.join(self.defaultPath, subreddit))
         title = re.sub('[^\w\-_\. ]', '', submission.title)
         path = os.path.join(directory, title + '.txt')
         if len(path) > MAX_PATH:
             lenOver = len(path) - MAX_PATH
-            title = title[:-(lenOver+len('.txt'))]
+            title = title[:-(lenOver + len('.txt'))]
             path = os.path.join(directory, title + '.txt')
         with open(path, 'w') as f:
             json.dump(self.getSubmissionData(submission), f, ensure_ascii=True)
 
     def getSubmissionData(self, submission):
-        submissionData = {"Permalink" : submission.permalink}
+        submissionData = {"Permalink": submission.permalink}
         submissionData['Title'] = submission.title
         submissionData['Post ID'] = submission.id
         submissionData['Upvotes'] = submission.ups
@@ -197,7 +194,7 @@ class RedditData():
     def getAllComments(self, curComments):
         comments = {}
         for comment in curComments:
-            if isinstance(comment, praw.objects.Comment):
+            if isinstance(comment, praw.objects.Comment): # Make sure it isn't a MoreComments object
                 author = comment.author
                 if author is None:
                     author = "[Deleted]"
@@ -206,6 +203,52 @@ class RedditData():
                 comments[author] = {'Body': comment.body, 'Replies': self.getAllComments(comment.replies)}
         return comments
 
+    def fudgePostDomainAndURL(self, post, url):
+        for supportedDomain in self.supportedDomains:
+            if supportedDomain in url:
+                post.domain = supportedDomain
+                post.url = url
+                return True
+        return False
+
+    def getCommentImages(self, post, user):
+        origPostURL = post.url # We're going to be hijacking these variables to use self.getImages
+        origPostDomain = post.domain
+        commentImageURLs = self.getCommentImageURLs(post)
+        images = []
+        for author in commentImageURLs:
+            urls = commentImageURLs.get(author)
+            count = 1
+            for url in urls:
+                canDownload = self.fudgePostDomainAndURL(post, url)
+                if canDownload:
+                    images.extend(self.getImages(post, user, author, count))
+                    count += 1
+        post.url = origPostURL # Restore the post info back to what it was
+        post.domain = origPostDomain
+        return images
+
+    def getCommentImageURLs(self, submission):
+        # This is a regex to parse URLs, courtesy of JohnJohnGa
+        # don't ask me how it works
+        # http://stackoverflow.com/questions/6883049/regex-to-find-urls-in-string-in-python
+        urlFinder = re.compile("http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", re.IGNORECASE)
+        urls = {}
+        allComments = praw.helpers.flatten_tree(submission.comments)
+        for comment in allComments:
+            if isinstance(comment, praw.objects.Comment): # Make sure it isn't a MoreComments object
+                author = comment.author
+                if author is None:
+                    author = "[Deleted]"
+                else:
+                    author = author.name
+                matches = urlFinder.findall(comment.body)
+                authorURLs = urls.get(author)
+                if authorURLs is None:
+                    urls[author] = matches
+                else:
+                    urls[author].extend(matches)
+        return urls
 
     def changeDownloadType(self, downloadType):
         self.downloadType = downloadType
