@@ -87,13 +87,18 @@ class ImageWorker(QRunnable):
         self.avoidDuplicates = avoidDuplicates
         self.queue = queue
 
+    def addRepresentativeImage(self):
+        # Add 1 representative picture for this post, even if it is an album with multiple pictures
+        # Don't allow comment images to be a representative image
+        if self.user.redditPosts.get(self.image.redditPostURL) is None and self.image.commentAuthor is None:
+            self.user.redditPosts[self.image.redditPostURL] = self.image.savePath
+
     def run(self):
         allExternalDownloads = set([])
         for redditPostURL in self.user.externalDownloads:
             allExternalDownloads = allExternalDownloads.union(allExternalDownloads, self.user.externalDownloads.get(redditPostURL))
         if (not self.avoidDuplicates) or (self.avoidDuplicates and self.image.URL not in allExternalDownloads):
-            if self.user.redditPosts.get(self.image.redditPostURL) is None:  # Add 1 representative picture for this post, even if it is an album with multiple pictures
-                self.user.redditPosts[self.image.redditPostURL] = self.image.savePath
+            self.addRepresentativeImage()
             if self.user.externalDownloads.get(self.image.redditPostURL) is None:
                 self.user.externalDownloads[self.image.redditPostURL] = {self.image.URL}
             else:

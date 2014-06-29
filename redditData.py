@@ -243,6 +243,13 @@ class RedditData():
                 else:
                     author = author.name
                 matches = urlFinder.findall(comment.body)
+                for i in range(len(matches)):
+                    # hacky way to fix ) or ] appearing at end of url in comment due to the way links are made on reddit
+                    # like [reddit!](http://reddit.com). Could probably fix the regex but I don't want to figure out how it works right now
+                    match = matches[i]
+                    if match[-1] == ")" or match[-1] == "]":
+                        match = match[:-1]
+                        matches[i] = match
                 authorURLs = urls.get(author)
                 if authorURLs is None:
                     urls[author] = matches
