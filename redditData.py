@@ -6,11 +6,7 @@ import shelve
 import threading
 import re
 import json
-from imageFinder import ImageFinder
-from ImgurImageFinder import ImgurImageFinder
-from minusImageFinder import MinusImageFinder
-from vidbleImageFinder import VidbleImageFinder
-from gfycatImageFinder import GfycatImageFinder
+from imageFinder import ImageFinder, ImgurImageFinder, MinusImageFinder, VidbleImageFinder, GfycatImageFinder
 from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User
 

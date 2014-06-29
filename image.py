@@ -31,24 +31,3 @@ class Image():
         with open(self.savePath, 'wb') as fo:
             for chunk in self.iterContent:
                 fo.write(chunk)
-
-        '''
-        DIRECT
-        if self.downloadImage(post.url, savePath):
-            if check503BytesFile(savePath):
-                addToUserSpecificBlacklist(postID, user, defaultPath)
-            self.addPostToUserDownloads(post)
-
-        SINGLE
-        savePath = os.path.abspath(os.path.join(defaultPath, user, imageFile))
-        if downloadImage("http:" + imageUrl, savePath):
-            if check503BytesFile(savePath):
-                addToUserSpecificBlacklist(postID, user, defaultPath)
-
-        ALBUM
-        savePath = os.path.abspath(os.path.join(self.defaultPath, user, postID + " " + str(count) + fileType))
-        if self.downloadImage(url[0], savePath):
-            check503BytesFile(savePath)
-            count += 1
-            self.addPostToUserDownloads(post)
-        '''
