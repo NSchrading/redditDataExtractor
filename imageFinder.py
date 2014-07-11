@@ -2,6 +2,13 @@ import requests
 from image import Image
 
 
+def debug(target):
+    def wrapper(*args, **kwargs):
+        print('Calling function "%s" with arguments %s and keyword arguments %s' % (target.__name__, args, kwargs))
+        return target(*args, **kwargs)
+
+    return wrapper
+
 class ImgurLinkTypeEnum():
     DIRECT = 1
     SINGLE_PAGE = 2
