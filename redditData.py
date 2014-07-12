@@ -301,6 +301,6 @@ class RedditData():
     def getSubreddit(self, subredditName):
         try:
             subreddit = self.r.get_subreddit(subredditName, fetch=True)
-        except requests.exceptions.HTTPError:
+        except:
             subreddit = None
         return subreddit
