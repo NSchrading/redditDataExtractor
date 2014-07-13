@@ -5,18 +5,13 @@ import shelve
 from PyQt4.Qt import *
 from rddtScrape_auto import Ui_RddtScrapeMainWindow
 from settingsGUI import SettingsGUI
-from redditData import RedditData, DownloadType
-from downloadedUserPostsGUI import DownloadedUserPostsGUI
+from redditData import RedditData, DownloadType, ListType
+from downloadedPostsGUI import DownloadedPostsGUI
 from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User, Subreddit
 from GUIFuncs import confirmDialog
 from queue import Queue
 from downloader import Downloader
-
-class ListType():
-    USER = 1
-    SUBREDDIT = 2
-
 
 # A QObject (to be run in a QThread) which sits waiting for data to come through a Queue.Queue().
 # It blocks until data is available, and one it has got something from the queue, it sends
@@ -28,12 +23,18 @@ class MyReceiver(QObject):
     def __init__(self, queue, *args, **kwargs):
         QObject.__init__(self, *args, **kwargs)
         self.queue = queue
+        self.continueOperation = True
 
     @pyqtSlot()
     def run(self):
-        while True:
+        while(self.continueOperation):
             text = self.queue.get()
             self.mysignal.emit(text)
+        self.finished.emit()
+
+    def stop(self):
+        self.continueOperation = False
+        self.queue.put("") # wake up the queue (it blocks until it gets something)
 
 class Validator(QObject):
 
@@ -64,14 +65,11 @@ class Validator(QObject):
                 self.invalid.emit(name)
                 self.queue.put("Invalid " + s + "found: " + name + "\n")
             else:
-                if self.listType == ListType.USER:
-                    valid.append((d, validatedData))
-                else:
-                    valid.append(validatedData)
+                valid.append((d, validatedData))
         self.finished.emit(valid)
 
 class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
-    def __init__(self, rddtScraper, queue):
+    def __init__(self, rddtScraper, queue, recv):
         QMainWindow.__init__(self)
 
         # Set up the user interface from Designer.
@@ -87,6 +85,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.log = True
 
         self.queue = queue
+        self.recv = recv
 
         # Custom Set ups
         self.setup()
@@ -121,6 +120,9 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
 
         self.userList.addAction(self.actionDownloaded_Reddit_User_Posts)
         self.actionDownloaded_Reddit_User_Posts.triggered.connect(self.viewDownloadedUserPosts)
+
+        self.subredditList.addAction(self.actionDownloaded_Subreddit_Posts)
+        self.actionDownloaded_Subreddit_Posts.triggered.connect(self.viewDownloadedSubredditPosts)
 
         self.downloadBtn.clicked.connect(self.beginDownload)
 
@@ -180,10 +182,9 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
     @pyqtSlot(list)
     def downloadValid(self, validData):
         if self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED or self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_ALL:
-            self.downloader = Downloader(self.rddtScraper, validData, self.queue, DownloadType.USER_SUBREDDIT_CONSTRAINED)
+            self.downloader = Downloader(self.rddtScraper, validData, self.queue, ListType.USER)
         elif self.rddtScraper.downloadType == DownloadType.SUBREDDIT_CONTENT:
-            submissions = self.rddtScraper.getSubredditSubmissions(validData)
-            self.downloader = Downloader(self.rddtScraper, submissions, self.queue, DownloadType.SUBREDDIT_CONTENT)
+            self.downloader = Downloader(self.rddtScraper, validData, self.queue, ListType.SUBREDDIT)
         self.thread = QThread()
         self.downloader.moveToThread(self.thread)
         self.thread.started.connect(self.downloader.run)
@@ -458,26 +459,27 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         if model is not None and index is not None:
             selectedUser = model.getObjectInLst(index)
             downloadedUserPosts = selectedUser.redditPosts
-            print(downloadedUserPosts)
             if downloadedUserPosts is not None and len(downloadedUserPosts) > 0:
-                downloadedUserPostsGUI = DownloadedUserPostsGUI(selectedUser, confirmDialog, self.saveState)
-                for post in downloadedUserPosts:
-                    item = QListWidgetItem("", downloadedUserPostsGUI.downloadedUserPostsList)
-                    labelWidget = QLabel()
-                    labelWidget.setOpenExternalLinks(True)
-                    labelWidget.setTextFormat(Qt.RichText)
-                    size = QSize(128, 158)
-                    item.setSizeHint(size)
-                    size = QSize(128, 128)
-                    pixmap = QPixmap(downloadedUserPosts.get(post)).scaled(size, Qt.KeepAspectRatio)
-                    height = pixmap.height()
-                    width = pixmap.width()
-                    postTitle = post[post[0:-1].rfind("/") + 1:-1]
-                    labelWidget.setText(
-                        '<a href="' + post + '"><img src="' + downloadedUserPosts.get(post) + '" height="' + str(
-                            height) + '" width="' + str(width) + '"><p>' + postTitle)
-                    downloadedUserPostsGUI.downloadedUserPostsList.setItemWidget(item, labelWidget)
-                    downloadedUserPostsGUI.posts.append(post)
+                downloadedUserPostsGUI = DownloadedPostsGUI(selectedUser, confirmDialog, self.saveState)
+                for postURL in downloadedUserPosts:
+                    for post in downloadedUserPosts.get(postURL):
+                        image = post.representativeImage
+                        item = QListWidgetItem("", downloadedUserPostsGUI.downloadedPostsList)
+                        labelWidget = QLabel()
+                        labelWidget.setOpenExternalLinks(True)
+                        labelWidget.setTextFormat(Qt.RichText)
+                        size = QSize(128, 158)
+                        item.setSizeHint(size)
+                        size = QSize(128, 128)
+                        pixmap = QPixmap(image).scaled(size, Qt.KeepAspectRatio)
+                        height = pixmap.height()
+                        width = pixmap.width()
+                        postTitle = postURL[postURL[0:-1].rfind("/") + 1:-1]
+                        labelWidget.setText(
+                            '<a href="' + postURL + '"><img src="' + image + '" height="' + str(
+                                height) + '" width="' + str(width) + '"><p>' + postTitle)
+                        downloadedUserPostsGUI.downloadedPostsList.setItemWidget(item, labelWidget)
+                        downloadedUserPostsGUI.posts.append((postURL, post.type))
                 downloadedUserPostsGUI.exec_()
             else:
                 QMessageBox.information(QMessageBox(), "Reddit Scraper",
@@ -485,6 +487,44 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         elif index is None:
             QMessageBox.information(QMessageBox(), "Reddit Scraper",
                                     "To view a user's downloaded posts, please select a user in the user list.")
+
+    def viewDownloadedSubredditPosts(self):
+        model = self.rddtScraper.subredditLists.get(self.rddtScraper.currentSubredditListName)
+        indices = self.subredditList.selectedIndexes()  # indices is a list of QModelIndex
+        index = None
+        if len(indices) > 0:
+            index = indices[0]  # only one thing should be selectable at a time
+        if model is not None and index is not None:
+            selectedSubreddit = model.getObjectInLst(index)
+            downloadedSubredditPosts = selectedSubreddit.redditPosts
+            if downloadedSubredditPosts is not None and len(downloadedSubredditPosts) > 0:
+                downloadedSubredditPostsGUI = DownloadedPostsGUI(selectedSubreddit, confirmDialog, self.saveState)
+                for postURL in downloadedSubredditPosts:
+                    for post in downloadedSubredditPosts.get(postURL):
+                        image = post.representativeImage
+                        item = QListWidgetItem("", downloadedSubredditPostsGUI.downloadedPostsList)
+                        labelWidget = QLabel()
+                        labelWidget.setOpenExternalLinks(True)
+                        labelWidget.setTextFormat(Qt.RichText)
+                        size = QSize(128, 158)
+                        item.setSizeHint(size)
+                        size = QSize(128, 128)
+                        pixmap = QPixmap(image).scaled(size, Qt.KeepAspectRatio)
+                        height = pixmap.height()
+                        width = pixmap.width()
+                        postTitle = postURL[postURL[0:-1].rfind("/") + 1:-1]
+                        labelWidget.setText(
+                            '<a href="' + postURL + '"><img src="' + image + '" height="' + str(
+                                height) + '" width="' + str(width) + '"><p>' + postTitle)
+                        downloadedSubredditPostsGUI.downloadedPostsList.setItemWidget(item, labelWidget)
+                        downloadedSubredditPostsGUI.posts.append((postURL, post.type))
+                downloadedSubredditPostsGUI.exec_()
+            else:
+                QMessageBox.information(QMessageBox(), "Reddit Scraper",
+                                        "The selected subreddit has no downloaded posts. Download some by hitting the download button.")
+        elif index is None:
+            QMessageBox.information(QMessageBox(), "Reddit Scraper",
+                                    "To view a subreddit's downloaded posts, please select a subreddit in the subreddit list.")
 
     def setUnsavedChanges(self, unsaved):
         self.unsavedChanges = unsaved
@@ -519,6 +559,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.logPrint("Attempting to close program.")
         close = self.checkSaveState()
         if close:
+            self.recv.stop()
             self.logPrint("Closing program.")
             event.accept()
         else:
@@ -556,7 +597,6 @@ def loadState():
         shelf.close()
         return rddtScraper
 
-
 def main():
     a = QApplication(sys.argv)
     rddtScraper = loadState()
@@ -564,15 +604,18 @@ def main():
         print("rddt data client was None, making new one")
         rddtScraper = RedditData()
     queue = Queue()
-    w = RddtScrapeGUI(rddtScraper, queue)
-    w.show()
-
     thread = QThread()
     recv = MyReceiver(queue)
+    w = RddtScrapeGUI(rddtScraper, queue, recv)
     recv.mysignal.connect(w.append_text)
     recv.moveToThread(thread)
     thread.started.connect(recv.run)
+    recv.finished.connect(thread.quit)
+    recv.finished.connect(recv.deleteLater)
+    thread.finished.connect(thread.deleteLater)
     thread.start()
+
+    w.show()
 
     sys.exit(a.exec_())
 

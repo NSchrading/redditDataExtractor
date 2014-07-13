@@ -26,7 +26,7 @@
       <item row="1" column="1">
        <widget class="QListView" name="subredditList">
         <property name="contextMenuPolicy">
-         <enum>Qt::DefaultContextMenu</enum>
+         <enum>Qt::ActionsContextMenu</enum>
         </property>
        </widget>
       </item>
@@ -245,6 +245,7 @@
      <string>&amp;View</string>
     </property>
     <addaction name="actionDownloaded_Reddit_User_Posts"/>
+    <addaction name="actionDownloaded_Subreddit_Posts"/>
    </widget>
    <addaction name="menuType"/>
    <addaction name="menuView"/>
@@ -302,6 +303,11 @@
   <action name="actionRemove_User_List">
    <property name="text">
     <string>Remove Selected User List</string>
+   </property>
+  </action>
+  <action name="actionDownloaded_Subreddit_Posts">
+   <property name="text">
+    <string>Downloaded Subreddit Posts</string>
    </property>
   </action>
  </widget>

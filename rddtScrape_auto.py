@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'redditScraper.ui'
 #
-# Created: Sat Jun 28 20:42:59 2014
+# Created: Sun Jul 13 01:40:20 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -39,7 +39,7 @@ class Ui_RddtScrapeMainWindow(object):
         self.gridLayout = QtGui.QGridLayout()
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.subredditList = QtGui.QListView(self.centralwidget)
-        self.subredditList.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
+        self.subredditList.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
         self.subredditList.setObjectName(_fromUtf8("subredditList"))
         self.gridLayout.addWidget(self.subredditList, 1, 1, 1, 1)
         self.horizontalLayout_3 = QtGui.QHBoxLayout()
@@ -154,6 +154,8 @@ class Ui_RddtScrapeMainWindow(object):
         self.actionRemove_Subreddit_List.setObjectName(_fromUtf8("actionRemove_Subreddit_List"))
         self.actionRemove_User_List = QtGui.QAction(RddtScrapeMainWindow)
         self.actionRemove_User_List.setObjectName(_fromUtf8("actionRemove_User_List"))
+        self.actionDownloaded_Subreddit_Posts = QtGui.QAction(RddtScrapeMainWindow)
+        self.actionDownloaded_Subreddit_Posts.setObjectName(_fromUtf8("actionDownloaded_Subreddit_Posts"))
         self.menuNew.addAction(self.actionSubreddit_List)
         self.menuNew.addAction(self.actionUser_List)
         self.menuRemove.addAction(self.actionRemove_Subreddit_List)
@@ -165,6 +167,7 @@ class Ui_RddtScrapeMainWindow(object):
         self.menuType.addSeparator()
         self.menuType.addAction(self.actionExit)
         self.menuView.addAction(self.actionDownloaded_Reddit_User_Posts)
+        self.menuView.addAction(self.actionDownloaded_Subreddit_Posts)
         self.menubar.addAction(self.menuType.menuAction())
         self.menubar.addAction(self.menuView.menuAction())
 
@@ -200,4 +203,5 @@ class Ui_RddtScrapeMainWindow(object):
         self.actionDownloaded_Reddit_User_Posts.setText(_translate("RddtScrapeMainWindow", "&Downloaded Reddit User Posts", None))
         self.actionRemove_Subreddit_List.setText(_translate("RddtScrapeMainWindow", "Remove Selected Subreddit List", None))
         self.actionRemove_User_List.setText(_translate("RddtScrapeMainWindow", "Remove Selected User List", None))
+        self.actionDownloaded_Subreddit_Posts.setText(_translate("RddtScrapeMainWindow", "Downloaded Subreddit Posts", None))
 

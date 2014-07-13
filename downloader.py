@@ -1,104 +1,144 @@
 from PyQt4.Qt import *
-from redditData import DownloadType
+from redditData import ListType
+
+class DownloadedPostType():
+    EXTERNAL_DATA = 1
+    JSON_DATA = 2
+
+class DownloadedPost():
+    __slots__ = ('redditURL', 'type', 'representativeImage', 'files')
+
+    def __init__(self, redditURL, type):
+        self.redditURL = redditURL
+        self.type = type
+        self.files = []
+        self.representativeImage = None
+
+    def deleteFiles(self):
+        pass
+
 
 class Downloader(QObject):
 
     finished = pyqtSignal()
 
-    def __init__(self, rddtScraper, validData, queue, downloadType):
+    def __init__(self, rddtScraper, validData, queue, listModelType):
         super().__init__()
         self.rddtScraper = rddtScraper
         self.validData = validData
         self.queue = queue
-        self.downloadType = downloadType
+        self.listModelType = listModelType
         self.dataPool = QThreadPool()
         self.dataPool.setMaxThreadCount(4)
 
     @pyqtSlot()
     def run(self):
-        if self.downloadType == DownloadType.SUBREDDIT_CONTENT:
-            if len(self.validData) > 0:
-                for submissions in self.validData:
-                    submissionWorker = SubmissionWorker(self.rddtScraper, submissions, self.queue)
-                    self.dataPool.start(submissionWorker)
-                self.dataPool.waitForDone()
-        else:
-            if len(self.validData) > 0:
-                for user, redditor in self.validData:
-                    userWorker = UserWorker(self.rddtScraper, user, redditor, self.queue)
-                    self.dataPool.start(userWorker)
-                self.dataPool.waitForDone()
+        if len(self.validData) > 0:
+            for listModel, prawData in self.validData:
+                worker = Worker(self.rddtScraper, listModel, prawData, self.queue, self.listModelType)
+                self.dataPool.start(worker)
+            self.dataPool.waitForDone()
 
         self.rddtScraper.saveState()
         self.finished.emit()
 
-class UserWorker(QRunnable):
-    def __init__(self, rddtScraper, user, redditor, queue):
+class Worker(QRunnable):
+    def __init__(self, rddtScraper, listModel, prawData, queue, listModelType):
         super().__init__()
 
         self.rddtScraper = rddtScraper
-        self.user = user
-        self.redditor = redditor
+        self.listModel = listModel
+        self.prawData = prawData
         self.queue = queue
+        self.listModelType = listModelType
         self.imagePool = QThreadPool()
         self.imagePool.setMaxThreadCount(3)
+        self.submissionPool = QThreadPool()
+        self.submissionPool.setMaxThreadCount(3)
 
     def run(self):
-        userName = self.user.name
-        self.queue.put("Starting download for " + userName + "\n")
-        self.rddtScraper.makeDirectory(userName)
-        # Temporary
-        refresh = None
-        submitted = self.redditor.get_submitted(limit=refresh)
-        posts = self.rddtScraper.getValidPosts(submitted, self.user)
+        name = self.listModel.name
+        self.queue.put("Starting download for " + name + "\n")
+        self.rddtScraper.makeDirectory(name)
+        if self.listModelType == ListType.SUBREDDIT:
+            submitted = self.rddtScraper.getSubredditSubmissions(self.prawData)
+        else:
+            # Temporary
+            refresh = None
+            submitted = self.prawData.get_submitted(limit=refresh)
+        posts = self.rddtScraper.getValidPosts(submitted, self.listModel)
         for post in posts:
-            images = []
-            if self.rddtScraper.getCommentData:
-                images.extend(self.rddtScraper.getCommentImages(post, self.user))
-            images.extend(self.rddtScraper.getImages(post, self.user))
-            for image in images:
-                if image is not None:
-                    imageWorker = ImageWorker(image, self.user, self.rddtScraper.avoidDuplicates, self.queue)
-                    self.imagePool.start(imageWorker)
-            self.imagePool.waitForDone()
+            if self.rddtScraper.getExternalContent:
+                downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.EXTERNAL_DATA)
+                images = []
+                if self.rddtScraper.getCommentData:
+                    images.extend(self.rddtScraper.getCommentImages(post, self.listModel))
+                images.extend(self.rddtScraper.getImages(post, self.listModel))
+                for image in images:
+                    if image is not None:
+                        imageWorker = ImageWorker(image, self.listModel, self.rddtScraper.avoidDuplicates, self.queue, downloadedPost)
+                        self.imagePool.start(imageWorker)
+            if self.rddtScraper.getSubmissionContent:
+                downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.JSON_DATA)
+                submissionWorker = SubmissionWorker(self.rddtScraper, post, self.queue, self.listModel, self.listModelType, name, downloadedPost)
+                self.submissionPool.start(submissionWorker)
+        self.imagePool.waitForDone()
+        self.submissionPool.waitForDone()
+
 
 class SubmissionWorker(QRunnable):
-    def __init__(self, rddtScraper, allSubmissions, queue):
+    def __init__(self, rddtScraper, submission, queue, listModel, listModelType, listModelName, downloadedPost):
         super().__init__()
 
         self.rddtScraper = rddtScraper
-        self.allSubmissions = allSubmissions
+        self.submission = submission
         self.queue = queue
+        self.listModel = listModel
+        self.listModelType = listModelType
+        self.listModelName = listModelName
+        self.downloadedPost = downloadedPost
+        self.downloadedPost.representativeImage = "images/jsonImage.png"
 
     def run(self):
-        subreddit, submissions = self.allSubmissions
-        for submission in submissions:
-            title = submission.title
-            self.rddtScraper.makeDirectory(subreddit)
-            self.rddtScraper.downloadSubmission(subreddit, submission)
-            self.queue.put("Saved submission: " + title + "\n")
+        title = self.submission.title
+        if self.listModelType == ListType.USER:
+            savePath = self.rddtScraper.downloadSubmission(self.submission, self.listModelName)
+        else:
+            savePath = self.rddtScraper.downloadSubmission(self.submission)
+        self.downloadedPost.files.append(savePath)
+        posts = self.listModel.redditPosts.get(self.downloadedPost.redditURL)
+        if posts is None:
+            self.listModel.redditPosts[self.downloadedPost.redditURL] = [self.downloadedPost]
+        elif posts is not None and self.downloadedPost not in posts:
+            self.listModel.redditPosts[self.downloadedPost.redditURL].append(self.downloadedPost)
+        self.queue.put("Saved submission: " + title + "\n")
 
 class ImageWorker(QRunnable):
-    def __init__(self, image, user, avoidDuplicates, queue):
+    def __init__(self, image, user, avoidDuplicates, queue, downloadedPost):
         super().__init__()
 
         self.image = image
         self.user = user
         self.avoidDuplicates = avoidDuplicates
         self.queue = queue
+        self.downloadedPost = downloadedPost
 
-    def addRepresentativeImage(self):
-        # Add 1 representative picture for this post, even if it is an album with multiple pictures
-        # Don't allow comment images to be a representative image
-        if self.user.redditPosts.get(self.image.redditPostURL) is None and self.image.commentAuthor is None:
-            self.user.redditPosts[self.image.redditPostURL] = self.image.savePath
 
     def run(self):
         allExternalDownloads = set([])
         for redditPostURL in self.user.externalDownloads:
             allExternalDownloads = allExternalDownloads.union(allExternalDownloads, self.user.externalDownloads.get(redditPostURL))
         if (not self.avoidDuplicates) or (self.avoidDuplicates and self.image.URL not in allExternalDownloads):
-            self.addRepresentativeImage()
+
+            posts = self.user.redditPosts.get(self.downloadedPost.redditURL)
+            if posts is None:
+                self.user.redditPosts[self.downloadedPost.redditURL] = [self.downloadedPost]
+            elif posts is not None and self.downloadedPost not in posts:
+                self.user.redditPosts[self.downloadedPost.redditURL].append(self.downloadedPost)
+            if self.image.commentAuthor is None and self.downloadedPost.representativeImage is None:
+                self.downloadedPost.representativeImage = self.image.savePath
+            self.downloadedPost.files.append(self.image.savePath)
+
             if self.user.externalDownloads.get(self.image.redditPostURL) is None:
                 self.user.externalDownloads[self.image.redditPostURL] = {self.image.URL}
             else:

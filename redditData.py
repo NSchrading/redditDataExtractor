@@ -16,6 +16,9 @@ class DownloadType():
     USER_SUBREDDIT_ALL = 2
     SUBREDDIT_CONTENT = 3
 
+class ListType():
+    USER = 1
+    SUBREDDIT = 2
 
 class RedditData():
     __slots__ = ('defaultPath', 'subredditLists', 'userLists', 'currentSubredditListName', 'currentUserListName',
@@ -84,7 +87,7 @@ class RedditData():
                 break
         if imageFinder is None:
             imageFinder = ImageFinder()  # default to a basic image finder if no supported domain is found
-        ims = imageFinder.getImages(post, self.defaultPath, commentAuthor, commentAuthorURLCount)
+        ims = imageFinder.getImages(post, self.defaultPath, user, commentAuthor, commentAuthorURLCount)
         images.extend(ims)
         return images
 
@@ -130,25 +133,26 @@ class RedditData():
                 return False
         return True
 
-    def getSubredditSubmissions(self, validSubreddits):
-        submissions = []
-        for subreddit in validSubreddits:
-            if self.subSort == 'new':
-                contentFunc = subreddit.get_new
-            elif self.subSort == 'rising':
-                contentFunc = subreddit.get_rising
-            elif self.subSort == 'controversial':
-                contentFunc = subreddit.get_controversial
-            elif self.subSort == 'top':
-                contentFunc = subreddit.get_top
-            else:
-                contentFunc = subreddit.get_hot
-            submissions.append((subreddit.display_name, list(contentFunc(limit=self.subLimit))))
-        return submissions
+    def getSubredditSubmissions(self, validSubreddit):
+        if self.subSort == 'new':
+            contentFunc = validSubreddit.get_new
+        elif self.subSort == 'rising':
+            contentFunc = validSubreddit.get_rising
+        elif self.subSort == 'controversial':
+            contentFunc = validSubreddit.get_controversial
+        elif self.subSort == 'top':
+            contentFunc = validSubreddit.get_top
+        else:
+            contentFunc = validSubreddit.get_hot
+        return list(contentFunc(limit=self.subLimit))
 
-    def downloadSubmission(self, subreddit, submission):
+    def downloadSubmission(self, submission, user=""):
         MAX_PATH = 260  # Windows is stupid and only lets you make paths up to a length of 260 chars
-        directory = os.path.abspath(os.path.join(self.defaultPath, subreddit))
+        if user != "":
+            directory = os.path.abspath(os.path.join(self.defaultPath, user))
+        else:
+            subreddit = submission.subreddit.display_name
+            directory = os.path.abspath(os.path.join(self.defaultPath, subreddit))
         title = re.sub('[^\w\-_\. ]', '', submission.title)
         path = os.path.join(directory, title + '.txt')
         if len(path) > MAX_PATH:
@@ -157,6 +161,7 @@ class RedditData():
             path = os.path.join(directory, title + '.txt')
         with open(path, 'w') as f:
             json.dump(self.getSubmissionData(submission), f, ensure_ascii=True)
+        return path
 
     def getSubmissionData(self, submission):
         submissionData = {"Permalink": submission.permalink}
