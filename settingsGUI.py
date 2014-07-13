@@ -4,7 +4,7 @@ from settings_auto import Ui_SettingsDialog
 
 class SettingsGUI(QDialog, Ui_SettingsDialog):
     def __init__(self, userLists, subredditLists, currentUserListName, currentSubredditListName, avoidDuplicates,
-                 getExternalDataSub, getCommentData, subSort, subLimit):
+                 getExternalContent, getSubmissionContent, getCommentData, subSort, subLimit):
         QDialog.__init__(self)
 
         # Set up the user interface from Designer.
@@ -15,7 +15,8 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.currentUserListName = currentUserListName
         self.currentSubredditListName = currentSubredditListName
         self.avoidDuplicates = avoidDuplicates
-        self.getExternalDataSub = getExternalDataSub
+        self.getExternalContent = getExternalContent
+        self.getSubmissionContent = getSubmissionContent
         self.getCommentData = getCommentData
         self.subSort = subSort
         self.subLimit = subLimit
@@ -24,9 +25,10 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.defaultUserListComboBox.activated.connect(self.chooseNewUserList)
         self.defaultSubredditListComboBox.activated.connect(self.chooseNewSubredditList)
 
-        self.avoidDuplCheckBox.clicked.connect(self.changeAvoidDuplicates)
-        self.getExternalDataSubCheckBox.clicked.connect(self.changeGetExternalDataSub)
-        self.getCommentDataCheckBox.clicked.connect(self.changeGetCommentData)
+        self.avoidDuplCheckBox.clicked.connect(lambda: self.changeCheckBox(self.avoidDuplCheckBox, 'avoidDuplicates'))
+        self.getExternalContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.getExternalContentCheckBox, 'getExternalContent'))
+        self.getSubmissionContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.getSubmissionContentCheckBox, 'getSubmissionContent'))
+        self.getCommentDataCheckBox.clicked.connect(lambda: self.changeCheckBox(self.getCommentDataCheckBox, 'getCommentData'))
 
         self.hotBtn.clicked.connect(lambda: self.changeSubSort("hot"))
         self.newBtn.clicked.connect(lambda: self.changeSubSort("new"))
@@ -52,7 +54,8 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.defaultSubredditListComboBox.setCurrentIndex(index)
 
         self.avoidDuplCheckBox.setChecked(self.avoidDuplicates)
-        self.getExternalDataSubCheckBox.setChecked(self.getExternalDataSub)
+        self.getExternalContentCheckBox.setChecked(self.getExternalContent)
+        self.getSubmissionContentCheckBox.setChecked(self.getSubmissionContent)
         self.getCommentDataCheckBox.setChecked(self.getCommentData)
 
         self.initSubSort()
@@ -75,14 +78,10 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
     def chooseNewSubredditList(self):
         self.currentSubredditListName = self.defaultSubredditListComboBox.currentText()
 
-    def changeAvoidDuplicates(self):
-        self.avoidDuplicates = self.avoidDuplCheckBox.isChecked()
-
-    def changeGetExternalDataSub(self):
-        self.getExternalDataSub = self.getExternalDataSubCheckBox.isChecked()
-
-    def changeGetCommentData(self):
-        self.getCommentData = self.getCommentDataCheckBox.isChecked()
+    def changeCheckBox(self, checkBox, setting):
+        settingExists = self.__dict__.get(setting)
+        if settingExists is not None:
+            self.__dict__[setting] = checkBox.isChecked()
 
     def changeSubSort(self, subSort):
         self.subSort = subSort

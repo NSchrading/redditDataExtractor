@@ -1,5 +1,5 @@
 from PyQt4.Qt import *
-from genericListModelObjects import GenericListModelObj, User
+from genericListModelObjects import GenericListModelObj, User, Subreddit
 
 
 class ListModel(QAbstractListModel):
@@ -37,7 +37,7 @@ class ListModel(QAbstractListModel):
             obj = self.lst[index.row()]
             if isinstance(obj, User):
                 return "User name: " + obj.name
-            elif isinstance(obj, GenericListModelObj):
+            elif isinstance(obj, Subreddit):
                 return "Subreddit: " + obj.name
         elif role == Qt.EditRole:
             return self.lst[index.row()].name

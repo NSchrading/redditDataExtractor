@@ -8,7 +8,7 @@ from settingsGUI import SettingsGUI
 from redditData import RedditData, DownloadType
 from downloadedUserPostsGUI import DownloadedUserPostsGUI
 from listModel import ListModel
-from genericListModelObjects import GenericListModelObj, User
+from genericListModelObjects import GenericListModelObj, User, Subreddit
 from GUIFuncs import confirmDialog
 from queue import Queue
 from downloader import Downloader
@@ -156,16 +156,26 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
     def init(self):
         self.initUserList()
         self.initSubredditList()
+        if(self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED):
+            self.userSubBtn.setChecked(True)
+        elif(self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_ALL):
+            self.allUserBtn.setChecked(True)
+        elif(self.rddtScraper.downloadType == DownloadType.SUBREDDIT_CONTENT):
+            self.allSubBtn.setChecked(True)
 
     @pyqtSlot()
     def beginDownload(self):
         self.downloadBtn.setText("Downloading...")
         self.downloadBtn.setEnabled(False)
         self.logTextEdit.clear()
-        if self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED or self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_ALL:
-            self.getValidRedditors()
-        elif self.rddtScraper.downloadType == DownloadType.SUBREDDIT_CONTENT:
+        if self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED:
+            # need to validate both subreddits and redditors, start downloading user data once done
             self.getValidSubreddits()
+            self.getValidRedditors(startDownload=True)
+        elif self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_ALL:
+            self.getValidRedditors(startDownload=True)
+        elif self.rddtScraper.downloadType == DownloadType.SUBREDDIT_CONTENT:
+            self.getValidSubreddits(startDownload=True)
 
     @pyqtSlot(list)
     def downloadValid(self, validData):
@@ -192,21 +202,22 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.downloadBtn.setText("Download!")
         self.downloadBtn.setEnabled(True)
 
-    def getValidRedditors(self):
+    def getValidRedditors(self, startDownload=False):
         model = self.rddtScraper.userLists.get(self.rddtScraper.currentUserListName)
         users = set(model.lst)  # create a new set so we don't change set size during iteration if we remove a user
         # These are class variables so that they don't get destroyed when we return from getValidRedditors()
-        self.validatorThread = QThread()
+        self.redditorValidatorThread = QThread()
         self.redditorValidator = Validator(self.rddtScraper, self.queue, users, ListType.USER)
-        self.redditorValidator.moveToThread(self.validatorThread)
-        self.validatorThread.started.connect(self.redditorValidator.run)
+        self.redditorValidator.moveToThread(self.redditorValidatorThread)
+        self.redditorValidatorThread.started.connect(self.redditorValidator.run)
         self.redditorValidator.invalid.connect(self.notifyInvalidRedditor)
         # When the validation finishes, start the downloading process on the validated users
-        self.redditorValidator.finished.connect(self.downloadValid)
-        self.redditorValidator.finished.connect(self.validatorThread.quit)
+        if startDownload:
+            self.redditorValidator.finished.connect(self.downloadValid)
+        self.redditorValidator.finished.connect(self.redditorValidatorThread.quit)
         self.redditorValidator.finished.connect(self.redditorValidator.deleteLater)
-        self.validatorThread.finished.connect(self.validatorThread.deleteLater)
-        self.validatorThread.start()
+        self.redditorValidatorThread.finished.connect(self.redditorValidatorThread.deleteLater)
+        self.redditorValidatorThread.start()
 
     @pyqtSlot(str)
     def notifyInvalidRedditor(self, userName):
@@ -218,24 +229,20 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             if index != -1:
                 model.removeRows(index, 1)
 
-    def getValidSubreddits(self):
-        """
-         Can we make this faster?
-         Could possibly do it in a separate QThread so we don't lock main GUI.
-        """
+    def getValidSubreddits(self, startDownload=False):
         model = self.rddtScraper.subredditLists.get(self.rddtScraper.currentSubredditListName)
-        subreddits = set(model.lst)  # create a new set so we don't change set size during iteration if we remove a user
-        self.validatorThread = QThread()
+        subreddits = set(model.lst)
+        self.subredditValidatorThread = QThread()
         self.subredditValidator = Validator(self.rddtScraper, self.queue, subreddits, ListType.SUBREDDIT)
-        self.subredditValidator.moveToThread(self.validatorThread)
-        self.validatorThread.started.connect(self.subredditValidator.run)
+        self.subredditValidator.moveToThread(self.subredditValidatorThread)
+        self.subredditValidatorThread.started.connect(self.subredditValidator.run)
         self.subredditValidator.invalid.connect(self.notifyInvalidSubreddit)
-        # When the validation finishes, start the downloading process on the validated users
-        self.subredditValidator.finished.connect(self.downloadValid)
-        self.subredditValidator.finished.connect(self.validatorThread.quit)
+        if startDownload:
+            self.subredditValidator.finished.connect(self.downloadValid)
+        self.subredditValidator.finished.connect(self.subredditValidatorThread.quit)
         self.subredditValidator.finished.connect(self.subredditValidator.deleteLater)
-        self.validatorThread.finished.connect(self.validatorThread.deleteLater)
-        self.validatorThread.start()
+        self.subredditValidatorThread.finished.connect(self.subredditValidatorThread.deleteLater)
+        self.subredditValidatorThread.start()
 
     @pyqtSlot(str)
     def notifyInvalidSubreddit(self, subredditName):
@@ -289,7 +296,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
     def showSettings(self):
         settings = SettingsGUI(self.rddtScraper.userLists, self.rddtScraper.subredditLists,
                                self.rddtScraper.defaultUserListName, self.rddtScraper.defaultSubredditListName,
-                               self.rddtScraper.avoidDuplicates, self.rddtScraper.getExternalDataSub,
+                               self.rddtScraper.avoidDuplicates, self.rddtScraper.getExternalContent, self.rddtScraper.getSubmissionContent,
                                self.rddtScraper.getCommentData, self.rddtScraper.subSort, self.rddtScraper.subLimit)
         ret = settings.exec_()
         if ret == QDialog.Accepted:
@@ -300,7 +307,8 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             self.rddtScraper.defaultSubredditListName = settings.currentSubredditListName
 
             self.rddtScraper.avoidDuplicates = settings.avoidDuplicates
-            self.rddtScraper.getExternalDataSub = settings.getExternalDataSub
+            self.rddtScraper.getExternalContent = settings.getExternalContent
+            self.rddtScraper.getSubmissionContent = settings.getSubmissionContent
             self.rddtScraper.getCommentData = settings.getCommentData
 
             self.rddtScraper.subSort = settings.subSort
@@ -317,7 +325,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                 return
             self.subredditListChooser.addItem(subredditListName)
             self.subredditListChooser.setCurrentIndex(self.subredditListChooser.count() - 1)
-            self.rddtScraper.subredditLists[subredditListName] = ListModel([], GenericListModelObj)
+            self.rddtScraper.subredditLists[subredditListName] = ListModel([], Subreddit)
             self.chooseNewSubredditList(self.subredditListChooser.count() - 1)
             if self.rddtScraper.defaultSubredditListName is None:  # becomes None if user deletes all subreddit lists
                 self.rddtScraper.defaultSubredditListName = subredditListName
@@ -541,7 +549,7 @@ def loadState():
             rddtScraper.userLists[key] = ListModel(val, User)
         for key, val in subredditListSettings.items():
             print("loading from saved " + key)
-            rddtScraper.subredditLists[key] = ListModel(val, GenericListModelObj)
+            rddtScraper.subredditLists[key] = ListModel(val, Subreddit)
     except KeyError as e:
         print(e)
     finally:

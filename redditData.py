@@ -8,7 +8,7 @@ import re
 import json
 from imageFinder import ImageFinder, ImgurImageFinder, MinusImageFinder, VidbleImageFinder, GfycatImageFinder
 from listModel import ListModel
-from genericListModelObjects import GenericListModelObj, User
+from genericListModelObjects import GenericListModelObj, User, Subreddit
 
 
 class DownloadType():
@@ -20,25 +20,25 @@ class DownloadType():
 class RedditData():
     __slots__ = ('defaultPath', 'subredditLists', 'userLists', 'currentSubredditListName', 'currentUserListName',
                  'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r', 'downloadType',
-                 'avoidDuplicates', 'getExternalDataSub', 'getCommentData', 'subSort', 'subLimit', 'supportedDomains',
+                 'avoidDuplicates', 'getExternalContent', 'getSubmissionContent', 'getCommentData', 'subSort', 'subLimit', 'supportedDomains',
                  'urlFinder')
 
     def __init__(self, defaultPath=os.path.abspath(os.path.expanduser('Downloads')), subredditLists=None,
                  userLists=None,
                  currentSubredditListName='Default Subs',
                  currentUserListName='Default User List', defaultSubredditListName='Default Subs',
-                 defaultUserListName='Default User List', avoidDuplicates=True, getExternalDataSub=False,
+                 defaultUserListName='Default User List', avoidDuplicates=True, getExternalContent=False, getSubmissionContent=True,
                  getCommentData=False, subSort='hot', subLimit=10, supportedDomains=None):
 
         self.defaultPath = defaultPath
         if subredditLists is None:
             self.subredditLists = {'Default Subs': ListModel(
-                [GenericListModelObj("adviceanimals"), GenericListModelObj("aww"), GenericListModelObj("books"),
-                 GenericListModelObj("earthporn"), GenericListModelObj("funny"), GenericListModelObj("gaming"),
-                 GenericListModelObj("gifs"), GenericListModelObj("movies"), GenericListModelObj("music"),
-                 GenericListModelObj("pics"),
-                 GenericListModelObj("science"), GenericListModelObj("technology"), GenericListModelObj("television"),
-                 GenericListModelObj("videos"), GenericListModelObj("wtf")], GenericListModelObj)}
+                [Subreddit("adviceanimals"), Subreddit("aww"), Subreddit("books"),
+                 Subreddit("earthporn"), Subreddit("funny"), Subreddit("gaming"),
+                 Subreddit("gifs"), Subreddit("movies"), Subreddit("music"),
+                 Subreddit("pics"),
+                 Subreddit("science"), Subreddit("technology"), Subreddit("television"),
+                 Subreddit("videos"), Subreddit("wtf")], Subreddit)}
         else:
             self.subredditLists = subredditLists
         if userLists is None:
@@ -52,7 +52,8 @@ class RedditData():
         self.r = praw.Reddit(user_agent='RedditUserScraper by /u/VoidXC')
         self.downloadType = DownloadType.USER_SUBREDDIT_CONSTRAINED
         self.avoidDuplicates = avoidDuplicates
-        self.getExternalDataSub = getExternalDataSub
+        self.getExternalContent = getExternalContent
+        self.getSubmissionContent = getSubmissionContent
         self.getCommentData = getCommentData
         self.subSort = subSort
         self.subLimit = subLimit
@@ -166,6 +167,10 @@ class RedditData():
         submissionData['Domain'] = submission.domain
         submissionData['Selftext'] = submission.selftext
         submissionData['URL'] = submission.url
+        if submission.author is None:
+            submissionData['Author'] = "[Deleted]"
+        else:
+            submissionData['Author'] = submission.author.name
         submissionData['Comments'] = self.getAllComments(submission.comments)
         self.getAllComments(submission.comments)
         return submissionData

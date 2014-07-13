@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>455</width>
-    <height>338</height>
+    <width>510</width>
+    <height>323</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,24 +16,13 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="3" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout_5">
-       <item>
-        <widget class="QLabel" name="defaultUserListLabel">
-         <property name="text">
-          <string>Default User List</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="defaultUserListComboBox"/>
-       </item>
-      </layout>
-     </item>
      <item row="5" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout_4">
        <item>
         <widget class="QLabel" name="label_2">
+         <property name="toolTip">
+          <string>The number of posts to retrieve from the subreddit. A max of 100 can be downloaded at a time. Download again at a later date to get the next (most recent) 100.</string>
+         </property>
          <property name="text">
           <string>Max Posts Retrieved in Subreddit Content Download [1-100]</string>
          </property>
@@ -54,10 +43,50 @@
        </item>
       </layout>
      </item>
+     <item row="2" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="defaultSubredditListLabel">
+         <property name="toolTip">
+          <string>The subreddit list that will display on starting the application.</string>
+         </property>
+         <property name="text">
+          <string>Default Subreddit List</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="defaultSubredditListComboBox"/>
+       </item>
+      </layout>
+     </item>
+     <item row="3" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="QLabel" name="defaultUserListLabel">
+         <property name="toolTip">
+          <string>The user list that will display on starting the application.</string>
+         </property>
+         <property name="text">
+          <string>Default User List</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="defaultUserListComboBox"/>
+       </item>
+      </layout>
+     </item>
+     <item row="2" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_2"/>
+     </item>
      <item row="4" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
         <widget class="QLabel" name="label">
+         <property name="toolTip">
+          <string>When downloading subreddit content, this determines the types of posts that are downloaded. E.g. to get the top 10 new posts in the subreddits, select &quot;New&quot;.</string>
+         </property>
          <property name="text">
           <string>Sort Subreddit Content by: </string>
          </property>
@@ -106,29 +135,42 @@
        </item>
       </layout>
      </item>
-     <item row="2" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout">
+     <item row="6" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout_6">
        <item>
-        <widget class="QLabel" name="defaultSubredditListLabel">
+        <widget class="QCheckBox" name="getExternalContentCheckBox">
+         <property name="toolTip">
+          <string>Select to attempt to download images / gifs / gfys linked to by a reddit submission.</string>
+         </property>
          <property name="text">
-          <string>Default Subreddit List</string>
+          <string>Download External Content of Submission</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="defaultSubredditListComboBox"/>
+        <widget class="QCheckBox" name="avoidDuplCheckBox">
+         <property name="toolTip">
+          <string>Attempt to avoid downloading images, gifs, or gfys that have already been downloaded for the same user or subreddit.</string>
+         </property>
+         <property name="text">
+          <string>Avoid Downloading Duplicate Images If Possible</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
-     </item>
-     <item row="2" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout_2"/>
      </item>
     </layout>
    </item>
    <item>
-    <widget class="QCheckBox" name="avoidDuplCheckBox">
+    <widget class="QCheckBox" name="getSubmissionContentCheckBox">
+     <property name="toolTip">
+      <string>Select to download the title, self-text, comments, upvote statistics, and other information in a json-encoded text file.</string>
+     </property>
      <property name="text">
-      <string>Avoid Downloading Duplicate Images If Possible</string>
+      <string>Download Submission Content</string>
      </property>
      <property name="checked">
       <bool>true</bool>
@@ -136,14 +178,10 @@
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="getExternalDataSubCheckBox">
-     <property name="text">
-      <string>When Downloading Subreddit Content, Download External Link Content</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QCheckBox" name="getCommentDataCheckBox">
+     <property name="toolTip">
+      <string>Select to attempt to download images, gifs, and gfys from the comments in a submission.</string>
+     </property>
      <property name="text">
       <string>Download External Content In Comments</string>
      </property>
