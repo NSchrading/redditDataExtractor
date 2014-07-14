@@ -119,10 +119,18 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.subredditListChooser.activated.connect(self.chooseNewSubredditList)
 
         self.userList.addAction(self.actionDownloaded_Reddit_User_Posts)
+        self.userList.addAction(self.actionNew_User)
+        self.userList.addAction(self.actionRemove_Selected_User)
         self.actionDownloaded_Reddit_User_Posts.triggered.connect(self.viewDownloadedUserPosts)
+        self.actionNew_User.triggered.connect(self.addUserToList)
+        self.actionRemove_Selected_User.triggered.connect(self.deleteUserFromList)
 
         self.subredditList.addAction(self.actionDownloaded_Subreddit_Posts)
+        self.subredditList.addAction(self.actionNew_Subreddit)
+        self.subredditList.addAction(self.actionRemove_Selected_Subreddit)
         self.actionDownloaded_Subreddit_Posts.triggered.connect(self.viewDownloadedSubredditPosts)
+        self.actionNew_Subreddit.triggered.connect(self.addSubredditToList)
+        self.actionRemove_Selected_Subreddit.triggered.connect(self.deleteSubredditFromList)
 
         self.downloadBtn.clicked.connect(self.beginDownload)
 
@@ -130,6 +138,8 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             lambda: self.rddtScraper.changeDownloadType(DownloadType.USER_SUBREDDIT_CONSTRAINED))
         self.allUserBtn.clicked.connect(lambda: self.rddtScraper.changeDownloadType(DownloadType.USER_SUBREDDIT_ALL))
         self.allSubBtn.clicked.connect(lambda: self.rddtScraper.changeDownloadType(DownloadType.SUBREDDIT_CONTENT))
+
+        self.actionAbout.triggered.connect(self.displayAbout)
 
         self.init()
 
@@ -429,7 +439,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             if name != defaultName:
                 self.removeNonDefaultLst(lstType)
             else:
-                if len(self.rddtScraper.subredditLists) > 0:
+                if len(lst) > 0:
                     # just choose the first model
                     self.removeDefaultLst(lstType)
                 else:
@@ -464,6 +474,8 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                 for postURL in downloadedUserPosts:
                     for post in downloadedUserPosts.get(postURL):
                         image = post.representativeImage
+                        if image is None:
+                            continue
                         item = QListWidgetItem("", downloadedUserPostsGUI.downloadedPostsList)
                         labelWidget = QLabel()
                         labelWidget.setOpenExternalLinks(True)
@@ -471,12 +483,15 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                         size = QSize(128, 158)
                         item.setSizeHint(size)
                         size = QSize(128, 128)
-                        pixmap = QPixmap(image).scaled(size, Qt.KeepAspectRatio)
+                        if(image.endswith(".webm")):
+                            image = "images/webmImage.png"
+                        pixmap = QPixmap(image)
+                        pixmap = pixmap.scaled(size, Qt.KeepAspectRatio)
                         height = pixmap.height()
                         width = pixmap.width()
                         postTitle = postURL[postURL[0:-1].rfind("/") + 1:-1]
                         labelWidget.setText(
-                            '<a href="' + postURL + '"><img src="' + image + '" height="' + str(
+                            '<a href="' + postURL + '"><img src="' + str(image) + '" height="' + str(
                                 height) + '" width="' + str(width) + '"><p>' + postTitle)
                         downloadedUserPostsGUI.downloadedPostsList.setItemWidget(item, labelWidget)
                         downloadedUserPostsGUI.posts.append((postURL, post.type))
@@ -502,6 +517,8 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                 for postURL in downloadedSubredditPosts:
                     for post in downloadedSubredditPosts.get(postURL):
                         image = post.representativeImage
+                        if image is None:
+                            continue
                         item = QListWidgetItem("", downloadedSubredditPostsGUI.downloadedPostsList)
                         labelWidget = QLabel()
                         labelWidget.setOpenExternalLinks(True)
@@ -509,12 +526,14 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                         size = QSize(128, 158)
                         item.setSizeHint(size)
                         size = QSize(128, 128)
+                        if(image.endswith(".webm")):
+                            image = "images/webmImage.png"
                         pixmap = QPixmap(image).scaled(size, Qt.KeepAspectRatio)
                         height = pixmap.height()
                         width = pixmap.width()
                         postTitle = postURL[postURL[0:-1].rfind("/") + 1:-1]
                         labelWidget.setText(
-                            '<a href="' + postURL + '"><img src="' + image + '" height="' + str(
+                            '<a href="' + postURL + '"><img src="' + str(image) + '" height="' + str(
                                 height) + '" width="' + str(width) + '"><p>' + postTitle)
                         downloadedSubredditPostsGUI.downloadedPostsList.setItemWidget(item, labelWidget)
                         downloadedSubredditPostsGUI.posts.append((postURL, post.type))
@@ -525,6 +544,34 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         elif index is None:
             QMessageBox.information(QMessageBox(), "Reddit Scraper",
                                     "To view a subreddit's downloaded posts, please select a subreddit in the subreddit list.")
+
+    def displayAbout(self):
+        msgBox = QMessageBox()
+        msgBox.setTextFormat(Qt.RichText)
+        msgBox.setWindowTitle("Reddit Scraper")
+        msgBox.setText("""
+            <p>This program uses the following open source software:<br>
+            <a href="http://www.riverbankcomputing.co.uk/software/pyqt/intro">PyQt</a> under the GNU GPL v3 license
+            </p>
+
+            <p>This program makes use of a modified version of <a href="https://www.videolan.org/vlc/">VLC's</a> logo:<br>
+            Copyright (c) 1996-2013 VideoLAN. This logo or a modified version may<br>
+            be used or modified by anyone to refer to the VideoLAN project or any<br>
+            product developed by the VideoLAN team, but does not indicate<br>
+            endorsement by the project.
+            </p>
+
+            <p>This program makes use of a modified version of Microsoft Window's<br>
+            .txt file icon. This is solely the property of Microsoft Windows<br>
+            and I claim no ownership.
+            </p>
+
+            <p>This program is released under the GNU GPL v3 license<br>
+            <a href="https://www.gnu.org/licenses/quick-guide-gplv3.html">GNU GPL v3 license page</a>
+            </p>
+        """)
+        msgBox.exec()
+
 
     def setUnsavedChanges(self, unsaved):
         self.unsavedChanges = unsaved

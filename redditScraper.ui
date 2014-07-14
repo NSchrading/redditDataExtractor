@@ -30,69 +30,13 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <widget class="QLabel" name="subredditLabel">
-          <property name="text">
-           <string>Subreddits To Download From</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="subredditListChooser">
-          <property name="contextMenuPolicy">
-           <enum>Qt::ActionsContextMenu</enum>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="2" column="1">
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <item>
-         <spacer name="horizontalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QToolButton" name="addSubredditBtn">
-          <property name="text">
-           <string>+</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="deleteSubredditBtn">
-          <property name="text">
-           <string>-</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLineEdit" name="directoryBox"/>
-      </item>
-      <item row="4" column="1">
-       <widget class="QPushButton" name="directorySelectBtn">
-        <property name="text">
-         <string>Set directory to save to</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
          <widget class="QLabel" name="userLabel">
+          <property name="toolTip">
+           <string>Reddit usernames to download content from.</string>
+          </property>
           <property name="text">
            <string>Users to Download From</string>
           </property>
@@ -113,6 +57,34 @@
         </item>
        </layout>
       </item>
+      <item row="0" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLabel" name="subredditLabel">
+          <property name="toolTip">
+           <string>Subreddits to download content from.</string>
+          </property>
+          <property name="text">
+           <string>Subreddits To Download From</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="subredditListChooser">
+          <property name="contextMenuPolicy">
+           <enum>Qt::ActionsContextMenu</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="0">
+       <widget class="QListView" name="userList">
+        <property name="contextMenuPolicy">
+         <enum>Qt::ActionsContextMenu</enum>
+        </property>
+       </widget>
+      </item>
       <item row="2" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
@@ -130,6 +102,9 @@
         </item>
         <item>
          <widget class="QToolButton" name="addUserBtn">
+          <property name="toolTip">
+           <string>Add a user.</string>
+          </property>
           <property name="text">
            <string>+</string>
           </property>
@@ -137,6 +112,9 @@
         </item>
         <item>
          <widget class="QToolButton" name="deleteUserBtn">
+          <property name="toolTip">
+           <string>Remove selected user.</string>
+          </property>
           <property name="text">
            <string>-</string>
           </property>
@@ -144,17 +122,16 @@
         </item>
        </layout>
       </item>
-      <item row="1" column="0">
-       <widget class="QListView" name="userList">
-        <property name="contextMenuPolicy">
-         <enum>Qt::ActionsContextMenu</enum>
-        </property>
-       </widget>
+      <item row="4" column="0">
+       <widget class="QLineEdit" name="directoryBox"/>
       </item>
       <item row="5" column="0" colspan="2">
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
          <widget class="QRadioButton" name="userSubBtn">
+          <property name="toolTip">
+           <string>Download content from the users in the users list only if they have posted in the subreddits in the subreddit list.</string>
+          </property>
           <property name="text">
            <string>Constrain Selected Users To Selected Subreddits</string>
           </property>
@@ -165,6 +142,9 @@
         </item>
         <item>
          <widget class="QRadioButton" name="allUserBtn">
+          <property name="toolTip">
+           <string>Download content from users in the users list, from any subreddit.</string>
+          </property>
           <property name="text">
            <string>Selected Users' Content in All Subreddits</string>
           </property>
@@ -175,8 +155,58 @@
         </item>
         <item>
          <widget class="QRadioButton" name="allSubBtn">
+          <property name="toolTip">
+           <string>Download content from the subreddits in the subreddits list.</string>
+          </property>
           <property name="text">
            <string>Selected Subreddits' Content</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="6" column="0" colspan="2">
+       <widget class="QPushButton" name="downloadBtn">
+        <property name="toolTip">
+         <string>Begin to download content.</string>
+        </property>
+        <property name="text">
+         <string>Download!</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QToolButton" name="addSubredditBtn">
+          <property name="toolTip">
+           <string>Add a subreddit.</string>
+          </property>
+          <property name="text">
+           <string>+</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="deleteSubredditBtn">
+          <property name="toolTip">
+           <string>Remove selected subreddit.</string>
+          </property>
+          <property name="text">
+           <string>-</string>
           </property>
          </widget>
         </item>
@@ -192,10 +222,13 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="0" colspan="2">
-       <widget class="QPushButton" name="downloadBtn">
+      <item row="4" column="1">
+       <widget class="QPushButton" name="directorySelectBtn">
+        <property name="toolTip">
+         <string>Select where downloaded content will be saved to.</string>
+        </property>
         <property name="text">
-         <string>Download!</string>
+         <string>Set directory to save to</string>
         </property>
        </widget>
       </item>
@@ -223,15 +256,19 @@
      <property name="title">
       <string>&amp;New</string>
      </property>
-     <addaction name="actionSubreddit_List"/>
      <addaction name="actionUser_List"/>
+     <addaction name="actionNew_User"/>
+     <addaction name="actionSubreddit_List"/>
+     <addaction name="actionNew_Subreddit"/>
     </widget>
     <widget class="QMenu" name="menuRemove">
      <property name="title">
-      <string>Remove</string>
+      <string>&amp;Remove</string>
      </property>
-     <addaction name="actionRemove_Subreddit_List"/>
      <addaction name="actionRemove_User_List"/>
+     <addaction name="actionRemove_Selected_User"/>
+     <addaction name="actionRemove_Subreddit_List"/>
+     <addaction name="actionRemove_Selected_Subreddit"/>
     </widget>
     <addaction name="menuNew"/>
     <addaction name="menuRemove"/>
@@ -247,8 +284,15 @@
     <addaction name="actionDownloaded_Reddit_User_Posts"/>
     <addaction name="actionDownloaded_Subreddit_Posts"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
    <addaction name="menuType"/>
    <addaction name="menuView"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionExit">
@@ -263,18 +307,18 @@
   </action>
   <action name="actionSubreddit_List">
    <property name="text">
-    <string>New Subreddit List</string>
+    <string>New &amp;Subreddit List</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+1</string>
+    <string>Ctrl+2</string>
    </property>
   </action>
   <action name="actionUser_List">
    <property name="text">
-    <string>New User List</string>
+    <string>New &amp;User List</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+2</string>
+    <string>Ctrl+1</string>
    </property>
   </action>
   <action name="actionSettings_2">
@@ -294,20 +338,71 @@
    <property name="text">
     <string>&amp;Downloaded Reddit User Posts</string>
    </property>
+   <property name="whatsThis">
+    <string/>
+   </property>
   </action>
   <action name="actionRemove_Subreddit_List">
    <property name="text">
-    <string>Remove Selected Subreddit List</string>
+    <string>Remove Selected &amp;Subreddit List</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+4</string>
    </property>
   </action>
   <action name="actionRemove_User_List">
    <property name="text">
-    <string>Remove Selected User List</string>
+    <string>Remove Selected &amp;User List</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
    </property>
   </action>
   <action name="actionDownloaded_Subreddit_Posts">
    <property name="text">
     <string>Downloaded Subreddit Posts</string>
+   </property>
+  </action>
+  <action name="actionAdd">
+   <property name="text">
+    <string>Add</string>
+   </property>
+  </action>
+  <action name="actionNew_Subreddit">
+   <property name="text">
+    <string>New Subreddit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionNew_User">
+   <property name="text">
+    <string>New User</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+U</string>
+   </property>
+  </action>
+  <action name="actionRemove_Selected_Subreddit">
+   <property name="text">
+    <string>Remove Selected Subreddit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+S</string>
+   </property>
+  </action>
+  <action name="actionRemove_Selected_User">
+   <property name="text">
+    <string>Remove Selected User</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+U</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

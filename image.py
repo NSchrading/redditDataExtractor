@@ -28,7 +28,10 @@ class Image():
         else:
             imageFile = self.postID + self.fileType
         if self.commentAuthor is not None and self.commentAuthorURLCount is not None:
-            imageFile = self.postID + "_comment_" + str(self.commentAuthorURLCount) + self.fileType
+            if self.numInSeq != "":
+                imageFile = self.postID + "_comment_" + str(self.commentAuthorURLCount) + " " + str(self.numInSeq) + self.fileType
+            else:
+                imageFile = self.postID + "_comment_" + str(self.commentAuthorURLCount) + self.fileType
             directory = os.path.abspath(os.path.join(self.defaultPath, self.user, self.commentAuthor))
             if not os.path.exists(directory):
                 os.makedirs(directory)
