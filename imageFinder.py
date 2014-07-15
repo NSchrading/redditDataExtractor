@@ -172,6 +172,8 @@ class ImgurImageFinder(ImageFinder):
         count = 1
         for imageURL in imageURLs:
             response = exceptionSafeRequest(imageURL)
+            if response is None:
+                continue
             params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
             image = self.makeImage(*params)
             if image is not None:
