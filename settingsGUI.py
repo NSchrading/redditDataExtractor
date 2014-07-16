@@ -21,6 +21,10 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.subSort = subSort
         self.subLimit = subLimit
         self.validator = QIntValidator(1, 100)
+        self.filtTableTypeCol = 0
+        self.filtTablePropCol = 1
+        self.filtTableOperCol = 2
+        self.filtTableValCol = 3
 
         self.defaultUserListComboBox.activated.connect(self.chooseNewUserList)
         self.defaultSubredditListComboBox.activated.connect(self.chooseNewSubredditList)
@@ -39,6 +43,8 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.subLimitTextEdit.textChanged.connect(self.setSubLimit)
         self.subLimitTextEdit.setValidator(self.validator)
         self.subLimitTextEdit.setText(str(self.subLimit))
+
+        self.filterTable.cellPressed.connect(self.addFilter)
 
         self.initSettings()
 
@@ -93,4 +99,62 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         if validState == QValidator.Acceptable:
             print("valid: " + text + "\n---------------------------------")
             self.subLimit = int(text)
+
+    def makeTypeComboBox(self, row):
+        combobox = QComboBox()
+        combobox.addItem("Post")
+        combobox.addItem("Comment")
+        combobox.currentIndexChanged.connect(lambda: self.changePropComboBox(combobox.currentText(), row))
+        return combobox
+
+    def makePostPropComboBox(self):
+        combobox = QComboBox()
+        combobox.addItem("Title")
+        combobox.addItem("Selftext")
+        combobox.addItem("Domain")
+        combobox.addItem("Author")
+        combobox.addItem("Score")
+        return combobox
+
+    def makeCommentPropComboBox(self):
+        combobox = QComboBox()
+        combobox.addItem("Body")
+        combobox.addItem("Author")
+        combobox.addItem("Score")
+        return combobox
+
+    def makeOperComboBox(self):
+        combobox = QComboBox()
+        combobox.addItem("Equals")
+        combobox.addItem("Does not equal")
+        combobox.addItem("Begins with")
+        combobox.addItem("Does not begin with")
+        combobox.addItem("Ends with")
+        combobox.addItem("Does not end with")
+        combobox.addItem("Greater than")
+        combobox.addItem("Less than")
+        combobox.addItem("Contains")
+        combobox.addItem("Does not contain")
+        return combobox
+
+    def changePropComboBox(self, text, row):
+        if text == "Post":
+            combobox = self.makePostPropComboBox()
+        elif text == "Comment":
+            combobox = self.makeCommentPropComboBox()
+        self.filterTable.setCellWidget(row, self.filtTablePropCol, combobox)
+
+    def addFilter(self, row, col):
+        if col == self.filtTableTypeCol:
+            typeCombobox = self.makeTypeComboBox(row)
+            propCombobox = self.makePostPropComboBox()
+            operCombobox = self.makeOperComboBox()
+            self.filterTable.setCellWidget(row, col, typeCombobox)
+            self.filterTable.setCellWidget(row, self.filtTablePropCol, propCombobox)
+            self.filterTable.setCellWidget(row, self.filtTableOperCol, operCombobox)
+            self.filterTable.insertRow(row + 1)
+        if col == self.filtTableValCol:
+            textEdit = QPlainTextEdit()
+            self.filterTable.setCellWidget(row, self.filtTableValCol, textEdit)
+
 

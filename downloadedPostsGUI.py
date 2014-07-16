@@ -40,7 +40,12 @@ class DownloadedPostsGUI(QDialog, Ui_DownloadedPostsDialog):
         for post in posts:
             if post.type == type:
                 files = post.files
-                fileStr = "".join([str(file) + "\n" for file in files])
+                numFiles = len(files)
+                if numFiles <= 20:
+                    fileStr = "".join([str(file) + "\n" for file in files])
+                else:
+                    fileStr = "".join([str(file) + "\n" for file in files[:20]])
+                    fileStr += "\n...\nand " + str(numFiles - 20) + " others. "
                 msgBox = self.confirmDialog("This will delete these files: \n" + fileStr + "Are you sure you want to delete them?")
                 ret = msgBox.exec_()
                 if ret == QMessageBox.Yes:
@@ -49,15 +54,12 @@ class DownloadedPostsGUI(QDialog, Ui_DownloadedPostsDialog):
                         del self.data.redditPosts[postURL]
                     else:
                         self.data.redditPosts[postURL] = posts
-                    for post in posts:
-                        print(post.redditURL)
                     if type == DownloadedPostType.EXTERNAL_DATA:
                         del self.data.externalDownloads[postURL]
                     self.posts.remove((postURL, type))
                     item = self.downloadedPostsList.takeItem(selectedIndex)
                     del item
-                    for file in files:
-                        os.remove(file)
+                    [os.remove(file) for file in files if os.path.exists(file)]
                     QMessageBox.information(QMessageBox(), "Reddit Scraper", "Successfully removed requested files.")
                     self.saveState()
                     return True

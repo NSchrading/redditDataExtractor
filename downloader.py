@@ -38,8 +38,6 @@ class Downloader(QObject):
                 worker = Worker(self.rddtScraper, listModel, prawData, self.queue, self.listModelType)
                 self.dataPool.start(worker)
             self.dataPool.waitForDone()
-
-        self.rddtScraper.saveState()
         self.finished.emit()
 
 class Worker(QRunnable):

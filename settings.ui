@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>510</width>
-    <height>323</height>
+    <width>502</width>
+    <height>394</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,6 +16,23 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QGridLayout" name="gridLayout">
+     <item row="2" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="defaultSubredditListLabel">
+         <property name="toolTip">
+          <string>The subreddit list that will display on starting the application.</string>
+         </property>
+         <property name="text">
+          <string>Default Subreddit List</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="defaultSubredditListComboBox"/>
+       </item>
+      </layout>
+     </item>
      <item row="5" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout_4">
        <item>
@@ -40,6 +57,50 @@
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="7" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <item>
+        <widget class="QCheckBox" name="getExternalContentCheckBox">
+         <property name="toolTip">
+          <string>Select to attempt to download images / gifs / gfys linked to by a reddit submission.</string>
+         </property>
+         <property name="text">
+          <string>Download External Content of Submission</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="avoidDuplCheckBox">
+         <property name="toolTip">
+          <string>Attempt to avoid downloading images, gifs, or gfys that have already been downloaded for the same user or subreddit.</string>
+         </property>
+         <property name="text">
+          <string>Avoid Downloading Duplicate Images If Possible</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="0" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="QLabel" name="defaultUserListLabel">
+         <property name="toolTip">
+          <string>The user list that will display on starting the application.</string>
+         </property>
+         <property name="text">
+          <string>Default User List</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="defaultUserListComboBox"/>
        </item>
       </layout>
      </item>
@@ -98,66 +159,19 @@
        </item>
       </layout>
      </item>
-     <item row="2" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QLabel" name="defaultSubredditListLabel">
-         <property name="toolTip">
-          <string>The subreddit list that will display on starting the application.</string>
-         </property>
-         <property name="text">
-          <string>Default Subreddit List</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="defaultSubredditListComboBox"/>
-       </item>
-      </layout>
+     <item row="3" column="0">
+      <widget class="Line" name="line_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
      </item>
      <item row="6" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout_6">
-       <item>
-        <widget class="QCheckBox" name="getExternalContentCheckBox">
-         <property name="toolTip">
-          <string>Select to attempt to download images / gifs / gfys linked to by a reddit submission.</string>
-         </property>
-         <property name="text">
-          <string>Download External Content of Submission</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="avoidDuplCheckBox">
-         <property name="toolTip">
-          <string>Attempt to avoid downloading images, gifs, or gfys that have already been downloaded for the same user or subreddit.</string>
-         </property>
-         <property name="text">
-          <string>Avoid Downloading Duplicate Images If Possible</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="0" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout_5">
-       <item>
-        <widget class="QLabel" name="defaultUserListLabel">
-         <property name="toolTip">
-          <string>The user list that will display on starting the application.</string>
-         </property>
-         <property name="text">
-          <string>Default User List</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="defaultUserListComboBox"/>
-       </item>
-      </layout>
+      <widget class="Line" name="line_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -183,6 +197,82 @@
       <string>Download External Content In Comments</string>
      </property>
     </widget>
+   </item>
+   <item>
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_7">
+     <item>
+      <widget class="QCheckBox" name="filterExternalContentCheckBox">
+       <property name="text">
+        <string>Only download external content when:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="filterCommentContentCheckBox">
+       <property name="text">
+        <string>Only download comment content when:</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QTableWidget" name="filterTable">
+       <property name="horizontalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOff</enum>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <attribute name="horizontalHeaderVisible">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="horizontalHeaderDefaultSectionSize">
+        <number>120</number>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="verticalHeaderCascadingSectionResizes">
+        <bool>false</bool>
+       </attribute>
+       <row>
+        <property name="text">
+         <string>New Row</string>
+        </property>
+       </row>
+       <column>
+        <property name="text">
+         <string>Post / Comment</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Property</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Operator</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Value</string>
+        </property>
+       </column>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="dialogButtonBox">
