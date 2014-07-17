@@ -1,4 +1,3 @@
-import concurrent.futures
 import praw
 import requests
 import os
@@ -11,6 +10,7 @@ from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User, Subreddit
 
 
+# Essentially does what any and all do for OR and AND, except for XOR now
 def xorLst(lst):
     if len(lst) > 1:
         res = lst[0] ^ lst[1]
@@ -23,13 +23,22 @@ def xorLst(lst):
         res = False
     return res
 
-operMap = {"Equals": operator.eq, "Does not equal": operator.ne, "Begins with": str.startswith,
-                        "Does not begin with": lambda s, v: not s.startswith(v), "Ends with": str.endswith,
-                        "Does not end with": lambda s, v: not s.endswith(v), "Greater than": operator.gt,
-                        "Less than": operator.lt, "Contains": operator.contains,
-                        "Does not contain": lambda s, v: not v in s}
+# The following functions are made to get around the fact that lambdas and builtin functions on str like str.endswith
+# are not pickleable. Operator functions like operator.ne are pickleable though...weird.
+def beginWith(s, val):
+    return s.startswith(val)
 
-connectMap = {"And": all, "Or": any, "Xor": xorLst}
+def notBeginWith(s, val):
+    return not s.startswith(val)
+
+def endWith(s, val):
+    return s.startswith(val)
+
+def notEndWith(s, val):
+    return not s.endswith(val)
+
+def notContain(s, val):
+    return not val in s
 
 class DownloadType():
     USER_SUBREDDIT_CONSTRAINED = 1
@@ -93,8 +102,13 @@ class RedditData():
             r"""(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)/)(?:[^\s()<>{}\[\]]+|\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\))+(?:\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’])|(?:(?<!@)[a-z0-9]+(?:[.\-][a-z0-9]+)*[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)\b/?(?!@)))""",
             re.IGNORECASE)
 
-        self.operMap = operMap
-        self.connectMap = connectMap
+        self.operMap = {"Equals": operator.eq, "Does not equal": operator.ne, "Begins with": beginWith,
+                        "Does not begin with": notBeginWith, "Ends with": endWith,
+                        "Does not end with": notEndWith, "Greater than": operator.gt,
+                        "Less than": operator.lt, "Contains": operator.contains,
+                        "Does not contain": notContain}
+
+        self.connectMap = {"And": all, "Or": any, "Xor": xorLst}
 
         self.postFilts = None
         self.commentFilts = None
@@ -283,8 +297,6 @@ class RedditData():
         userListSettings = {}  # Use this to save normally unpickleable stuff
         subredditListModels = self.subredditLists
         subredditListSettings = {}
-        operMap = self.operMap
-        connectMap = self.connectMap
         successful = False
         for key, val in userListModels.items():
             userListSettings[key] = val.lst
@@ -294,15 +306,11 @@ class RedditData():
         try:
             self.userLists = None  # QAbstractListModel is not pickleable so set this to None
             self.subredditLists = None
-            self.operMap = None # functions within the dict are not pickleable
-            self.connectMap = None
             shelf['rddtScraper'] = self
             shelf['userLists'] = userListSettings  # Save QAbstractList data as a simple dict of list
             shelf['subredditLists'] = subredditListSettings
             self.userLists = userListModels  # Restore the user lists in case the user is not exiting program
             self.subredditLists = subredditListModels
-            self.operMap = operMap
-            self.connectMap = connectMap
             print("Saving program")
             successful = True
         except KeyError:
