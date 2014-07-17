@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'settings.ui'
 #
-# Created: Tue Jul 15 22:33:30 2014
+# Created: Wed Jul 16 23:10:37 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_SettingsDialog(object):
     def setupUi(self, SettingsDialog):
         SettingsDialog.setObjectName(_fromUtf8("SettingsDialog"))
-        SettingsDialog.resize(502, 394)
+        SettingsDialog.resize(573, 394)
         self.verticalLayout = QtGui.QVBoxLayout(SettingsDialog)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.gridLayout = QtGui.QGridLayout()
@@ -131,7 +131,7 @@ class Ui_SettingsDialog(object):
         self.filterTable.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.filterTable.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.filterTable.setObjectName(_fromUtf8("filterTable"))
-        self.filterTable.setColumnCount(4)
+        self.filterTable.setColumnCount(5)
         self.filterTable.setRowCount(1)
         item = QtGui.QTableWidgetItem()
         self.filterTable.setVerticalHeaderItem(0, item)
@@ -143,8 +143,10 @@ class Ui_SettingsDialog(object):
         self.filterTable.setHorizontalHeaderItem(2, item)
         item = QtGui.QTableWidgetItem()
         self.filterTable.setHorizontalHeaderItem(3, item)
+        item = QtGui.QTableWidgetItem()
+        self.filterTable.setHorizontalHeaderItem(4, item)
         self.filterTable.horizontalHeader().setVisible(True)
-        self.filterTable.horizontalHeader().setDefaultSectionSize(120)
+        self.filterTable.horizontalHeader().setDefaultSectionSize(110)
         self.filterTable.verticalHeader().setVisible(False)
         self.filterTable.verticalHeader().setCascadingSectionResizes(False)
         self.horizontalLayout_2.addWidget(self.filterTable)
@@ -184,16 +186,26 @@ class Ui_SettingsDialog(object):
         self.getSubmissionContentCheckBox.setText(_translate("SettingsDialog", "Download Submission Content", None))
         self.getCommentDataCheckBox.setToolTip(_translate("SettingsDialog", "Select to attempt to download images, gifs, and gfys from the comments in a submission.", None))
         self.getCommentDataCheckBox.setText(_translate("SettingsDialog", "Download External Content In Comments", None))
+        self.filterExternalContentCheckBox.setToolTip(_translate("SettingsDialog", "Dowload external images / gifs / gfys only if the following criteria are met.", None))
         self.filterExternalContentCheckBox.setText(_translate("SettingsDialog", "Only download external content when:", None))
-        self.filterCommentContentCheckBox.setText(_translate("SettingsDialog", "Only download comment content when:", None))
+        self.filterCommentContentCheckBox.setToolTip(_translate("SettingsDialog", "Download json encoded submission data only if the following criteria are met.", None))
+        self.filterCommentContentCheckBox.setText(_translate("SettingsDialog", "Only download submission content when:", None))
+        self.filterTable.setToolTip(_translate("SettingsDialog", "Select the filters you would like to apply to the download. Will download the content only if the submission or a comment within the submission has the matching criteria.", None))
         item = self.filterTable.verticalHeaderItem(0)
         item.setText(_translate("SettingsDialog", "New Row", None))
         item = self.filterTable.horizontalHeaderItem(0)
-        item.setText(_translate("SettingsDialog", "Post / Comment", None))
+        item.setText(_translate("SettingsDialog", "Content Type", None))
+        item.setToolTip(_translate("SettingsDialog", "The type of content to filter by. Either submissions or comments within a submission.", None))
         item = self.filterTable.horizontalHeaderItem(1)
         item.setText(_translate("SettingsDialog", "Property", None))
+        item.setToolTip(_translate("SettingsDialog", "The property of the content. E.g. the author of a submission (the redditor), or the score of a comment in the submission.", None))
         item = self.filterTable.horizontalHeaderItem(2)
         item.setText(_translate("SettingsDialog", "Operator", None))
+        item.setToolTip(_translate("SettingsDialog", "The operator to search the property with. E.g. contains means a download will occur if the string in the value column is in the property of the submssion / comment.", None))
         item = self.filterTable.horizontalHeaderItem(3)
         item.setText(_translate("SettingsDialog", "Value", None))
+        item.setToolTip(_translate("SettingsDialog", "The value to match by using the operator. If you want a boolean, enter True or False.", None))
+        item = self.filterTable.horizontalHeaderItem(4)
+        item.setText(_translate("SettingsDialog", "And / Or / Xor", None))
+        item.setToolTip(_translate("SettingsDialog", "If you want multiple filters, select this box and select the operator to group the filters by. The filters must be the same. E.g. submission author equals \"foo\" AND comment score greater than 100.", None))
 

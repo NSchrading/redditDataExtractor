@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>502</width>
+    <width>573</width>
     <height>394</height>
    </rect>
   </property>
@@ -209,6 +209,9 @@
     <layout class="QHBoxLayout" name="horizontalLayout_7">
      <item>
       <widget class="QCheckBox" name="filterExternalContentCheckBox">
+       <property name="toolTip">
+        <string>Dowload external images / gifs / gfys only if the following criteria are met.</string>
+       </property>
        <property name="text">
         <string>Only download external content when:</string>
        </property>
@@ -216,8 +219,11 @@
      </item>
      <item>
       <widget class="QCheckBox" name="filterCommentContentCheckBox">
+       <property name="toolTip">
+        <string>Download json encoded submission data only if the following criteria are met.</string>
+       </property>
        <property name="text">
-        <string>Only download comment content when:</string>
+        <string>Only download submission content when:</string>
        </property>
       </widget>
      </item>
@@ -227,6 +233,9 @@
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <widget class="QTableWidget" name="filterTable">
+       <property name="toolTip">
+        <string>Select the filters you would like to apply to the download. Will download the content only if the submission or a comment within the submission has the matching criteria.</string>
+       </property>
        <property name="horizontalScrollBarPolicy">
         <enum>Qt::ScrollBarAlwaysOff</enum>
        </property>
@@ -237,7 +246,7 @@
         <bool>true</bool>
        </attribute>
        <attribute name="horizontalHeaderDefaultSectionSize">
-        <number>120</number>
+        <number>110</number>
        </attribute>
        <attribute name="verticalHeaderVisible">
         <bool>false</bool>
@@ -252,22 +261,42 @@
        </row>
        <column>
         <property name="text">
-         <string>Post / Comment</string>
+         <string>Content Type</string>
+        </property>
+        <property name="toolTip">
+         <string>The type of content to filter by. Either submissions or comments within a submission.</string>
         </property>
        </column>
        <column>
         <property name="text">
          <string>Property</string>
         </property>
+        <property name="toolTip">
+         <string>The property of the content. E.g. the author of a submission (the redditor), or the score of a comment in the submission.</string>
+        </property>
        </column>
        <column>
         <property name="text">
          <string>Operator</string>
         </property>
+        <property name="toolTip">
+         <string>The operator to search the property with. E.g. contains means a download will occur if the string in the value column is in the property of the submssion / comment.</string>
+        </property>
        </column>
        <column>
         <property name="text">
          <string>Value</string>
+        </property>
+        <property name="toolTip">
+         <string>The value to match by using the operator. If you want a boolean, enter True or False.</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>And / Or / Xor</string>
+        </property>
+        <property name="toolTip">
+         <string>If you want multiple filters, select this box and select the operator to group the filters by. The filters must be the same. E.g. submission author equals &quot;foo&quot; AND comment score greater than 100.</string>
         </property>
        </column>
       </widget>

@@ -3,7 +3,7 @@ import praw
 import requests
 import os
 import shelve
-import threading
+import operator
 import re
 import json
 from imageFinder import ImageFinder, ImgurImageFinder, MinusImageFinder, VidbleImageFinder, GfycatImageFinder
@@ -11,10 +11,31 @@ from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User, Subreddit
 
 
+def xorLst(lst):
+    if len(lst) > 1:
+        res = lst[0] ^ lst[1]
+        lst = lst[2:]
+        for b in lst:
+            res ^= b
+    elif len(lst) == 1:
+        res = lst[0]
+    else:
+        res = False
+    return res
+
+operMap = {"Equals": operator.eq, "Does not equal": operator.ne, "Begins with": str.startswith,
+                        "Does not begin with": lambda s, v: not s.startswith(v), "Ends with": str.endswith,
+                        "Does not end with": lambda s, v: not s.endswith(v), "Greater than": operator.gt,
+                        "Less than": operator.lt, "Contains": operator.contains,
+                        "Does not contain": lambda s, v: not v in s}
+
+connectMap = {"And": all, "Or": any, "Xor": xorLst}
+
 class DownloadType():
     USER_SUBREDDIT_CONSTRAINED = 1
     USER_SUBREDDIT_ALL = 2
     SUBREDDIT_CONTENT = 3
+
 
 class ListType():
     USER = 1
@@ -23,14 +44,15 @@ class ListType():
 class RedditData():
     __slots__ = ('defaultPath', 'subredditLists', 'userLists', 'currentSubredditListName', 'currentUserListName',
                  'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r', 'downloadType',
-                 'avoidDuplicates', 'getExternalContent', 'getSubmissionContent', 'getCommentData', 'subSort', 'subLimit', 'supportedDomains',
-                 'urlFinder')
+                 'avoidDuplicates', 'getExternalContent', 'getSubmissionContent', 'getCommentData', 'subSort',
+                 'subLimit', 'supportedDomains', 'urlFinder', 'operMap', 'connectMap', 'postFilts', 'commentFilts', 'connector')
 
     def __init__(self, defaultPath=os.path.abspath(os.path.expanduser('Downloads')), subredditLists=None,
                  userLists=None,
                  currentSubredditListName='Default Subs',
                  currentUserListName='Default User List', defaultSubredditListName='Default Subs',
-                 defaultUserListName='Default User List', avoidDuplicates=True, getExternalContent=False, getSubmissionContent=True,
+                 defaultUserListName='Default User List', avoidDuplicates=True, getExternalContent=False,
+                 getSubmissionContent=True,
                  getCommentData=False, subSort='hot', subLimit=10, supportedDomains=None):
 
         self.defaultPath = defaultPath
@@ -71,14 +93,21 @@ class RedditData():
             r"""(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)/)(?:[^\s()<>{}\[\]]+|\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\))+(?:\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’])|(?:(?<!@)[a-z0-9]+(?:[.\-][a-z0-9]+)*[.](?:com|net|org|edu|gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)\b/?(?!@)))""",
             re.IGNORECASE)
 
+        self.operMap = operMap
+        self.connectMap = connectMap
+
+        self.postFilts = None
+        self.commentFilts = None
+        self.connector = None
+
     def getImages(self, post, user, commentAuthor=None, commentAuthorURLCount=None):
         images = []
         imageFinder = None
         imageFinderDomains = {
-        self.supportedDomains[0]: ImgurImageFinder(user.externalDownloads.values(), self.avoidDuplicates),
-        self.supportedDomains[1]: MinusImageFinder(user.externalDownloads.values(), self.avoidDuplicates),
-        self.supportedDomains[2]: VidbleImageFinder(user.externalDownloads.values(), self.avoidDuplicates),
-        self.supportedDomains[3]: GfycatImageFinder(user.externalDownloads.values(), self.avoidDuplicates)}
+            self.supportedDomains[0]: ImgurImageFinder(user.externalDownloads.values(), self.avoidDuplicates),
+            self.supportedDomains[1]: MinusImageFinder(user.externalDownloads.values(), self.avoidDuplicates),
+            self.supportedDomains[2]: VidbleImageFinder(user.externalDownloads.values(), self.avoidDuplicates),
+            self.supportedDomains[3]: GfycatImageFinder(user.externalDownloads.values(), self.avoidDuplicates)}
         domains = imageFinderDomains.keys()
 
         for domain in domains:
@@ -243,11 +272,19 @@ class RedditData():
         if not os.path.exists(directory):
             os.makedirs(directory)
 
+    def mapFilterTextToOper(self, text):
+        return self.operMap.get(text)
+
+    def mapConnectorTextToOper(self, text):
+        return self.connectMap.get(text)
+
     def saveState(self):
         userListModels = self.userLists
         userListSettings = {}  # Use this to save normally unpickleable stuff
         subredditListModels = self.subredditLists
         subredditListSettings = {}
+        operMap = self.operMap
+        connectMap = self.connectMap
         successful = False
         for key, val in userListModels.items():
             userListSettings[key] = val.lst
@@ -257,11 +294,15 @@ class RedditData():
         try:
             self.userLists = None  # QAbstractListModel is not pickleable so set this to None
             self.subredditLists = None
+            self.operMap = None # functions within the dict are not pickleable
+            self.connectMap = None
             shelf['rddtScraper'] = self
             shelf['userLists'] = userListSettings  # Save QAbstractList data as a simple dict of list
             shelf['subredditLists'] = subredditListSettings
             self.userLists = userListModels  # Restore the user lists in case the user is not exiting program
             self.subredditLists = subredditListModels
+            self.operMap = operMap
+            self.connectMap = connectMap
             print("Saving program")
             successful = True
         except KeyError:

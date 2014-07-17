@@ -5,7 +5,7 @@ import shelve
 from PyQt4.Qt import *
 from rddtScrape_auto import Ui_RddtScrapeMainWindow
 from settingsGUI import SettingsGUI
-from redditData import RedditData, DownloadType, ListType
+from redditData import RedditData, DownloadType, ListType, operMap, connectMap
 from downloadedPostsGUI import DownloadedPostsGUI
 from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User, Subreddit
@@ -475,11 +475,27 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             self.directoryBox.setText(directory)
             self.setUnsavedChanges(True)
 
+    def convertFilterTableToFilters(self, settings):
+        filterTable = settings.filterTable
+        postFilts = []
+        commentFilts = []
+        connector = None
+        if filterTable.rowCount() > 0:
+            connector = self.rddtScraper.mapConnectorTextToOper(filterTable.cellWidget(0, settings.filtTableConnectCol).currentText())
+            for row in range(filterTable.rowCount()):
+                type = filterTable.cellWidget(row, settings.filtTableTypeCol).currentText()
+                prop = filterTable.cellWidget(row, settings.filtTablePropCol).currentText()
+                oper = self.rddtScraper.mapFilterTextToOper(filterTable.cellWidget(row, settings.filtTableOperCol).currentText())
+                val = filterTable.cellWidget(row, settings.filtTableValCol).toPlainText()
+                filt = (prop, oper, val)
+                if type == "Post":
+                    commentFilts.append(filt)
+                elif type == "Comment":
+                    commentFilts.append(filt)
+        return postFilts, commentFilts, connector
+
     def showSettings(self):
-        settings = SettingsGUI(self.rddtScraper.userLists, self.rddtScraper.subredditLists,
-                               self.rddtScraper.defaultUserListName, self.rddtScraper.defaultSubredditListName,
-                               self.rddtScraper.avoidDuplicates, self.rddtScraper.getExternalContent, self.rddtScraper.getSubmissionContent,
-                               self.rddtScraper.getCommentData, self.rddtScraper.subSort, self.rddtScraper.subLimit)
+        settings = SettingsGUI(self.rddtScraper)
         ret = settings.exec_()
         if ret == QDialog.Accepted:
             self.logPrint(
@@ -495,6 +511,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
 
             self.rddtScraper.subSort = settings.subSort
             self.rddtScraper.subLimit = settings.subLimit
+            self.rddtScraper.postFilts, self.rddtScraper.commentFilts, self.rddtScraper.connector = self.convertFilterTableToFilters(settings)
             self.saveState()
 
     def displayAbout(self):
@@ -590,6 +607,8 @@ def loadState():
         for key, val in subredditListSettings.items():
             print("loading from saved " + key)
             rddtScraper.subredditLists[key] = ListModel(val, Subreddit)
+        rddtScraper.operMap = operMap
+        rddtScraper.connectMap = connectMap
     except KeyError as e:
         print(e)
     finally:

@@ -2,29 +2,76 @@ from PyQt4.Qt import *
 from settings_auto import Ui_SettingsDialog
 
 
+class ConnectComboBox(QComboBox):
+
+    # ~ooooohhhh~ static class variables
+    changing = False
+    index = 0
+
+    def __init__(self, row, filterTable, filtTableConnectCol, connectMap):
+        super().__init__()
+        self.row = row
+        self.filterTable = filterTable
+        self.filtTableConnectCol = filtTableConnectCol
+        self.connectMap = connectMap
+        for connect in self.connectMap:
+            self.addItem(connect)
+        self.setCurrentIndex(ConnectComboBox.index)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.displayContextMenu)
+        self.currentIndexChanged.connect(self.changeAllConnects)
+
+    def displayContextMenu(self, pos):
+        menu = QMenu()
+        removeAction = menu.addAction("Remove")
+        action = menu.exec_(self.mapToGlobal(pos))
+        if action == removeAction:
+            while(self.filterTable.rowCount() > self.row + 1):
+                self.filterTable.removeRow(self.filterTable.rowCount() - 1)
+            self.filterTable.removeCellWidget(self.row, self.filtTableConnectCol)
+
+    def changeAllConnects(self, index):
+        # check if we are running changeAllConnects from somewhere else. Without this we would get infinite recursion because
+        # setCurrentIndex kicks off currentIndexChanged which calls this function. There are probably 2000 different ways
+        # to do this that are better.
+        if not ConnectComboBox.changing:
+            ConnectComboBox.changing = True
+            ConnectComboBox.index = index
+            for row in range(self.filterTable.rowCount() - 1):
+                self.filterTable.removeCellWidget(row, self.filtTableConnectCol)
+                print("Row: " + str(row) + " changing to index: " + str(ConnectComboBox.index))
+                combobox = ConnectComboBox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
+                combobox.setCurrentIndex(ConnectComboBox.index)
+                self.filterTable.setCellWidget(row, self.filtTableConnectCol, combobox)
+            ConnectComboBox.changing = False
+
+
+
 class SettingsGUI(QDialog, Ui_SettingsDialog):
-    def __init__(self, userLists, subredditLists, currentUserListName, currentSubredditListName, avoidDuplicates,
-                 getExternalContent, getSubmissionContent, getCommentData, subSort, subLimit):
+    def __init__(self, rddtScraper):
         QDialog.__init__(self)
 
         # Set up the user interface from Designer.
         self.setupUi(self)
 
-        self.userLists = userLists
-        self.subredditLists = subredditLists
-        self.currentUserListName = currentUserListName
-        self.currentSubredditListName = currentSubredditListName
-        self.avoidDuplicates = avoidDuplicates
-        self.getExternalContent = getExternalContent
-        self.getSubmissionContent = getSubmissionContent
-        self.getCommentData = getCommentData
-        self.subSort = subSort
-        self.subLimit = subLimit
+        self.userLists = rddtScraper.userLists
+        self.subredditLists = rddtScraper.subredditLists
+        self.currentUserListName = rddtScraper.currentUserListName
+        self.currentSubredditListName = rddtScraper.currentSubredditListName
+        self.avoidDuplicates = rddtScraper.avoidDuplicates
+        self.getExternalContent = rddtScraper.getExternalContent
+        self.getSubmissionContent = rddtScraper.getSubmissionContent
+        self.getCommentData = rddtScraper.getCommentData
+        self.subSort = rddtScraper.subSort
+        self.subLimit = rddtScraper.subLimit
+        self.operMap = rddtScraper.operMap
+        self.connectMap = rddtScraper.connectMap
         self.validator = QIntValidator(1, 100)
         self.filtTableTypeCol = 0
         self.filtTablePropCol = 1
         self.filtTableOperCol = 2
         self.filtTableValCol = 3
+        self.filtTableConnectCol = 4
 
         self.defaultUserListComboBox.activated.connect(self.chooseNewUserList)
         self.defaultSubredditListComboBox.activated.connect(self.chooseNewSubredditList)
@@ -45,6 +92,7 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.subLimitTextEdit.setText(str(self.subLimit))
 
         self.filterTable.cellPressed.connect(self.addFilter)
+        self.addFilter(0, self.filtTableTypeCol)
 
         self.initSettings()
 
@@ -102,39 +150,41 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
 
     def makeTypeComboBox(self, row):
         combobox = QComboBox()
-        combobox.addItem("Post")
+        combobox.addItem("Submission")
         combobox.addItem("Comment")
         combobox.currentIndexChanged.connect(lambda: self.changePropComboBox(combobox.currentText(), row))
         return combobox
 
     def makePostPropComboBox(self):
         combobox = QComboBox()
-        combobox.addItem("Title")
-        combobox.addItem("Selftext")
-        combobox.addItem("Domain")
-        combobox.addItem("Author")
-        combobox.addItem("Score")
+        combobox.addItem("selftext")
+        combobox.addItem("score")
+        combobox.addItem("domain")
+        combobox.addItem("edited")
+        combobox.addItem("stickied")
+        combobox.addItem("permalink")
+        combobox.addItem("over_18")
+        combobox.addItem("subreddit")
+        combobox.addItem("url")
+        combobox.addItem("author")
+        combobox.addItem("is_self")
         return combobox
 
     def makeCommentPropComboBox(self):
         combobox = QComboBox()
-        combobox.addItem("Body")
-        combobox.addItem("Author")
-        combobox.addItem("Score")
+        combobox.addItem("body")
+        combobox.addItem("gilded")
+        combobox.addItem("score")
+        combobox.addItem("author")
+        combobox.addItem("edited")
+        combobox.addItem("subreddit")
+        combobox.addItem("controversiality")
         return combobox
 
     def makeOperComboBox(self):
         combobox = QComboBox()
-        combobox.addItem("Equals")
-        combobox.addItem("Does not equal")
-        combobox.addItem("Begins with")
-        combobox.addItem("Does not begin with")
-        combobox.addItem("Ends with")
-        combobox.addItem("Does not end with")
-        combobox.addItem("Greater than")
-        combobox.addItem("Less than")
-        combobox.addItem("Contains")
-        combobox.addItem("Does not contain")
+        for oper in self.operMap:
+            combobox.addItem(oper)
         return combobox
 
     def changePropComboBox(self, text, row):
@@ -152,9 +202,13 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
             self.filterTable.setCellWidget(row, col, typeCombobox)
             self.filterTable.setCellWidget(row, self.filtTablePropCol, propCombobox)
             self.filterTable.setCellWidget(row, self.filtTableOperCol, operCombobox)
-            self.filterTable.insertRow(row + 1)
-        if col == self.filtTableValCol:
+        elif col == self.filtTableValCol:
             textEdit = QPlainTextEdit()
             self.filterTable.setCellWidget(row, self.filtTableValCol, textEdit)
+        elif col == self.filtTableConnectCol:
+            connectCombobox = ConnectComboBox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
+            self.filterTable.setCellWidget(row, self.filtTableConnectCol, connectCombobox)
+            self.filterTable.insertRow(row + 1)
+            self.addFilter(row + 1, self.filtTableTypeCol)
 
 
