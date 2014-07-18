@@ -96,10 +96,10 @@ class ImgurImageFinder(ImageFinder):
             dotIndex = imgurHashID.rfind('.')
             if dotIndex != -1:
                 imgurHashID = imgurHashID[:imgurHashID.rfind('.')]
-            apiURL += 'image/' + imgurHashID + '.json'
+            apiURL += 'image/' + imgurHashID
         else:
             imgurHashID = url[url.rfind('/') + 1:]
-            apiURL += 'album/' + imgurHashID + '.json'
+            apiURL += 'album/' + imgurHashID
         if apiURL in self.alreadyQueriedURLs: # Regardless of if we want to avoid duplicates, we always want to reduce API calls
             return False, None
         response = exceptionSafeRequest(apiURL, headers=headers, stream=True)
