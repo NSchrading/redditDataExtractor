@@ -54,7 +54,7 @@ class RedditData():
     __slots__ = ('defaultPath', 'subredditLists', 'userLists', 'currentSubredditListName', 'currentUserListName',
                  'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r', 'downloadType',
                  'avoidDuplicates', 'getExternalContent', 'getSubmissionContent', 'getCommentData', 'subSort',
-                 'subLimit', 'supportedDomains', 'urlFinder', 'operMap', 'connectMap', 'postFilts', 'commentFilts', 'connector')
+                 'subLimit', 'supportedDomains', 'urlFinder', 'operMap', 'connectMap', 'postFilts', 'commentFilts', 'connector', 'filterExternalContent', 'filterSubmissionContent')
 
     def __init__(self, defaultPath=os.path.abspath(os.path.expanduser('Downloads')), subredditLists=None,
                  userLists=None,
@@ -110,9 +110,11 @@ class RedditData():
 
         self.connectMap = {"And": all, "Or": any, "Xor": xorLst}
 
-        self.postFilts = None
-        self.commentFilts = None
+        self.postFilts = []
+        self.commentFilts = []
         self.connector = None
+        self.filterExternalContent = False
+        self.filterSubmissionContent = False
 
     def getImages(self, post, user, commentAuthor=None, commentAuthorURLCount=None):
         images = []
@@ -153,7 +155,27 @@ class RedditData():
             it is not a xpost from another subreddit which is itself a valid subreddit (to avoid duplicate file downloads)
             it is not in a blacklisted post for the user
         """
-        return self.isNewSubmission(post, user) and self.isNotXPost(post) and user.isNotInBlacklist(post.permalink)
+        postPassesFilter = True
+        if self.filterSubmissionContent or self.filterExternalContent:
+            postPassesFilter = self.postPassesFilter(post)
+        return self.isNewSubmission(post, user) and self.isNotXPost(post) and user.isNotInBlacklist(post.permalink) and postPassesFilter
+
+    def postPassesFilter(self, post):
+        passes = False
+        comments = []
+        if len(self.commentFilts) > 0:
+            comments = praw.helpers.flatten_tree(post.comments)
+        if self.connector is not None:
+            passes = self.connector([self.connector([oper(post.__dict__.get(prop), val) for prop, oper, val in self.postFilts if post.__dict__.get(prop) is not None]), any([self.connector([oper(comment.__dict__.get(prop), val) for prop, oper, val in self.commentFilts if comment.__dict__.get(prop) is not None]) for comment in comments if isinstance(comment, praw.objects.Comment)])])
+        else:
+            if len(self.postFilts) > 0:
+                prop, oper, val = self.postFilts[0]
+                if post.__dict__.get(prop) is not None:
+                    passes = oper(post.__dict__.get(prop), val)
+            elif len(comments) > 0:
+                prop, oper, val = self.commentFilts[0]
+                passes = any([oper(comment.__dict__.get(prop), val) for comment in comments if isinstance(comment, praw.objects.Comment) and comment.__dict__.get(prop) is not None])
+        return passes
 
     @staticmethod
     def isNewSubmission(post, user):

@@ -13,6 +13,13 @@ from GUIFuncs import confirmDialog
 from queue import Queue
 from downloader import Downloader
 
+def isNumber(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
 # A QObject (to be run in a QThread) which sits waiting for data to come through a Queue.Queue().
 # It blocks until data is available, and one it has got something from the queue, it sends
 # it to the "MainThread" by emitting a Qt Signal
@@ -493,11 +500,18 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                 prop = filterTable.cellWidget(row, settings.filtTablePropCol).currentText()
                 oper = self.rddtScraper.mapFilterTextToOper(filterTable.cellWidget(row, settings.filtTableOperCol).currentText())
                 val = filterTable.cellWidget(row, settings.filtTableValCol).toPlainText()
+                if val.lower() == "false":
+                    val = False
+                elif val.lower() == "true":
+                    val = True
+                elif isNumber(val):
+                    val = float(val)
                 filt = (prop, oper, val)
                 if type == "Submission":
                     postFilts.append(filt)
                 elif type == "Comment":
                     commentFilts.append(filt)
+        print(postFilts, commentFilts, connector)
         return postFilts, commentFilts, connector
 
     def showSettings(self):
@@ -517,8 +531,10 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
 
             self.rddtScraper.subSort = settings.subSort
             self.rddtScraper.subLimit = settings.subLimit
-            self.rddtScraper.postFilts, self.rddtScraper.commentFilts, self.rddtScraper.connector = self.convertFilterTableToFilters(settings)
-            print(self.rddtScraper.postFilts, self.rddtScraper.commentFilts, self.rddtScraper.connector)
+            self.rddtScraper.filterExternalContent = settings.filterExternalContent
+            self.rddtScraper.filterSubmissionContent=  settings.filterSubmissionContent
+            if settings.filterExternalContent or settings.filterSubmissionContent:
+                self.rddtScraper.postFilts, self.rddtScraper.commentFilts, self.rddtScraper.connector = self.convertFilterTableToFilters(settings)
             self.saveState()
 
     def displayAbout(self):

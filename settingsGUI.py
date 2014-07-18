@@ -1,12 +1,13 @@
 from PyQt4.Qt import *
 from settings_auto import Ui_SettingsDialog
 
+def findKey(dict, value):
+    return next((k for k, v in dict.items() if v == value), None)
 
 class ConnectComboBox(QComboBox):
 
     # ~ooooohhhh~ static class variables
-    changing = False
-    index = 0
+    text = "And"
 
     def __init__(self, row, filterTable, filtTableConnectCol, connectMap):
         super().__init__()
@@ -16,10 +17,10 @@ class ConnectComboBox(QComboBox):
         self.connectMap = connectMap
         for connect in self.connectMap:
             self.addItem(connect)
-        self.setCurrentIndex(ConnectComboBox.index)
+        self.setCurrentIndex(self.findText(ConnectComboBox.text))
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.displayContextMenu)
-        self.currentIndexChanged.connect(self.changeAllConnects)
+        self.activated.connect(self.changeAllConnects)
 
     def displayContextMenu(self, pos):
         menu = QMenu()
@@ -31,19 +32,13 @@ class ConnectComboBox(QComboBox):
             self.filterTable.removeCellWidget(self.row, self.filtTableConnectCol)
 
     def changeAllConnects(self, index):
-        # check if we are running changeAllConnects from somewhere else. Without this we would get infinite recursion because
-        # setCurrentIndex kicks off currentIndexChanged which calls this function. There are probably 2000 different ways
-        # to do this that are better.
-        if not ConnectComboBox.changing:
-            ConnectComboBox.changing = True
-            ConnectComboBox.index = index
-            for row in range(self.filterTable.rowCount() - 1):
-                self.filterTable.removeCellWidget(row, self.filtTableConnectCol)
-                print("Row: " + str(row) + " changing to index: " + str(ConnectComboBox.index))
-                combobox = ConnectComboBox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
-                combobox.setCurrentIndex(ConnectComboBox.index)
-                self.filterTable.setCellWidget(row, self.filtTableConnectCol, combobox)
-            ConnectComboBox.changing = False
+        ConnectComboBox.text = self.currentText()
+        for row in range(self.filterTable.rowCount() - 1):
+            self.filterTable.removeCellWidget(row, self.filtTableConnectCol)
+            print("Row: " + str(row) + " changing to text: " + ConnectComboBox.text)
+            combobox = ConnectComboBox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
+            combobox.setCurrentIndex(self.findText(ConnectComboBox.text))
+            self.filterTable.setCellWidget(row, self.filtTableConnectCol, combobox)
 
 
 
@@ -66,6 +61,8 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.subLimit = rddtScraper.subLimit
         self.operMap = rddtScraper.operMap
         self.connectMap = rddtScraper.connectMap
+        self.filterExternalContent= rddtScraper.filterExternalContent
+        self.filterSubmissionContent = rddtScraper.filterSubmissionContent
         self.validator = QIntValidator(1, 100)
         self.filtTableTypeCol = 0
         self.filtTablePropCol = 1
@@ -92,7 +89,9 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.subLimitTextEdit.setText(str(self.subLimit))
 
         self.filterTable.cellPressed.connect(self.addFilter)
-        self.addFilter(0, self.filtTableTypeCol)
+        self.constructFilterTable(rddtScraper.postFilts, rddtScraper.commentFilts, rddtScraper.connector, rddtScraper.operMap, rddtScraper.connectMap)
+        self.filterExternalContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.filterExternalContentCheckBox, 'filterExternalContent'))
+        self.filterSubmissionContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.filterSubmissionContentCheckBox, 'filterSubmissionContent'))
 
         self.initSettings()
 
@@ -112,6 +111,9 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.getSubmissionContentCheckBox.setChecked(self.getSubmissionContent)
         self.getCommentDataCheckBox.setChecked(self.getCommentData)
 
+        self.filterExternalContentCheckBox.setChecked(self.filterExternalContent)
+        self.filterSubmissionContentCheckBox.setChecked(self.filterSubmissionContent)
+
         self.initSubSort()
 
     def initSubSort(self):
@@ -125,6 +127,51 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
             self.controversialBtn.setChecked(True)
         else:
             self.topBtn.setChecked(True)
+
+    def viewTable(self):
+        for row in range(self.filterTable.rowCount()):
+            for col in range(self.filterTable.columnCount()):
+                print(self.filterTable.cellWidget(row, col))
+
+    def constructFilterTableWidgets(self, type, prop, oper, val, operMap, row):
+        print("adding for row:" + str(row))
+        self.addFilter(row, self.filtTableTypeCol, type)
+        typeCombobox = self.filterTable.cellWidget(row, self.filtTableTypeCol)
+        typeCombobox.setCurrentIndex(typeCombobox.findText(type))
+        print(typeCombobox.currentText())
+        propCombobox = self.filterTable.cellWidget(row, self.filtTablePropCol)
+        propCombobox.setCurrentIndex(propCombobox.findText(prop))
+        print(prop)
+        operCombobox = self.filterTable.cellWidget(row, self.filtTableOperCol)
+        operCombobox.setCurrentIndex(operCombobox.findText(findKey(operMap, oper)))
+        print(findKey(operMap, oper))
+        valTextWidget = self.filterTable.cellWidget(row, self.filtTableValCol)
+        valTextWidget.setPlainText(str(val))
+        print(val)
+
+    def constructFilterTable(self, postFilts, commentFilts, connector, operMap, connectMap):
+        numFilts = len(postFilts) + len(commentFilts)
+        if numFilts > 0:
+            for row in range(1, numFilts): # first row is already added
+                print("Adding row")
+                self.filterTable.insertRow(row)
+            row = 0
+            for prop, oper, val in postFilts:
+                self.constructFilterTableWidgets("Submission", prop, oper, val, operMap, row)
+                row += 1
+            for prop, oper, val in commentFilts:
+                self.constructFilterTableWidgets("Comment", prop, oper, val, operMap, row)
+                row += 1
+            connectorText = findKey(connectMap, connector)
+            ConnectComboBox.text = connectorText # Set this to whatever the connector is currently so on creation of new ones, it doesn't default to And
+            print(connectorText)
+            for row in range(self.filterTable.rowCount() - 1):
+                print("adding connector for row: " + str(row))
+                connectCombobox = ConnectComboBox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
+                connectCombobox.setCurrentIndex(connectCombobox.findText(connectorText))
+                self.filterTable.setCellWidget(row, self.filtTableConnectCol, connectCombobox)
+        else:
+            self.addFilter(0, self.filtTableTypeCol)
 
     def chooseNewUserList(self):
         self.currentUserListName = self.defaultUserListComboBox.currentText()
@@ -152,12 +199,13 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         combobox = QComboBox()
         combobox.addItem("Submission")
         combobox.addItem("Comment")
-        combobox.currentIndexChanged.connect(lambda: self.changePropComboBox(combobox.currentText(), row))
+        combobox.activated.connect(lambda: self.changePropComboBox(combobox.currentText(), row))
         return combobox
 
-    def makePostPropComboBox(self):
+    def makeSubmissionPropComboBox(self):
         combobox = QComboBox()
         combobox.addItem("selftext")
+        combobox.addItem("title")
         combobox.addItem("score")
         combobox.addItem("domain")
         combobox.addItem("edited")
@@ -188,27 +236,42 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         return combobox
 
     def changePropComboBox(self, text, row):
-        if text == "Post":
-            combobox = self.makePostPropComboBox()
+        print("changing prop combobox at row: " + str(row) + " to " + text)
+        if text == "Submission":
+            combobox = self.makeSubmissionPropComboBox()
         elif text == "Comment":
             combobox = self.makeCommentPropComboBox()
-        self.filterTable.setCellWidget(row, self.filtTablePropCol, combobox)
+        if combobox is not None:
+            self.filterTable.setCellWidget(row, self.filtTablePropCol, combobox)
 
-    def addFilter(self, row, col):
+    def addFilter(self, row, col, type="Submission"):
         if col == self.filtTableTypeCol:
             typeCombobox = self.makeTypeComboBox(row)
-            propCombobox = self.makePostPropComboBox()
+            if type == "Submission":
+                propCombobox = self.makeSubmissionPropComboBox()
+            elif type == "Comment":
+                propCombobox = self.makeCommentPropComboBox()
             operCombobox = self.makeOperComboBox()
-            self.filterTable.setCellWidget(row, col, typeCombobox)
+            textEdit = QPlainTextEdit()
+            self.filterTable.setCellWidget(row, self.filtTableTypeCol, typeCombobox)
             self.filterTable.setCellWidget(row, self.filtTablePropCol, propCombobox)
             self.filterTable.setCellWidget(row, self.filtTableOperCol, operCombobox)
-        elif col == self.filtTableValCol:
-            textEdit = QPlainTextEdit()
             self.filterTable.setCellWidget(row, self.filtTableValCol, textEdit)
         elif col == self.filtTableConnectCol:
             connectCombobox = ConnectComboBox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
             self.filterTable.setCellWidget(row, self.filtTableConnectCol, connectCombobox)
             self.filterTable.insertRow(row + 1)
-            self.addFilter(row + 1, self.filtTableTypeCol)
+            self.addFilter(row + 1, self.filtTableTypeCol, "Submission")
 
+    def checkFilterTable(self):
+        if self.filterExternalContentCheckBox.isChecked() or self.filterSubmissionContentCheckBox.isChecked():
+            for row in range(self.filterTable.rowCount()):
+                if self.filterTable.cellWidget(row, self.filtTableValCol) is None or len(self.filterTable.cellWidget(row, self.filtTableValCol).toPlainText()) <= 0:
+                    QMessageBox.warning(QMessageBox(), "Reddit Scraper", "Please enter text in the value column or uncheck that you would like to filter content.")
+                    return False
+        return True
+
+    def accept(self):
+        if self.checkFilterTable():
+            super().accept()
 

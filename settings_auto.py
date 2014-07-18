@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'settings.ui'
 #
-# Created: Wed Jul 16 23:10:37 2014
+# Created: Thu Jul 17 17:30:20 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -121,9 +121,9 @@ class Ui_SettingsDialog(object):
         self.filterExternalContentCheckBox = QtGui.QCheckBox(SettingsDialog)
         self.filterExternalContentCheckBox.setObjectName(_fromUtf8("filterExternalContentCheckBox"))
         self.horizontalLayout_7.addWidget(self.filterExternalContentCheckBox)
-        self.filterCommentContentCheckBox = QtGui.QCheckBox(SettingsDialog)
-        self.filterCommentContentCheckBox.setObjectName(_fromUtf8("filterCommentContentCheckBox"))
-        self.horizontalLayout_7.addWidget(self.filterCommentContentCheckBox)
+        self.filterSubmissionContentCheckBox = QtGui.QCheckBox(SettingsDialog)
+        self.filterSubmissionContentCheckBox.setObjectName(_fromUtf8("filterSubmissionContentCheckBox"))
+        self.horizontalLayout_7.addWidget(self.filterSubmissionContentCheckBox)
         self.verticalLayout.addLayout(self.horizontalLayout_7)
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
@@ -188,8 +188,8 @@ class Ui_SettingsDialog(object):
         self.getCommentDataCheckBox.setText(_translate("SettingsDialog", "Download External Content In Comments", None))
         self.filterExternalContentCheckBox.setToolTip(_translate("SettingsDialog", "Dowload external images / gifs / gfys only if the following criteria are met.", None))
         self.filterExternalContentCheckBox.setText(_translate("SettingsDialog", "Only download external content when:", None))
-        self.filterCommentContentCheckBox.setToolTip(_translate("SettingsDialog", "Download json encoded submission data only if the following criteria are met.", None))
-        self.filterCommentContentCheckBox.setText(_translate("SettingsDialog", "Only download submission content when:", None))
+        self.filterSubmissionContentCheckBox.setToolTip(_translate("SettingsDialog", "Download json encoded submission data only if the following criteria are met.", None))
+        self.filterSubmissionContentCheckBox.setText(_translate("SettingsDialog", "Only download submission content when:", None))
         self.filterTable.setToolTip(_translate("SettingsDialog", "Select the filters you would like to apply to the download. Will download the content only if the submission or a comment within the submission has the matching criteria.", None))
         item = self.filterTable.verticalHeaderItem(0)
         item.setText(_translate("SettingsDialog", "New Row", None))

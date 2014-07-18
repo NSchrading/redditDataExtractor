@@ -218,7 +218,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="filterCommentContentCheckBox">
+      <widget class="QCheckBox" name="filterSubmissionContentCheckBox">
        <property name="toolTip">
         <string>Download json encoded submission data only if the following criteria are met.</string>
        </property>
