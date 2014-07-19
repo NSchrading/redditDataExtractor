@@ -535,6 +535,8 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             self.rddtScraper.filterSubmissionContent=  settings.filterSubmissionContent
             if settings.filterExternalContent or settings.filterSubmissionContent:
                 self.rddtScraper.postFilts, self.rddtScraper.commentFilts, self.rddtScraper.connector = self.convertFilterTableToFilters(settings)
+
+            self.rddtScraper.restrictDownloadsByCreationDate = settings.restrictDownloadsByCreationDate
             self.saveState()
 
     def displayAbout(self):

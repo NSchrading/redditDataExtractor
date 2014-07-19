@@ -1,5 +1,6 @@
 from PyQt4.Qt import *
 from settings_auto import Ui_SettingsDialog
+from genericListModelObjects import GenericListModelObj
 
 def findKey(dict, value):
     return next((k for k, v in dict.items() if v == value), None)
@@ -63,6 +64,7 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.connectMap = rddtScraper.connectMap
         self.filterExternalContent= rddtScraper.filterExternalContent
         self.filterSubmissionContent = rddtScraper.filterSubmissionContent
+        self.restrictDownloadsByCreationDate = rddtScraper.restrictDownloadsByCreationDate
         self.validator = QIntValidator(1, 100)
         self.filtTableTypeCol = 0
         self.filtTablePropCol = 1
@@ -93,6 +95,8 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.filterExternalContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.filterExternalContentCheckBox, 'filterExternalContent'))
         self.filterSubmissionContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.filterSubmissionContentCheckBox, 'filterSubmissionContent'))
 
+        self.restrictDownloadsByCreationDateCheckBox.clicked.connect(lambda: self.changeCheckBox(self.restrictDownloadsByCreationDateCheckBox, 'restrictDownloadsByCreationDate'))
+
         self.initSettings()
 
     def initSettings(self):
@@ -113,6 +117,8 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
 
         self.filterExternalContentCheckBox.setChecked(self.filterExternalContent)
         self.filterSubmissionContentCheckBox.setChecked(self.filterSubmissionContent)
+
+        self.restrictDownloadsByCreationDateCheckBox.setChecked(self.restrictDownloadsByCreationDate)
 
         self.initSubSort()
 
@@ -163,9 +169,8 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
                 self.constructFilterTableWidgets("Comment", prop, oper, val, operMap, row)
                 row += 1
             connectorText = findKey(connectMap, connector)
-            ConnectComboBox.text = connectorText # Set this to whatever the connector is currently so on creation of new ones, it doesn't default to And
-            print(connectorText)
             for row in range(self.filterTable.rowCount() - 1):
+                ConnectComboBox.text = connectorText # Set this to whatever the connector is currently so on creation of new ones, it doesn't default to And
                 print("adding connector for row: " + str(row))
                 connectCombobox = ConnectComboBox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
                 connectCombobox.setCurrentIndex(connectCombobox.findText(connectorText))
@@ -185,6 +190,7 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
             self.__dict__[setting] = checkBox.isChecked()
 
     def changeSubSort(self, subSort):
+        GenericListModelObj.subSort = subSort
         self.subSort = subSort
 
     def setSubLimit(self):

@@ -206,6 +206,30 @@
     </widget>
    </item>
    <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_8">
+     <item>
+      <widget class="QCheckBox" name="restrictDownloadsByCreationDateCheckBox">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Always works for users, only works for subreddits when downloading by 'New'.&lt;/p&gt;&lt;p&gt;Uncheck this option to gather all available submissions of users and download ones that have not been downloaded already. &lt;/p&gt;&lt;p&gt;This is useful to attempt to download posts that failed due to a connection loss.&lt;/p&gt;&lt;p&gt;Checking this option may speed up the downloading process.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Restrict retrieved submissions to creation dates after the last downloaded submission</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="Line" name="line_4">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_7">
      <item>
       <widget class="QCheckBox" name="filterExternalContentCheckBox">

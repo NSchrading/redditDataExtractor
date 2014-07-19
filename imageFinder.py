@@ -1,5 +1,6 @@
 import requests
 from image import Image
+from bs4 import BeautifulSoup
 
 
 def debug(target):
@@ -293,7 +294,7 @@ class VidbleImageFinder(ImageFinder):
             fileType = self.getFileType(endOfURL)
             if len(fileType) > 1:
                 validURLs.append("http://www.vidble.com/" + endOfURL)
-        elif '/show/' in URL:
+        elif '/show/' in URL or '/explore/' in URL:
             URL = URL[URL.rfind('/')]
             response = exceptionSafeRequest("http://www.vidble.com/" + endOfURL)
             if response is not None and response.status_code == 200:

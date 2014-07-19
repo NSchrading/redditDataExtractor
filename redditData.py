@@ -26,16 +26,16 @@ def xorLst(lst):
 # The following functions are made to get around the fact that lambdas and builtin functions on str like str.endswith
 # are not pickleable. Operator functions like operator.ne are pickleable though...weird.
 def beginWith(s, val):
-    return s.startswith(val)
+    return s.lstrip().startswith(val)
 
 def notBeginWith(s, val):
-    return not s.startswith(val)
+    return not s.lstrip().startswith(val)
 
 def endWith(s, val):
-    return s.startswith(val)
+    return s.rstrip().startswith(val)
 
 def notEndWith(s, val):
-    return not s.endswith(val)
+    return not s.rstrip().endswith(val)
 
 def notContain(s, val):
     return not val in s
@@ -45,7 +45,6 @@ class DownloadType():
     USER_SUBREDDIT_ALL = 2
     SUBREDDIT_CONTENT = 3
 
-
 class ListType():
     USER = 1
     SUBREDDIT = 2
@@ -54,47 +53,34 @@ class RedditData():
     __slots__ = ('defaultPath', 'subredditLists', 'userLists', 'currentSubredditListName', 'currentUserListName',
                  'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r', 'downloadType',
                  'avoidDuplicates', 'getExternalContent', 'getSubmissionContent', 'getCommentData', 'subSort',
-                 'subLimit', 'supportedDomains', 'urlFinder', 'operMap', 'connectMap', 'postFilts', 'commentFilts', 'connector', 'filterExternalContent', 'filterSubmissionContent')
+                 'subLimit', 'supportedDomains', 'urlFinder', 'operMap', 'connectMap', 'postFilts', 'commentFilts', 'connector', 'filterExternalContent', 'filterSubmissionContent', 'commentCache', 'restrictDownloadsByCreationDate')
 
-    def __init__(self, defaultPath=os.path.abspath(os.path.expanduser('Downloads')), subredditLists=None,
-                 userLists=None,
-                 currentSubredditListName='Default Subs',
-                 currentUserListName='Default User List', defaultSubredditListName='Default Subs',
-                 defaultUserListName='Default User List', avoidDuplicates=True, getExternalContent=False,
-                 getSubmissionContent=True,
-                 getCommentData=False, subSort='hot', subLimit=10, supportedDomains=None):
+    def __init__(self):
+        self.defaultPath = os.path.abspath(os.path.expanduser('Downloads'))
 
-        self.defaultPath = defaultPath
-        if subredditLists is None:
-            self.subredditLists = {'Default Subs': ListModel(
+        self.subredditLists = {'Default Subs': ListModel(
                 [Subreddit("adviceanimals"), Subreddit("aww"), Subreddit("books"),
                  Subreddit("earthporn"), Subreddit("funny"), Subreddit("gaming"),
                  Subreddit("gifs"), Subreddit("movies"), Subreddit("music"),
                  Subreddit("pics"),
                  Subreddit("science"), Subreddit("technology"), Subreddit("television"),
                  Subreddit("videos"), Subreddit("wtf")], Subreddit)}
-        else:
-            self.subredditLists = subredditLists
-        if userLists is None:
-            self.userLists = {'Default User List': ListModel([], User)}
-        else:
-            self.userLists = userLists
-        self.currentSubredditListName = currentSubredditListName
-        self.currentUserListName = currentUserListName
-        self.defaultSubredditListName = defaultSubredditListName
-        self.defaultUserListName = defaultUserListName
+
+        self.userLists = {'Default User List': ListModel([], User)}
+
+        self.currentSubredditListName = 'Default Subs'
+        self.currentUserListName = 'Default User List'
+        self.defaultSubredditListName = 'Default Subs'
+        self.defaultUserListName = 'Default User List'
         self.r = praw.Reddit(user_agent='RedditUserScraper by /u/VoidXC')
         self.downloadType = DownloadType.USER_SUBREDDIT_CONSTRAINED
-        self.avoidDuplicates = avoidDuplicates
-        self.getExternalContent = getExternalContent
-        self.getSubmissionContent = getSubmissionContent
-        self.getCommentData = getCommentData
-        self.subSort = subSort
-        self.subLimit = subLimit
-        if supportedDomains is None:
-            self.supportedDomains = ['imgur', 'i.minus', 'vidble', 'gfycat']
-        else:
-            self.supportedDomains = supportedDomains
+        self.avoidDuplicates = True
+        self.getExternalContent = False
+        self.getSubmissionContent = True
+        self.getCommentData = False
+        self.subSort = 'hot'
+        self.subLimit = 10
+        self.supportedDomains = ['imgur', 'i.minus', 'vidble', 'gfycat']
 
         # This is a regex to parse URLs, courtesy of John Gruber, http://daringfireball.net/2010/07/improved_regex_for_matching_urls
         # https://gist.github.com/gruber/8891611
@@ -115,6 +101,8 @@ class RedditData():
         self.connector = None
         self.filterExternalContent = False
         self.filterSubmissionContent = False
+        self.commentCache = {}
+        self.restrictDownloadsByCreationDate = True
 
     def getImages(self, post, user, commentAuthor=None, commentAuthorURLCount=None):
         images = []
@@ -136,7 +124,7 @@ class RedditData():
         images.extend(ims)
         return images
 
-    def getValidPosts(self, submitted, user):
+    def getValidPosts(self, submitted, listModel):
         posts = []
         validSubreddits = None
         if self.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED:
@@ -144,38 +132,18 @@ class RedditData():
         for post in submitted:
             subreddit = post.subreddit.display_name
             validSubreddit = validSubreddits is None or subreddit.lower() in validSubreddits
-            if validSubreddit and self.isValidPost(post, user):
+            if validSubreddit and self.isValidPost(post, listModel):
                 posts.append(post)
         return posts
 
-    def isValidPost(self, post, user):
+    def isValidPost(self, post, listModel):
         """ Determines if this is a good post to download from
         Valid if:
             it is a new submission (meaning the files have not been downloaded from this post already)
             it is not a xpost from another subreddit which is itself a valid subreddit (to avoid duplicate file downloads)
             it is not in a blacklisted post for the user
         """
-        postPassesFilter = True
-        if self.filterSubmissionContent or self.filterExternalContent:
-            postPassesFilter = self.postPassesFilter(post)
-        return self.isNewSubmission(post, user) and self.isNotXPost(post) and user.isNotInBlacklist(post.permalink) and postPassesFilter
-
-    def postPassesFilter(self, post):
-        passes = False
-        comments = []
-        if len(self.commentFilts) > 0:
-            comments = praw.helpers.flatten_tree(post.comments)
-        if self.connector is not None:
-            passes = self.connector([self.connector([oper(post.__dict__.get(prop), val) for prop, oper, val in self.postFilts if post.__dict__.get(prop) is not None]), any([self.connector([oper(comment.__dict__.get(prop), val) for prop, oper, val in self.commentFilts if comment.__dict__.get(prop) is not None]) for comment in comments if isinstance(comment, praw.objects.Comment)])])
-        else:
-            if len(self.postFilts) > 0:
-                prop, oper, val = self.postFilts[0]
-                if post.__dict__.get(prop) is not None:
-                    passes = oper(post.__dict__.get(prop), val)
-            elif len(comments) > 0:
-                prop, oper, val = self.commentFilts[0]
-                passes = any([oper(comment.__dict__.get(prop), val) for comment in comments if isinstance(comment, praw.objects.Comment) and comment.__dict__.get(prop) is not None])
-        return passes
+        return self.isNewSubmission(post, listModel) and self.isNotXPost(post) and listModel.isNotInBlacklist(post.permalink) and (not self.restrictDownloadsByCreationDate or listModel.postBeforeLastDownload(post))
 
     @staticmethod
     def isNewSubmission(post, user):
@@ -198,7 +166,33 @@ class RedditData():
                 return False
         return True
 
-    def getSubredditSubmissions(self, validSubreddit):
+    def getPostIdsPassingFilters(self, posts):
+        return {post.id for post in posts if self.postPassesFilter(post)}
+
+    def postPassesFilter(self, post):
+        passes = False
+        comments = []
+        if len(self.commentFilts) > 0:
+            comments = praw.helpers.flatten_tree(post.comments)
+            self.cacheComments(comments, post.id)
+        print(post.selftext)
+        if self.connector is not None:
+            passes = self.connector([self.connector([oper(post.__dict__.get(prop), val) for prop, oper, val in self.postFilts if post.__dict__.get(prop) is not None]), any([self.connector([oper(comment.__dict__.get(prop), val) for prop, oper, val in self.commentFilts if comment.__dict__.get(prop) is not None]) for comment in comments if isinstance(comment, praw.objects.Comment)])])
+        else:
+            if len(self.postFilts) > 0:
+                prop, oper, val = self.postFilts[0]
+                if post.__dict__.get(prop) is not None:
+                    passes = oper(post.__dict__.get(prop), val)
+            elif len(comments) > 0:
+                prop, oper, val = self.commentFilts[0]
+                passes = any([oper(comment.__dict__.get(prop), val) for comment in comments if isinstance(comment, praw.objects.Comment) and comment.__dict__.get(prop) is not None])
+        return passes
+
+    def cacheComments(self, comments, postID):
+        pass
+        #self.commentCache[postID] = comments
+
+    def getSubredditSubmissions(self, validSubreddit, subredditListModel):
         if self.subSort == 'new':
             contentFunc = validSubreddit.get_new
         elif self.subSort == 'rising':
@@ -229,20 +223,16 @@ class RedditData():
         return path
 
     def getSubmissionData(self, submission):
-        submissionData = {"Permalink": submission.permalink}
-        submissionData['Title'] = submission.title
-        submissionData['Post ID'] = submission.id
-        submissionData['Upvotes'] = submission.ups
-        submissionData['Downvotes'] = submission.downs
-        submissionData['Domain'] = submission.domain
-        submissionData['Selftext'] = submission.selftext
-        submissionData['URL'] = submission.url
+        submissionData = submission.__dict__.copy() # copy so we don't mess with the submission's own __dict__
         if submission.author is None:
-            submissionData['Author'] = "[Deleted]"
+            submissionData['author'] = "[Deleted]"
         else:
-            submissionData['Author'] = submission.author.name
-        submissionData['Comments'] = self.getAllComments(submission.comments)
-        self.getAllComments(submission.comments)
+            submissionData['author'] = submission.author.name
+        submissionData['subreddit'] = submission.subreddit.display_name
+        submissionData['comments'] = self.getAllComments(submission.comments)
+        del submissionData['_comments'] #  objects from praw are not json serializable
+        del submissionData['_comments_by_id']
+        del submissionData['reddit_session']
         return submissionData
 
     def getAllComments(self, curComments):
@@ -284,7 +274,10 @@ class RedditData():
 
     def getCommentImageURLs(self, submission):
         urls = {}
-        allComments = praw.helpers.flatten_tree(submission.comments)
+        if self.commentCache.get(submission.id) is None:
+            allComments = praw.helpers.flatten_tree(submission.comments)
+        else:
+            allComments = self.commentCache.get(submission.id)
         for comment in allComments:
             if isinstance(comment, praw.objects.Comment):  # Make sure it isn't a MoreComments object
                 author = comment.author
