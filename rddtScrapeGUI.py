@@ -146,6 +146,7 @@ class listViewAndChooser(QListView):
                 for postURL in downloadedPosts:
                     for post in downloadedPosts.get(postURL):
                         image = post.representativeImage
+                        print(image)
                         if image is None or not os.path.exists(image):
                             continue
                         item = QListWidgetItem("", downloadedPostsGUI.downloadedPostsList)
@@ -488,7 +489,6 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         commentFilts = []
         connector = None
         if filterTable.rowCount() > 0:
-            print("here")
             connectorWidget = filterTable.cellWidget(0, settings.filtTableConnectCol)
             if connectorWidget is not None:
                 connector = self.rddtScraper.mapConnectorTextToOper(connectorWidget.currentText())

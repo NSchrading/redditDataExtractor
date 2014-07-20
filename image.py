@@ -5,6 +5,9 @@ warnings.filterwarnings("ignore", category=ResourceWarning)
 
 
 class Image():
+
+    gifHeader = [hex(ord("G")), hex(ord("I")), hex(ord("F"))]
+
     __slots__ = (
         'user', 'postID', 'fileType', 'defaultPath', 'savePath', 'URL', 'redditPostURL', 'iterContent', 'numInSeq', 'commentAuthor', 'commentAuthorURLCount')
 
@@ -39,7 +42,27 @@ class Image():
         else:
             self.savePath = os.path.abspath(os.path.join(self.defaultPath, self.user, imageFile))
 
+    def isActuallyGif(self):
+        print("checking if gif")
+        with open(self.savePath, 'rb') as f:
+            for i in range(3):
+                if hex(ord(f.read(1))) != Image.gifHeader[i]:
+                    return False
+            return True
+
     def download(self):
-        with open(self.savePath, 'wb') as fo:
-            for chunk in self.iterContent:
-                fo.write(chunk)
+        try:
+            with open(self.savePath, 'wb') as fo:
+                for chunk in self.iterContent:
+                    fo.write(chunk)
+            filePath, fileExtension = os.path.splitext(self.savePath)
+            if fileExtension == ".jpg" or fileExtension == ".png":
+                if self.isActuallyGif():
+                    print("its actually a gif")
+                    newPath = filePath + ".gif"
+                    os.rename(self.savePath, newPath)
+                    self.savePath = newPath
+                    self.fileType = ".gif"
+            return True
+        except:
+            return False

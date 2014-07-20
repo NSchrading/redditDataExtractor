@@ -70,12 +70,14 @@ class Worker(QRunnable):
             postIdsPassingFilters = self.rddtScraper.getPostIdsPassingFilters(posts)
         for post in posts:
             if self.rddtScraper.getExternalContent and ((not self.rddtScraper.filterExternalContent) or post.id in postIdsPassingFilters) and not post.is_self and not "reddit" in post.domain:
-                print(post.__dict__)
                 downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.EXTERNAL_DATA)
-                images = []
                 if self.rddtScraper.getCommentData:
-                    images.extend(self.rddtScraper.getCommentImages(post, self.listModel))
-                images.extend(self.rddtScraper.getImages(post, self.listModel))
+                    images = self.rddtScraper.getCommentImages(post, self.listModel)
+                    for image in images:
+                        if image is not None:
+                            imageWorker = ImageWorker(image, self.listModel, self.rddtScraper.avoidDuplicates, self.queue, downloadedPost, post, self.listModel)
+                            self.imagePool.start(imageWorker)
+                images = self.rddtScraper.getImages(post, self.listModel)
                 for image in images:
                     if image is not None:
                         imageWorker = ImageWorker(image, self.listModel, self.rddtScraper.avoidDuplicates, self.queue, downloadedPost, post, self.listModel)
@@ -105,17 +107,20 @@ class SubmissionWorker(QRunnable):
     def run(self):
         title = self.submission.title
         if self.listModelType == ListType.USER:
-            savePath = self.rddtScraper.downloadSubmission(self.submission, self.listModelName)
+            success, savePath = self.rddtScraper.downloadSubmission(self.submission, self.listModelName)
         else:
-            savePath = self.rddtScraper.downloadSubmission(self.submission)
-        self.downloadedPost.files.append(savePath)
-        posts = self.listModel.redditPosts.get(self.downloadedPost.redditURL)
-        if posts is None:
-            self.listModel.redditPosts[self.downloadedPost.redditURL] = [self.downloadedPost]
-        elif posts is not None and self.downloadedPost not in posts:
-            self.listModel.redditPosts[self.downloadedPost.redditURL].append(self.downloadedPost)
-        self.listModel.mostRecentDownloadTimestamp = self.submission.created_utc
-        self.queue.put("Saved submission: " + title + "\n")
+            success, savePath = self.rddtScraper.downloadSubmission(self.submission)
+        if success:
+            self.downloadedPost.files.append(savePath)
+            posts = self.listModel.redditPosts.get(self.downloadedPost.redditURL)
+            if posts is None:
+                self.listModel.redditPosts[self.downloadedPost.redditURL] = [self.downloadedPost]
+            elif posts is not None and self.downloadedPost not in posts:
+                self.listModel.redditPosts[self.downloadedPost.redditURL].append(self.downloadedPost)
+            self.listModel.mostRecentDownloadTimestamp = self.submission.created_utc
+            self.queue.put("Saved submission: " + title + "\n")
+        else:
+            self.queue.put("Error saving submission: " + title + "\n")
 
 class ImageWorker(QRunnable):
     def __init__(self, image, user, avoidDuplicates, queue, downloadedPost, post, listModel):
@@ -135,20 +140,21 @@ class ImageWorker(QRunnable):
         for redditPostURL in self.user.externalDownloads:
             allExternalDownloads = allExternalDownloads.union(allExternalDownloads, self.user.externalDownloads.get(redditPostURL))
         if (not self.avoidDuplicates) or (self.avoidDuplicates and self.image.URL not in allExternalDownloads):
+            if self.image.download():
+                self.listModel.mostRecentDownloadTimestamp = self.post.created_utc
+                posts = self.user.redditPosts.get(self.downloadedPost.redditURL)
+                if posts is None:
+                    self.user.redditPosts[self.downloadedPost.redditURL] = [self.downloadedPost]
+                elif posts is not None and self.downloadedPost not in posts:
+                    self.user.redditPosts[self.downloadedPost.redditURL].append(self.downloadedPost)
+                if self.image.commentAuthor is None and self.downloadedPost.representativeImage is None:
+                    self.downloadedPost.representativeImage = self.image.savePath
+                self.downloadedPost.files.append(self.image.savePath)
 
-            posts = self.user.redditPosts.get(self.downloadedPost.redditURL)
-            if posts is None:
-                self.user.redditPosts[self.downloadedPost.redditURL] = [self.downloadedPost]
-            elif posts is not None and self.downloadedPost not in posts:
-                self.user.redditPosts[self.downloadedPost.redditURL].append(self.downloadedPost)
-            if self.image.commentAuthor is None and self.downloadedPost.representativeImage is None:
-                self.downloadedPost.representativeImage = self.image.savePath
-            self.downloadedPost.files.append(self.image.savePath)
-
-            if self.user.externalDownloads.get(self.image.redditPostURL) is None:
-                self.user.externalDownloads[self.image.redditPostURL] = {self.image.URL}
+                if self.user.externalDownloads.get(self.image.redditPostURL) is None:
+                    self.user.externalDownloads[self.image.redditPostURL] = {self.image.URL}
+                else:
+                    self.user.externalDownloads.get(self.image.redditPostURL).add(self.image.URL)
+                self.queue.put('Saved %s' % self.image.savePath + "\n")
             else:
-                self.user.externalDownloads.get(self.image.redditPostURL).add(self.image.URL)
-            self.image.download()
-            self.listModel.mostRecentDownloadTimestamp = self.post.created_utc
-            self.queue.put('Saved %s' % self.image.savePath + "\n")
+                self.queue.put('Error saving %s' % self.image.savePath + "\n")

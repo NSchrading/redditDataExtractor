@@ -52,8 +52,8 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
 
         self.userLists = rddtScraper.userLists
         self.subredditLists = rddtScraper.subredditLists
-        self.currentUserListName = rddtScraper.currentUserListName
-        self.currentSubredditListName = rddtScraper.currentSubredditListName
+        self.currentUserListName = rddtScraper.defaultUserListName
+        self.currentSubredditListName = rddtScraper.defaultSubredditListName
         self.avoidDuplicates = rddtScraper.avoidDuplicates
         self.getExternalContent = rddtScraper.getExternalContent
         self.getSubmissionContent = rddtScraper.getSubmissionContent
@@ -133,11 +133,6 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
             self.controversialBtn.setChecked(True)
         else:
             self.topBtn.setChecked(True)
-
-    def viewTable(self):
-        for row in range(self.filterTable.rowCount()):
-            for col in range(self.filterTable.columnCount()):
-                print(self.filterTable.cellWidget(row, col))
 
     def constructFilterTableWidgets(self, type, prop, oper, val, operMap, row):
         print("adding for row:" + str(row))
@@ -242,7 +237,6 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         return combobox
 
     def changePropComboBox(self, text, row):
-        print("changing prop combobox at row: " + str(row) + " to " + text)
         if text == "Submission":
             combobox = self.makeSubmissionPropComboBox()
         elif text == "Comment":

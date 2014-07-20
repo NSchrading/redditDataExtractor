@@ -34,7 +34,6 @@ class DownloadedPostsGUI(QDialog, Ui_DownloadedPostsDialog):
 
     def deletePost(self):
         selectedIndex = self.downloadedPostsList.currentRow()
-        print(selectedIndex)
         postURL, type = self.posts[selectedIndex]
         posts = self.data.redditPosts.get(postURL)
         for post in posts:

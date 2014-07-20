@@ -10,25 +10,26 @@ def debug(target):
 
     return wrapper
 
-def exceptionSafeRequest(*args, **kwargs):
-    response = None
-    try:
-        response = requests.get(*args, **kwargs)
-    except:
-        # probably should actually do something here like log the error
-        pass
-    return response
-
 class ImgurLinkTypeEnum():
     DIRECT = 1
     SINGLE_PAGE = 2
     ALBUM = 3
 
 class ImageFinder():
-    __slots__ = ()
+    __slots__ = ('requestsSession')
 
     def __init__(self):
-        pass
+        self.requestsSession = requests.session()
+        self.requestsSession.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36'
+
+    def exceptionSafeRequest(self, *args, **kwargs):
+        response = None
+        try:
+            response = self.requestsSession.get(*args, **kwargs)
+        except:
+            # probably should actually do something here like log the error
+            pass
+        return response
 
     @staticmethod
     def getFileType(URL):
@@ -52,7 +53,7 @@ class ImageFinder():
         #Determine if the file is good to download.
         #Status Code must be 200 (valid page)
         #Must have 'image' in the response header
-        response = exceptionSafeRequest(url, stream=True)
+        response = self.exceptionSafeRequest(url, stream=True)
         if response is not None and response.status_code == 200 and 'image' in response.headers['Content-Type']:
             return True, response
         return False, response
@@ -69,8 +70,7 @@ class ImageFinder():
         valid, response = self.validURLImage(post.url)
         if valid:
             params = (user.name, post.id, post.url, post.permalink, defaultPath, 1, response, commentAuthor, commentAuthorURLCount)
-            return [self.makeImage(*params)]
-        return []
+            yield self.makeImage(*params)
 
 class ImgurImageFinder(ImageFinder):
     __slots__ = ('CLIENT_ID', 'imgurLinkType', 'avoidDuplicates', 'alreadyDownloadedImgurURLs', 'alreadyQueriedURLs')
@@ -103,7 +103,7 @@ class ImgurImageFinder(ImageFinder):
             apiURL += 'album/' + imgurHashID
         if apiURL in self.alreadyQueriedURLs: # Regardless of if we want to avoid duplicates, we always want to reduce API calls
             return False, None
-        response = exceptionSafeRequest(apiURL, headers=headers, stream=True)
+        response = self.exceptionSafeRequest(apiURL, headers=headers, stream=True)
         if response is not None:
             self.alreadyQueriedURLs.add(apiURL)
             print(apiURL)
@@ -167,20 +167,18 @@ class ImgurImageFinder(ImageFinder):
             return ImgurLinkTypeEnum.SINGLE_PAGE
 
     def getImages(self, post, defaultPath, user, commentAuthor=None, commentAuthorURLCount=None):
-        images = []
         self.imgurLinkType = self.getImgurLinkType(post.url)
         imageURLs = self.getImageURLs(post.url)
         count = 1
         for imageURL in imageURLs:
-            response = exceptionSafeRequest(imageURL)
+            response = self.exceptionSafeRequest(imageURL)
             if response is None:
                 continue
             params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
             image = self.makeImage(*params)
             if image is not None:
-                images.append(image)
                 count += 1
-        return images
+                yield image
 
 class GfycatImageFinder(ImageFinder):
     __slots__ = ('avoidDuplicates', 'alreadyDownloadedURLs')
@@ -197,7 +195,7 @@ class GfycatImageFinder(ImageFinder):
         #Must have valid data response
         if self.avoidDuplicates and self.alreadyDownloadedURLs is not None and url in self.alreadyDownloadedURLs:
             return False, None
-        response = exceptionSafeRequest(url, stream=True)
+        response = self.exceptionSafeRequest(url, stream=True)
         if response is not None and response.status_code == 200 and 'webm' in response.headers['Content-Type']:
             return True, response
         else:
@@ -207,7 +205,7 @@ class GfycatImageFinder(ImageFinder):
         validURLs = []
         endOfURL = URL[URL.rfind('/') + 1:]
         apiCall = "http://gfycat.com/cajax/get/" + endOfURL
-        response = exceptionSafeRequest(apiCall)
+        response = self.exceptionSafeRequest(apiCall)
         print(apiCall)
         if response is not None and response.status_code == 200 and 'json' in response.headers['Content-Type']:
             json = response.json()
@@ -218,7 +216,6 @@ class GfycatImageFinder(ImageFinder):
 
 
     def getImages(self, post, defaultPath, user, commentAuthor=None, commentAuthorURLCount=None):
-        images = []
         URL = post.url
         imageURLs = self.getImageURLs(URL)
         count = 1
@@ -228,9 +225,8 @@ class GfycatImageFinder(ImageFinder):
                 params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
                 image = self.makeImage(*params)
                 if image is not None:
-                    images.append(image)
                     count += 1
-        return images
+                    yield image
 
 class MinusImageFinder(ImageFinder):
     __slots__ = ('avoidDuplicates', 'alreadyDownloadedURLs')
@@ -247,14 +243,13 @@ class MinusImageFinder(ImageFinder):
         #Must have valid data response
         if self.avoidDuplicates and self.alreadyDownloadedURLs is not None and url in self.alreadyDownloadedURLs:
             return False, None
-        response = exceptionSafeRequest(url, stream=True)
+        response = self.exceptionSafeRequest(url, stream=True)
         if response is not None and response.status_code == 200 and 'image' in response.headers['Content-Type']:
             return True, response
         else:
             return False, None
 
     def getImages(self, post, defaultPath, user, commentAuthor=None, commentAuthorURLCount=None):
-        images = []
         imageURL = post.url
         valid, response = self.validURLImage(imageURL)
         if valid:
@@ -262,8 +257,7 @@ class MinusImageFinder(ImageFinder):
             params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
             image = self.makeImage(*params)
             if image is not None:
-                images.append(image)
-        return images
+                yield image
 
 
 class VidbleImageFinder(ImageFinder):
@@ -281,7 +275,7 @@ class VidbleImageFinder(ImageFinder):
         #Must have valid data response
         if self.avoidDuplicates and self.alreadyDownloadedURLs is not None and url in self.alreadyDownloadedURLs:
             return False, None
-        response = exceptionSafeRequest(url, stream=True)
+        response = self.exceptionSafeRequest(url, stream=True)
         if response is not None and response.status_code == 200 and 'image' in response.headers['Content-Type']:
             return True, response
         else:
@@ -296,7 +290,7 @@ class VidbleImageFinder(ImageFinder):
                 validURLs.append("http://www.vidble.com/" + endOfURL)
         elif '/show/' in URL or '/explore/' in URL:
             URL = URL[URL.rfind('/')]
-            response = exceptionSafeRequest("http://www.vidble.com/" + endOfURL)
+            response = self.exceptionSafeRequest("http://www.vidble.com/" + endOfURL)
             if response is not None and response.status_code == 200:
                 text = response.text
                 soup = BeautifulSoup(text)
@@ -304,7 +298,7 @@ class VidbleImageFinder(ImageFinder):
                 if len(imgs) == 1:
                     validURLs.append("http://www.vidble.com/" + imgs[0]['src'])
         elif '/album/' in URL:
-            response = exceptionSafeRequest(URL)
+            response = self.exceptionSafeRequest(URL)
             if response is not None and response.status_code == 200:
                 text = response.text
                 soup = BeautifulSoup(text)
@@ -317,7 +311,6 @@ class VidbleImageFinder(ImageFinder):
 
 
     def getImages(self, post, defaultPath, user, commentAuthor=None, commentAuthorURLCount=None):
-        images = []
         URL = post.url
         imageURLs = self.getImageURLs(URL)
         count = 1
@@ -327,7 +320,6 @@ class VidbleImageFinder(ImageFinder):
                 params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
                 image = self.makeImage(*params)
                 if image is not None:
-                    images.append(image)
                     count += 1
-        return images
+                    yield image
 

@@ -105,7 +105,6 @@ class RedditData():
         self.restrictDownloadsByCreationDate = True
 
     def getImages(self, post, user, commentAuthor=None, commentAuthorURLCount=None):
-        images = []
         imageFinder = None
         imageFinderDomains = {
             self.supportedDomains[0]: ImgurImageFinder(user.externalDownloads.values(), self.avoidDuplicates),
@@ -120,9 +119,9 @@ class RedditData():
                 break
         if imageFinder is None:
             imageFinder = ImageFinder()  # default to a basic image finder if no supported domain is found
-        ims = imageFinder.getImages(post, self.defaultPath, user, commentAuthor, commentAuthorURLCount)
-        images.extend(ims)
-        return images
+        images = imageFinder.getImages(post, self.defaultPath, user, commentAuthor, commentAuthorURLCount)
+        for image in images:
+            yield image
 
     def getValidPosts(self, submitted, listModel):
         posts = []
@@ -175,7 +174,6 @@ class RedditData():
         if len(self.commentFilts) > 0:
             comments = praw.helpers.flatten_tree(post.comments)
             self.cacheComments(comments, post.id)
-        print(post.selftext)
         if self.connector is not None:
             passes = self.connector([self.connector([oper(post.__dict__.get(prop), val) for prop, oper, val in self.postFilts if post.__dict__.get(prop) is not None]), any([self.connector([oper(comment.__dict__.get(prop), val) for prop, oper, val in self.commentFilts if comment.__dict__.get(prop) is not None]) for comment in comments if isinstance(comment, praw.objects.Comment)])])
         else:
@@ -218,9 +216,13 @@ class RedditData():
             lenOver = len(path) - MAX_PATH
             title = title[:-(lenOver + len('.txt'))]
             path = os.path.join(directory, title + '.txt')
-        with open(path, 'w') as f:
-            json.dump(self.getSubmissionData(submission), f, ensure_ascii=True)
-        return path
+        try:
+            with open(path, 'w') as f:
+                json.dump(self.getSubmissionData(submission), f, ensure_ascii=True)
+                return True, path
+        except:
+            return False, path
+
 
     def getSubmissionData(self, submission):
         submissionData = submission.__dict__.copy() # copy so we don't mess with the submission's own __dict__
@@ -259,18 +261,18 @@ class RedditData():
         origPostURL = post.url  # We're going to be hijacking these variables to use self.getImages
         origPostDomain = post.domain
         commentImageURLs = self.getCommentImageURLs(post)
-        images = []
         for author in commentImageURLs:
             urls = commentImageURLs.get(author)
             count = 1
             for url in urls:
                 canDownload = self.fudgePostDomainAndURL(post, url)
                 if canDownload:
-                    images.extend(self.getImages(post, user, author, count))
                     count += 1
-        post.url = origPostURL  # Restore the post info back to what it was
-        post.domain = origPostDomain
-        return images
+                    images = self.getImages(post, user, author, count)
+                    post.url = origPostURL  # Restore the post info back to what it was
+                    post.domain = origPostDomain
+                    for image in images:
+                        yield image
 
     def getCommentImageURLs(self, submission):
         urls = {}

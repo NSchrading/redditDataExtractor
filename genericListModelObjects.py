@@ -19,12 +19,10 @@ class GenericListModelObj():
 
         :param utc:
         """
-        print("timestamp before: " + str(self._mostRecentDownloadTimestamp))
         if self._mostRecentDownloadTimestamp is None:
             self._mostRecentDownloadTimestamp = utc
         elif utc > self._mostRecentDownloadTimestamp:
             self._mostRecentDownloadTimestamp = utc
-        print("timestamp after: " + str(self._mostRecentDownloadTimestamp))
 
     def isNotInBlacklist(self, redditPost):
         return redditPost not in self.blacklist
@@ -48,12 +46,10 @@ class Subreddit(GenericListModelObj):
 
         :param utc:
         """
-        print("timestamp before: " + str(self._mostRecentDownloadTimestamp))
         if GenericListModelObj.subSort == "new" and self._mostRecentDownloadTimestamp is None:
             self._mostRecentDownloadTimestamp = utc
         elif GenericListModelObj.subSort == "new" and utc > self._mostRecentDownloadTimestamp:
             self._mostRecentDownloadTimestamp = utc
-        print("timestamp after: " + str(self._mostRecentDownloadTimestamp))
 
     def postBeforeLastDownload(self, post):
         return GenericListModelObj.subSort != "new" or (self._mostRecentDownloadTimestamp is None or post.created_utc > self._mostRecentDownloadTimestamp)
