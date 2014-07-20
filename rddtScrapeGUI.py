@@ -146,7 +146,6 @@ class listViewAndChooser(QListView):
                 for postURL in downloadedPosts:
                     for post in downloadedPosts.get(postURL):
                         image = post.representativeImage
-                        print(image)
                         if image is None or not os.path.exists(image):
                             continue
                         item = QListWidgetItem("", downloadedPostsGUI.downloadedPostsList)

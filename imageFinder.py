@@ -1,6 +1,7 @@
 import requests
 from image import Image
 from bs4 import BeautifulSoup
+from contextlib import closing
 
 
 def debug(target):
@@ -16,20 +17,58 @@ class ImgurLinkTypeEnum():
     ALBUM = 3
 
 class ImageFinder():
-    __slots__ = ('requestsSession')
+    __slots__ = ('requestsSession', 'queue')
 
-    def __init__(self):
+    def __init__(self, queue):
         self.requestsSession = requests.session()
         self.requestsSession.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36'
+        self.queue = queue
 
-    def exceptionSafeRequest(self, *args, **kwargs):
-        response = None
+    def exceptionSafeJsonRequest(self, *args, **kwargs):
         try:
-            response = self.requestsSession.get(*args, **kwargs)
+            with closing(self.requestsSession.get(*args, **kwargs)) as response:
+                if response.status_code == 200 and 'json' in response.headers['Content-Type']:
+                    return response.json()
+                else:
+                    return None
         except:
             # probably should actually do something here like log the error
             pass
-        return response
+        return None
+
+    def exceptionSafeImageRequest(self, *args, **kwargs):
+        try:
+            response = self.requestsSession.get(*args, **kwargs)
+            if response.status_code == 200 and 'image' in response.headers['Content-Type']:
+                return response.iter_content(1024)
+            else:
+                return None
+        except:
+            self.queue.put(">>> Failed to connect to " + str(*args) + ".\n>>> To attempt to redownload this file, uncheck 'Restrict retrieved submissions to creation dates after the last downloaded submission' in the settings.\n")
+        return None
+
+    def exceptionSafeWebmRequest(self, *args, **kwargs):
+        try:
+            response = self.requestsSession.get(*args, **kwargs)
+            if response.status_code == 200 and 'webm' in response.headers['Content-Type']:
+                return response.iter_content(1024)
+            else:
+                return None
+        except:
+            self.queue.put(">>> Failed to connect to " + str(*args) + ".\n>>> To attempt to redownload this file, uncheck 'Restrict retrieved submissions to creation dates after the last downloaded submission' in the settings.\n")
+        return None
+
+    def exceptionSafeTextRequest(self, *args, **kwargs):
+        try:
+            with closing(self.requestsSession.get(*args, **kwargs)) as response:
+                if response.status_code == 200 and 'text' in response.headers['Content-Type']:
+                    return response.text
+                else:
+                    return None
+        except:
+            # probably should actually do something here like log the error
+            pass
+        return None
 
     @staticmethod
     def getFileType(URL):
@@ -46,25 +85,22 @@ class ImageFinder():
         elif '.gif' in fileType:
             return '.gif'
         else:
-            return fileType
+            return ".jpg" # default to jpg and hope for the best
 
     @debug
     def validURLImage(self, url):
         #Determine if the file is good to download.
         #Status Code must be 200 (valid page)
         #Must have 'image' in the response header
-        response = self.exceptionSafeRequest(url, stream=True)
-        if response is not None and response.status_code == 200 and 'image' in response.headers['Content-Type']:
+        response = self.exceptionSafeImageRequest(url, stream=True)
+        if response is not None:
             return True, response
-        return False, response
+        return False, None
 
     def makeImage(self, user, postID, URL, redditPostURL, defaultPath, count, response, commentAuthor=None, commentAuthorURLCount=None):
         fileType = self.getFileType(URL)
-        if response.status_code == 200:
-            return Image(user, postID, fileType, defaultPath, URL, redditPostURL, response.iter_content(4096),
+        return Image(user, postID, fileType, defaultPath, URL, redditPostURL, response,
                          str(count), commentAuthor, commentAuthorURLCount)
-        else:
-            return None
 
     def getImages(self, post, defaultPath, user, commentAuthor=None, commentAuthorURLCount=None):
         valid, response = self.validURLImage(post.url)
@@ -75,8 +111,8 @@ class ImageFinder():
 class ImgurImageFinder(ImageFinder):
     __slots__ = ('CLIENT_ID', 'imgurLinkType', 'avoidDuplicates', 'alreadyDownloadedImgurURLs', 'alreadyQueriedURLs')
 
-    def __init__(self, alreadyDownloadedImgurURLs, avoidDuplicates):
-        super().__init__()
+    def __init__(self, alreadyDownloadedImgurURLs, avoidDuplicates, queue):
+        super().__init__(queue)
         self.CLIENT_ID = 'e0ea61b57d4c3c9'  # imgur client ID for API access
         self.imgurLinkType = None
         self.avoidDuplicates = avoidDuplicates
@@ -88,8 +124,6 @@ class ImgurImageFinder(ImageFinder):
         #Must not be an already-downloaded imgur url
         #Status Code must be 200 (valid page)
         #Must have valid data response
-        if self.avoidDuplicates and self.alreadyDownloadedImgurURLs is not None and url in self.alreadyDownloadedImgurURLs:
-            return False, None
         headers = {'Authorization': 'Client-ID ' + self.CLIENT_ID}
         apiURL = 'https://api.imgur.com/3/'
         if self.imgurLinkType == ImgurLinkTypeEnum.DIRECT or self.imgurLinkType == ImgurLinkTypeEnum.SINGLE_PAGE:
@@ -103,59 +137,59 @@ class ImgurImageFinder(ImageFinder):
             apiURL += 'album/' + imgurHashID
         if apiURL in self.alreadyQueriedURLs: # Regardless of if we want to avoid duplicates, we always want to reduce API calls
             return False, None
-        response = self.exceptionSafeRequest(apiURL, headers=headers, stream=True)
-        if response is not None:
+        json = self.exceptionSafeJsonRequest(apiURL, headers=headers, stream=True)
+        if json is not None:
             self.alreadyQueriedURLs.add(apiURL)
             print(apiURL)
-            json = response.json()
             status = json.get('status')
             success = json.get('success')
             if (status is None and json.get('error') is not None) or (not success):
                 return False, None
             elif (status is not None and status == 200) and (
                     json.get('image') is not None or json.get('data') is not None) and success:
-                return True, response
+                return True, json
             else:
                 return False, None
         return False, None
 
-    def getImageURLsDirect(self, response, imageURLs):
-        data = response.json().get('data')
+    def getImageURLsDirect(self, json, imageURLs):
+        data = json.get('data')
         if data is not None:
             link = data.get('link')
-            if link is not None:
+            if link is not None and (not self.avoidDuplicates or (self.alreadyDownloadedImgurURLs is not None and link not in self.alreadyDownloadedImgurURLs)):
                 imageURLs.append(link)
 
-    def getImageURLsPage(self, response, imageURLs):
-        image = response.json().get('image')
+    def getImageURLsPage(self, json, imageURLs):
+        image = json.get('image')
         if image is not None:
             links = image.get('links')
             if links is not None:
                 original = links.get('original')
-                imageURLs.append(original)
+                if original is not None and (not self.avoidDuplicates or (self.alreadyDownloadedImgurURLs is not None and original not in self.alreadyDownloadedImgurURLs)):
+                    imageURLs.append(original)
         if len(imageURLs) <= 0: # if the above method doesn't work, try direct
-            self.getImageURLsDirect(response, imageURLs)
+            self.getImageURLsDirect(json, imageURLs)
 
-    def getImageURLsAlbum(self, response, imageURLs):
-        data = response.json().get('data')
+    def getImageURLsAlbum(self, json, imageURLs):
+        data = json.get('data')
         if data is not None:
             images = data.get('images')
             if images is not None:
                 for image in images:
                     link = image.get('link')
-                    if link is not None:
+                    if link is not None and (not self.avoidDuplicates or (self.alreadyDownloadedImgurURLs is not None and link not in self.alreadyDownloadedImgurURLs)):
                         imageURLs.append(link)
 
     def getImageURLs(self, url):
-        valid, response = self.validURLImage(url)
+        valid, json = self.validURLImage(url)
         imageURLs = []
         if valid:
             if self.imgurLinkType == ImgurLinkTypeEnum.DIRECT:
-                self.getImageURLsDirect(response, imageURLs)
+                self.getImageURLsDirect(json, imageURLs)
             elif self.imgurLinkType == ImgurLinkTypeEnum.SINGLE_PAGE:
-                self.getImageURLsPage(response, imageURLs)
+                self.getImageURLsPage(json, imageURLs)
             else:
-                self.getImageURLsAlbum(response, imageURLs)
+                self.getImageURLsAlbum(json, imageURLs)
         return imageURLs
 
     def getImgurLinkType(self, url):
@@ -171,7 +205,7 @@ class ImgurImageFinder(ImageFinder):
         imageURLs = self.getImageURLs(post.url)
         count = 1
         for imageURL in imageURLs:
-            response = self.exceptionSafeRequest(imageURL)
+            response = self.exceptionSafeImageRequest(imageURL, stream=True)
             if response is None:
                 continue
             params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
@@ -183,8 +217,8 @@ class ImgurImageFinder(ImageFinder):
 class GfycatImageFinder(ImageFinder):
     __slots__ = ('avoidDuplicates', 'alreadyDownloadedURLs')
 
-    def __init__(self, alreadyDownloadedURLs, avoidDuplicates):
-        super().__init__()
+    def __init__(self, alreadyDownloadedURLs, avoidDuplicates, queue):
+        super().__init__(queue)
         self.avoidDuplicates = avoidDuplicates
         self.alreadyDownloadedURLs = alreadyDownloadedURLs
 
@@ -195,8 +229,8 @@ class GfycatImageFinder(ImageFinder):
         #Must have valid data response
         if self.avoidDuplicates and self.alreadyDownloadedURLs is not None and url in self.alreadyDownloadedURLs:
             return False, None
-        response = self.exceptionSafeRequest(url, stream=True)
-        if response is not None and response.status_code == 200 and 'webm' in response.headers['Content-Type']:
+        response = self.exceptionSafeWebmRequest(url, stream=True)
+        if response is not None:
             return True, response
         else:
             return False, None
@@ -205,10 +239,10 @@ class GfycatImageFinder(ImageFinder):
         validURLs = []
         endOfURL = URL[URL.rfind('/') + 1:]
         apiCall = "http://gfycat.com/cajax/get/" + endOfURL
-        response = self.exceptionSafeRequest(apiCall)
+        json = self.exceptionSafeJsonRequest(apiCall)
         print(apiCall)
-        if response is not None and response.status_code == 200 and 'json' in response.headers['Content-Type']:
-            json = response.json()
+        if json is not None:
+            print('good json')
             gfyItem = json.get("gfyItem")
             if gfyItem is not None and gfyItem.get("webmUrl") is not None:
                 validURLs.append(gfyItem.get("webmUrl"))
@@ -231,8 +265,8 @@ class GfycatImageFinder(ImageFinder):
 class MinusImageFinder(ImageFinder):
     __slots__ = ('avoidDuplicates', 'alreadyDownloadedURLs')
 
-    def __init__(self, alreadyDownloadedURLs, avoidDuplicates):
-        super().__init__()
+    def __init__(self, alreadyDownloadedURLs, avoidDuplicates, queue):
+        super().__init__(queue)
         self.avoidDuplicates = avoidDuplicates
         self.alreadyDownloadedURLs = alreadyDownloadedURLs
 
@@ -243,8 +277,8 @@ class MinusImageFinder(ImageFinder):
         #Must have valid data response
         if self.avoidDuplicates and self.alreadyDownloadedURLs is not None and url in self.alreadyDownloadedURLs:
             return False, None
-        response = self.exceptionSafeRequest(url, stream=True)
-        if response is not None and response.status_code == 200 and 'image' in response.headers['Content-Type']:
+        response = self.exceptionSafeImageRequest(url, stream=True)
+        if response is not None:
             return True, response
         else:
             return False, None
@@ -263,8 +297,8 @@ class MinusImageFinder(ImageFinder):
 class VidbleImageFinder(ImageFinder):
     __slots__ = ('avoidDuplicates', 'alreadyDownloadedURLs')
 
-    def __init__(self, alreadyDownloadedURLs, avoidDuplicates):
-        super().__init__()
+    def __init__(self, alreadyDownloadedURLs, avoidDuplicates, queue):
+        super().__init__(queue)
         self.avoidDuplicates = avoidDuplicates
         self.alreadyDownloadedURLs = alreadyDownloadedURLs
 
@@ -275,8 +309,8 @@ class VidbleImageFinder(ImageFinder):
         #Must have valid data response
         if self.avoidDuplicates and self.alreadyDownloadedURLs is not None and url in self.alreadyDownloadedURLs:
             return False, None
-        response = self.exceptionSafeRequest(url, stream=True)
-        if response is not None and response.status_code == 200 and 'image' in response.headers['Content-Type']:
+        response = self.exceptionSafeImageRequest(url, stream=True)
+        if response is not None:
             return True, response
         else:
             return False, None
@@ -290,17 +324,15 @@ class VidbleImageFinder(ImageFinder):
                 validURLs.append("http://www.vidble.com/" + endOfURL)
         elif '/show/' in URL or '/explore/' in URL:
             URL = URL[URL.rfind('/')]
-            response = self.exceptionSafeRequest("http://www.vidble.com/" + endOfURL)
-            if response is not None and response.status_code == 200:
-                text = response.text
+            text = self.exceptionSafeTextRequest("http://www.vidble.com/" + endOfURL, stream=True)
+            if text is not None:
                 soup = BeautifulSoup(text)
                 imgs = soup.find_all('img')
                 if len(imgs) == 1:
                     validURLs.append("http://www.vidble.com/" + imgs[0]['src'])
         elif '/album/' in URL:
-            response = self.exceptionSafeRequest(URL)
-            if response is not None and response.status_code == 200:
-                text = response.text
+            text = self.exceptionSafeTextRequest(URL, stream=True)
+            if text is not None:
                 soup = BeautifulSoup(text)
                 imgs = soup.find_all('img')
                 for img in imgs:

@@ -1,6 +1,5 @@
 import os
 import warnings
-
 warnings.filterwarnings("ignore", category=ResourceWarning)
 
 
@@ -56,7 +55,7 @@ class Image():
                 for chunk in self.iterContent:
                     fo.write(chunk)
             filePath, fileExtension = os.path.splitext(self.savePath)
-            if fileExtension == ".jpg" or fileExtension == ".png":
+            if fileExtension in [".jpg", ".jpeg", ".png"]:
                 if self.isActuallyGif():
                     print("its actually a gif")
                     newPath = filePath + ".gif"
@@ -64,5 +63,8 @@ class Image():
                     self.savePath = newPath
                     self.fileType = ".gif"
             return True
-        except:
+        except Exception as e:
+            print(type(e))
+            print(e.args)
+            print(e)
             return False

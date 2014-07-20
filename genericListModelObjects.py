@@ -5,8 +5,8 @@ class GenericListModelObj():
     def __init__(self, name):
         self.name = name.lower()
         self.redditPosts = {}
-        self.externalDownloads = {}
-        self.blacklist = set([])
+        self.externalDownloads = set()
+        self.blacklist = set()
         self._mostRecentDownloadTimestamp = None
 
     @property

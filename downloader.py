@@ -72,12 +72,12 @@ class Worker(QRunnable):
             if self.rddtScraper.getExternalContent and ((not self.rddtScraper.filterExternalContent) or post.id in postIdsPassingFilters) and not post.is_self and not "reddit" in post.domain:
                 downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.EXTERNAL_DATA)
                 if self.rddtScraper.getCommentData:
-                    images = self.rddtScraper.getCommentImages(post, self.listModel)
+                    images = self.rddtScraper.getCommentImages(post, self.listModel, self.queue)
                     for image in images:
                         if image is not None:
                             imageWorker = ImageWorker(image, self.listModel, self.rddtScraper.avoidDuplicates, self.queue, downloadedPost, post, self.listModel)
                             self.imagePool.start(imageWorker)
-                images = self.rddtScraper.getImages(post, self.listModel)
+                images = self.rddtScraper.getImages(post, self.listModel, self.queue)
                 for image in images:
                     if image is not None:
                         imageWorker = ImageWorker(image, self.listModel, self.rddtScraper.avoidDuplicates, self.queue, downloadedPost, post, self.listModel)
@@ -120,7 +120,7 @@ class SubmissionWorker(QRunnable):
             self.listModel.mostRecentDownloadTimestamp = self.submission.created_utc
             self.queue.put("Saved submission: " + title + "\n")
         else:
-            self.queue.put("Error saving submission: " + title + "\n")
+            self.queue.put(">>> Error saving submission: " + title + '.\n>>> To attempt to redownload this file, uncheck "Restrict retrieved submissions to creation dates after the last downloaded submission" in the settings.\n')
 
 class ImageWorker(QRunnable):
     def __init__(self, image, user, avoidDuplicates, queue, downloadedPost, post, listModel):
@@ -136,10 +136,8 @@ class ImageWorker(QRunnable):
 
 
     def run(self):
-        allExternalDownloads = set([])
-        for redditPostURL in self.user.externalDownloads:
-            allExternalDownloads = allExternalDownloads.union(allExternalDownloads, self.user.externalDownloads.get(redditPostURL))
-        if (not self.avoidDuplicates) or (self.avoidDuplicates and self.image.URL not in allExternalDownloads):
+        if (not self.avoidDuplicates) or (self.avoidDuplicates and self.image.URL not in self.user.externalDownloads):
+            self.user.externalDownloads.add(self.image.URL) # predict that the download will be successful - helps reduce duplicates when threads are running at similar times and download is for the same image
             if self.image.download():
                 self.listModel.mostRecentDownloadTimestamp = self.post.created_utc
                 posts = self.user.redditPosts.get(self.downloadedPost.redditURL)
@@ -150,11 +148,8 @@ class ImageWorker(QRunnable):
                 if self.image.commentAuthor is None and self.downloadedPost.representativeImage is None:
                     self.downloadedPost.representativeImage = self.image.savePath
                 self.downloadedPost.files.append(self.image.savePath)
-
-                if self.user.externalDownloads.get(self.image.redditPostURL) is None:
-                    self.user.externalDownloads[self.image.redditPostURL] = {self.image.URL}
-                else:
-                    self.user.externalDownloads.get(self.image.redditPostURL).add(self.image.URL)
                 self.queue.put('Saved %s' % self.image.savePath + "\n")
             else:
-                self.queue.put('Error saving %s' % self.image.savePath + "\n")
+                if self.image.URL in self.user.externalDownloads:
+                    self.user.externalDownloads.remove(self.image.URL)
+                self.queue.put('>>> Error saving ' + self.image.savePath + '.\n>>> To attempt to redownload this file, uncheck "Restrict retrieved submissions to creation dates after the last downloaded submission" in the settings.\n')

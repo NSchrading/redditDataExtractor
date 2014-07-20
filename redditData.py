@@ -104,13 +104,13 @@ class RedditData():
         self.commentCache = {}
         self.restrictDownloadsByCreationDate = True
 
-    def getImages(self, post, user, commentAuthor=None, commentAuthorURLCount=None):
+    def getImages(self, post, user, queue, commentAuthor=None, commentAuthorURLCount=None):
         imageFinder = None
         imageFinderDomains = {
-            self.supportedDomains[0]: ImgurImageFinder(user.externalDownloads.values(), self.avoidDuplicates),
-            self.supportedDomains[1]: MinusImageFinder(user.externalDownloads.values(), self.avoidDuplicates),
-            self.supportedDomains[2]: VidbleImageFinder(user.externalDownloads.values(), self.avoidDuplicates),
-            self.supportedDomains[3]: GfycatImageFinder(user.externalDownloads.values(), self.avoidDuplicates)}
+            self.supportedDomains[0]: ImgurImageFinder(user.externalDownloads, self.avoidDuplicates, queue),
+            self.supportedDomains[1]: MinusImageFinder(user.externalDownloads, self.avoidDuplicates, queue),
+            self.supportedDomains[2]: VidbleImageFinder(user.externalDownloads, self.avoidDuplicates, queue),
+            self.supportedDomains[3]: GfycatImageFinder(user.externalDownloads, self.avoidDuplicates, queue)}
         domains = imageFinderDomains.keys()
 
         for domain in domains:
@@ -118,7 +118,7 @@ class RedditData():
                 imageFinder = imageFinderDomains.get(domain)
                 break
         if imageFinder is None:
-            imageFinder = ImageFinder()  # default to a basic image finder if no supported domain is found
+            imageFinder = ImageFinder(queue)  # default to a basic image finder if no supported domain is found
         images = imageFinder.getImages(post, self.defaultPath, user, commentAuthor, commentAuthorURLCount)
         for image in images:
             yield image
@@ -257,7 +257,7 @@ class RedditData():
                 return True
         return False
 
-    def getCommentImages(self, post, user):
+    def getCommentImages(self, post, user, queue):
         origPostURL = post.url  # We're going to be hijacking these variables to use self.getImages
         origPostDomain = post.domain
         commentImageURLs = self.getCommentImageURLs(post)
@@ -268,7 +268,7 @@ class RedditData():
                 canDownload = self.fudgePostDomainAndURL(post, url)
                 if canDownload:
                     count += 1
-                    images = self.getImages(post, user, author, count)
+                    images = self.getImages(post, user, queue, author, count)
                     post.url = origPostURL  # Restore the post info back to what it was
                     post.domain = origPostDomain
                     for image in images:
