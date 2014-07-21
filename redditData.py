@@ -80,7 +80,7 @@ class RedditData():
         self.getCommentData = False
         self.subSort = 'hot'
         self.subLimit = 10
-        self.supportedDomains = ['imgur', 'i.minus', 'vidble', 'gfycat']
+        self.supportedDomains = ['imgur', 'minus', 'vidble', 'gfycat']
 
         # This is a regex to parse URLs, courtesy of John Gruber, http://daringfireball.net/2010/07/improved_regex_for_matching_urls
         # https://gist.github.com/gruber/8891611
@@ -124,7 +124,6 @@ class RedditData():
             yield image
 
     def getValidPosts(self, submitted, listModel):
-        posts = []
         validSubreddits = None
         if self.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED:
             validSubreddits = self.subredditLists.get(self.currentSubredditListName).stringsInLst
@@ -132,8 +131,7 @@ class RedditData():
             subreddit = post.subreddit.display_name
             validSubreddit = validSubreddits is None or subreddit.lower() in validSubreddits
             if validSubreddit and self.isValidPost(post, listModel):
-                posts.append(post)
-        return posts
+                yield post, (not self.filterSubmissionContent and not self.filterExternalContent or self.postPassesFilter(post))
 
     def isValidPost(self, post, listModel):
         """ Determines if this is a good post to download from
@@ -164,9 +162,6 @@ class RedditData():
             if any(syn in title for syn in xpostSynonyms):
                 return False
         return True
-
-    def getPostIdsPassingFilters(self, posts):
-        return {post.id for post in posts if self.postPassesFilter(post)}
 
     def postPassesFilter(self, post):
         passes = False
@@ -246,7 +241,10 @@ class RedditData():
                     author = "[Deleted]"
                 else:
                     author = author.name
-                comments[author] = {'Body': comment.body, 'Replies': self.getAllComments(comment.replies)}
+                if comments.get(author) is not None: # We make this a list in case the author comments multiple times in the post on the same level of the comment tree
+                    comments[author].append({'Body': comment.body, 'Replies': self.getAllComments(comment.replies)})
+                else:
+                    comments[author] = [{'Body': comment.body, 'Replies': self.getAllComments(comment.replies)}]
         return comments
 
     def fudgePostDomainAndURL(self, post, url):

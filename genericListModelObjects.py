@@ -19,9 +19,7 @@ class GenericListModelObj():
 
         :param utc:
         """
-        if self._mostRecentDownloadTimestamp is None:
-            self._mostRecentDownloadTimestamp = utc
-        elif utc > self._mostRecentDownloadTimestamp:
+        if utc is not None and (self._mostRecentDownloadTimestamp is None or utc > self._mostRecentDownloadTimestamp):
             self._mostRecentDownloadTimestamp = utc
 
     def isNotInBlacklist(self, redditPost):

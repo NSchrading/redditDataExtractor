@@ -37,6 +37,7 @@ class DownloadedPostsGUI(QDialog, Ui_DownloadedPostsDialog):
         postURL, type = self.posts[selectedIndex]
         posts = self.data.redditPosts.get(postURL)
         for post in posts:
+            print(post)
             if post.type == type:
                 files = post.files
                 numFiles = len(files)
@@ -54,7 +55,9 @@ class DownloadedPostsGUI(QDialog, Ui_DownloadedPostsDialog):
                     else:
                         self.data.redditPosts[postURL] = posts
                     if type == DownloadedPostType.EXTERNAL_DATA:
-                        del self.data.externalDownloads[postURL]
+                        for externalURL in post.externalDownloadURLs:
+                            if externalURL in self.data.externalDownloads:
+                                self.data.externalDownloads.remove(externalURL)
                     self.posts.remove((postURL, type))
                     item = self.downloadedPostsList.takeItem(selectedIndex)
                     del item

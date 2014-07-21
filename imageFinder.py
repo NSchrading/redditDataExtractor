@@ -242,7 +242,6 @@ class GfycatImageFinder(ImageFinder):
         json = self.exceptionSafeJsonRequest(apiCall)
         print(apiCall)
         if json is not None:
-            print('good json')
             gfyItem = json.get("gfyItem")
             if gfyItem is not None and gfyItem.get("webmUrl") is not None:
                 validURLs.append(gfyItem.get("webmUrl"))
@@ -283,15 +282,41 @@ class MinusImageFinder(ImageFinder):
         else:
             return False, None
 
+    def getImageURLs(self, URL):
+        validURLs = []
+        endOfURL = URL[URL.rfind('/') + 1:]
+        if "." in endOfURL:
+            fileType = self.getFileType(endOfURL)
+            if len(fileType) > 1:
+                validURLs.append("http://i.minus.com/" + endOfURL)
+        else:
+            text = self.exceptionSafeTextRequest("http://minus.com/i/" + endOfURL, stream=True)
+            if text is None:
+                text = self.exceptionSafeTextRequest("http://minus.com/" + endOfURL, stream=True)
+            if text is not None:
+                soup = BeautifulSoup(text)
+                type = soup.find(property="og:type")
+                if type is not None and type.get('content') is not None:
+                    content = type.get('content')
+                    if 'gallery' in content:
+                        pass # galleries not currently supported. If I get minus api credentials I might be able to do it
+                    elif 'photo' in content:
+                        imageHTML = soup.find("a", "item-main is-image")
+                        if imageHTML.get("href") is not None:
+                            validURLs.append(imageHTML.get("href"))
+        return validURLs
+
     def getImages(self, post, defaultPath, user, commentAuthor=None, commentAuthorURLCount=None):
-        imageURL = post.url
-        valid, response = self.validURLImage(imageURL)
-        if valid:
-            count = 1
-            params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
-            image = self.makeImage(*params)
-            if image is not None:
-                yield image
+        imageURLs = self.getImageURLs(post.url)
+        count = 1
+        for imageURL in imageURLs:
+            valid, response = self.validURLImage(imageURL)
+            if valid:
+                params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
+                image = self.makeImage(*params)
+                if image is not None:
+                    count += 1
+                    yield image
 
 
 class VidbleImageFinder(ImageFinder):

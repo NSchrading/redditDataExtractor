@@ -54,10 +54,10 @@ class Validator(QObject):
         self.queue = queue
         self.data = data
         self.listType = listType
+        self.valid = []
 
     @pyqtSlot()
     def run(self):
-        valid = []
         if self.listType == ListType.USER:
             s = "user "
             validateFunc = self.rddtScraper.getRedditor
@@ -70,10 +70,9 @@ class Validator(QObject):
             validatedData = validateFunc(name)
             if validatedData is None:
                 self.invalid.emit(name)
-                self.queue.put("Invalid " + s + "found: " + name + "\n")
             else:
-                valid.append((d, validatedData))
-        self.finished.emit(valid)
+                self.valid.append((d, validatedData))
+        self.finished.emit(self.valid)
 
 class listViewAndChooser(QListView):
     def __init__(self, gui, lstChooser, chooserDict, defaultLstName, classToUse, name):
@@ -339,8 +338,8 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.userListChooser.addAction(self.actionRemove_User_List)
         self.subredditListChooser.addAction(self.actionRemove_Subreddit_List)
 
-        self.userListChooser.currentIndexChanged.connect(self.userList.chooseNewList)
-        self.subredditListChooser.currentIndexChanged.connect(self.subredditList.chooseNewList)
+        self.userListChooser.activated.connect(self.userList.chooseNewList)
+        self.subredditListChooser.activated.connect(self.subredditList.chooseNewList)
 
         self.userList.addAction(self.actionDownloaded_Reddit_User_Posts)
         self.userList.addAction(self.actionNew_User)
@@ -423,8 +422,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.downloadBtn.setEnabled(True)
 
     def getValidRedditors(self, startDownload=False):
-        model = self.rddtScraper.userLists.get(self.rddtScraper.currentUserListName)
-        print(self.rddtScraper.currentUserListName)
+        model = self.userList.model()
         users = set(model.lst)  # create a new set so we don't change set size during iteration if we remove a user
         # These are class variables so that they don't get destroyed when we return from getValidRedditors()
         self.redditorValidatorThread = QThread()
@@ -442,7 +440,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
 
     @pyqtSlot(str)
     def notifyInvalidRedditor(self, userName):
-        model = self.rddtScraper.userLists.get(self.rddtScraper.currentUserListName)
+        model = self.userList.model()
         msgBox = confirmDialog("The user " + userName + " does not exist. Remove from list?")
         ret = msgBox.exec_()
         if ret == QMessageBox.Yes:
@@ -451,7 +449,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
                 model.removeRows(index, 1)
 
     def getValidSubreddits(self, startDownload=False):
-        model = self.rddtScraper.subredditLists.get(self.rddtScraper.currentSubredditListName)
+        model = self.subredditList.model()
         subreddits = set(model.lst)
         self.subredditValidatorThread = QThread()
         self.subredditValidator = Validator(self.rddtScraper, self.queue, subreddits, ListType.SUBREDDIT)
@@ -467,7 +465,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
 
     @pyqtSlot(str)
     def notifyInvalidSubreddit(self, subredditName):
-        model = self.rddtScraper.subredditLists.get(self.rddtScraper.currentSubredditListName)
+        model = self.subredditList.model()
         msgBox = confirmDialog("The subreddit " + subredditName + " does not exist. Remove from list?")
         ret = msgBox.exec_()
         if ret == QMessageBox.Yes:
