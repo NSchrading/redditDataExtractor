@@ -176,6 +176,30 @@
     </layout>
    </item>
    <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_10">
+     <item>
+      <widget class="QCheckBox" name="getCommentExternalContentCheckBox">
+       <property name="toolTip">
+        <string>Select to attempt to download images, gifs, and gfys from the comments in a submission.</string>
+       </property>
+       <property name="text">
+        <string>Download External Content Linked In Comments</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="getSelftextExternalContentCheckBox">
+       <property name="toolTip">
+        <string>Select to attempt to download external images, gifs, and gfys in the selftext.</string>
+       </property>
+       <property name="text">
+        <string>Download External Content Linked In Selftext</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
     <widget class="QCheckBox" name="getSubmissionContentCheckBox">
      <property name="toolTip">
       <string>Select to download the title, self-text, comments, upvote statistics, and other information in a json-encoded text file.</string>
@@ -185,16 +209,6 @@
      </property>
      <property name="checked">
       <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="getCommentDataCheckBox">
-     <property name="toolTip">
-      <string>Select to attempt to download images, gifs, and gfys from the comments in a submission.</string>
-     </property>
-     <property name="text">
-      <string>Download External Content In Comments</string>
      </property>
     </widget>
    </item>

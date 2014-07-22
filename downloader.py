@@ -2,8 +2,10 @@ from PyQt4.Qt import *
 from redditData import ListType
 
 class DownloadedPostType():
-    EXTERNAL_DATA = 1
-    JSON_DATA = 2
+    EXTERNAL_SUBMISSION_DATA = 1
+    EXTERNAL_COMMENT_DATA = 2
+    EXTERNAL_SELFTEXT_DATA = 3
+    JSON_DATA = 4
 
 class DownloadedPost():
     __slots__ = ('redditURL', 'type', 'representativeImage', 'files', 'externalDownloadURLs')
@@ -63,6 +65,31 @@ class Worker(QRunnable):
         if self.mostRecentDownloadTimestamp is None or utc > self.mostRecentDownloadTimestamp:
             self.mostRecentDownloadTimestamp = utc
 
+    def startDownloadsForPost(self, post):
+        name = self.listModel.name
+        if self.rddtScraper.getExternalContent and not post.is_self and not "reddit" in post.domain:
+            downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.EXTERNAL_SUBMISSION_DATA)
+            images = self.rddtScraper.getImages(post, self.listModel, self.queue)
+            self.startDownloadImages(images, downloadedPost, post)
+        if self.rddtScraper.getCommentExternalContent:
+            downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.EXTERNAL_COMMENT_DATA)
+            images = self.rddtScraper.getCommentImages(post, self.listModel, self.queue)
+            self.startDownloadImages(images, downloadedPost, post)
+        if self.rddtScraper.getSelftextExternalContent:
+            downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.EXTERNAL_SELFTEXT_DATA)
+            images = self.rddtScraper.getSelftextImages(post, self.listModel, self.queue)
+            self.startDownloadImages(images, downloadedPost, post)
+        if self.rddtScraper.getSubmissionContent:
+            downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.JSON_DATA)
+            submissionWorker = SubmissionWorker(self.rddtScraper, post, self.queue, self.listModel, self.listModelType, name, downloadedPost)
+            self.submissionPool.start(submissionWorker)
+
+    def startDownloadImages(self, images, downloadedPost, post):
+        for image in images:
+            if image is not None:
+                imageWorker = ImageWorker(image, self.listModel, self.rddtScraper.avoidDuplicates, self.queue, downloadedPost, post, self.listModel, self.setMostRecentDownloadTimestamp)
+                self.imagePool.start(imageWorker)
+
     def run(self):
         name = self.listModel.name
         self.queue.put("Starting download for " + name + "\n")
@@ -70,29 +97,11 @@ class Worker(QRunnable):
         if self.listModelType == ListType.SUBREDDIT:
             submitted = self.rddtScraper.getSubredditSubmissions(self.prawData, self.listModel)
         else:
-            # Temporary
-            refresh = None
-            submitted = self.prawData.get_submitted(limit=refresh)
+            submitted = self.prawData.get_submitted(limit=None)
         posts = self.rddtScraper.getValidPosts(submitted, self.listModel)
         for post, passesFilter in posts:
-            print(post.title)
-            if self.rddtScraper.getExternalContent and passesFilter and not post.is_self and not "reddit" in post.domain:
-                downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.EXTERNAL_DATA)
-                if self.rddtScraper.getCommentData:
-                    images = self.rddtScraper.getCommentImages(post, self.listModel, self.queue)
-                    for image in images:
-                        if image is not None:
-                            imageWorker = ImageWorker(image, self.listModel, self.rddtScraper.avoidDuplicates, self.queue, downloadedPost, post, self.listModel, self.setMostRecentDownloadTimestamp)
-                            self.imagePool.start(imageWorker)
-                images = self.rddtScraper.getImages(post, self.listModel, self.queue)
-                for image in images:
-                    if image is not None:
-                        imageWorker = ImageWorker(image, self.listModel, self.rddtScraper.avoidDuplicates, self.queue, downloadedPost, post, self.listModel, self.setMostRecentDownloadTimestamp)
-                        self.imagePool.start(imageWorker)
-            if self.rddtScraper.getSubmissionContent and ((not self.rddtScraper.filterSubmissionContent) or post.id in postIdsPassingFilters):
-                downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.JSON_DATA)
-                submissionWorker = SubmissionWorker(self.rddtScraper, post, self.queue, self.listModel, self.listModelType, name, downloadedPost)
-                self.submissionPool.start(submissionWorker)
+            if passesFilter:
+                self.startDownloadsForPost(post)
         self.imagePool.waitForDone()
         self.submissionPool.waitForDone()
         self.listModel.mostRecentDownloadTimestamp = self.mostRecentDownloadTimestamp
@@ -154,7 +163,7 @@ class ImageWorker(QRunnable):
                     self.user.redditPosts[self.downloadedPost.redditURL] = [self.downloadedPost]
                 elif posts is not None and self.downloadedPost not in posts:
                     self.user.redditPosts[self.downloadedPost.redditURL].append(self.downloadedPost)
-                if self.image.commentAuthor is None and self.downloadedPost.representativeImage is None:
+                if self.image.specialPath is None and self.downloadedPost.representativeImage is None:
                     self.downloadedPost.representativeImage = self.image.savePath
                 self.downloadedPost.files.append(self.image.savePath)
                 self.downloadedPost.externalDownloadURLs.append(self.image.URL)

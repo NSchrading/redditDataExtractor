@@ -52,8 +52,8 @@ class ListType():
 class RedditData():
     __slots__ = ('defaultPath', 'subredditLists', 'userLists', 'currentSubredditListName', 'currentUserListName',
                  'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r', 'downloadType',
-                 'avoidDuplicates', 'getExternalContent', 'getSubmissionContent', 'getCommentData', 'subSort',
-                 'subLimit', 'supportedDomains', 'urlFinder', 'operMap', 'connectMap', 'postFilts', 'commentFilts', 'connector', 'filterExternalContent', 'filterSubmissionContent', 'commentCache', 'restrictDownloadsByCreationDate')
+                 'avoidDuplicates', 'getExternalContent', 'getSubmissionContent', 'getCommentExternalContent', 'subSort',
+                 'subLimit', 'supportedDomains', 'urlFinder', 'operMap', 'connectMap', 'postFilts', 'commentFilts', 'connector', 'filterExternalContent', 'filterSubmissionContent', 'commentCache', 'restrictDownloadsByCreationDate', 'getSelftextExternalContent')
 
     def __init__(self):
         self.defaultPath = os.path.abspath(os.path.expanduser('Downloads'))
@@ -76,8 +76,9 @@ class RedditData():
         self.downloadType = DownloadType.USER_SUBREDDIT_CONSTRAINED
         self.avoidDuplicates = True
         self.getExternalContent = False
+        self.getCommentExternalContent = False
+        self.getSelftextExternalContent = False
         self.getSubmissionContent = True
-        self.getCommentData = False
         self.subSort = 'hot'
         self.subLimit = 10
         self.supportedDomains = ['imgur', 'minus', 'vidble', 'gfycat']
@@ -104,7 +105,7 @@ class RedditData():
         self.commentCache = {}
         self.restrictDownloadsByCreationDate = True
 
-    def getImages(self, post, user, queue, commentAuthor=None, commentAuthorURLCount=None):
+    def getImages(self, post, user, queue, specialString=None, specialCount=None, specialPath=None):
         imageFinder = None
         imageFinderDomains = {
             self.supportedDomains[0]: ImgurImageFinder(user.externalDownloads, self.avoidDuplicates, queue),
@@ -119,7 +120,7 @@ class RedditData():
                 break
         if imageFinder is None:
             imageFinder = ImageFinder(queue)  # default to a basic image finder if no supported domain is found
-        images = imageFinder.getImages(post, self.defaultPath, user, commentAuthor, commentAuthorURLCount)
+        images = imageFinder.getImages(post, self.defaultPath, user, specialString, specialCount, specialPath)
         for image in images:
             yield image
 
@@ -265,12 +266,12 @@ class RedditData():
             for url in urls:
                 canDownload = self.fudgePostDomainAndURL(post, url)
                 if canDownload:
+                    images = self.getImages(post, user, queue, "_comment_", count, author)
                     count += 1
-                    images = self.getImages(post, user, queue, author, count)
-                    post.url = origPostURL  # Restore the post info back to what it was
-                    post.domain = origPostDomain
                     for image in images:
                         yield image
+        post.url = origPostURL  # Restore the post info back to what it was
+        post.domain = origPostDomain
 
     def getCommentImageURLs(self, submission):
         urls = {}
@@ -292,6 +293,23 @@ class RedditData():
                 else:
                     urls[author].extend(matches)
         return urls
+
+    def getSelftextImages(self, post, user, queue):
+        origPostURL = post.url  # We're going to be hijacking these variables to use self.getImages
+        origPostDomain = post.domain
+        if post.is_self:
+            urls = self.urlFinder.findall(post.selftext)
+            count = 1
+            for url in urls:
+                canDownload = self.fudgePostDomainAndURL(post, url)
+                if canDownload:
+                    images = self.getImages(post, user, queue, "_selftext_", count)
+                    count += 1
+                    for image in images:
+                        yield image
+        post.url = origPostURL  # Restore the post info back to what it was
+        post.domain = origPostDomain
+
 
     def changeDownloadType(self, downloadType):
         self.downloadType = downloadType

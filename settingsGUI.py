@@ -56,8 +56,9 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.currentSubredditListName = rddtScraper.defaultSubredditListName
         self.avoidDuplicates = rddtScraper.avoidDuplicates
         self.getExternalContent = rddtScraper.getExternalContent
+        self.getCommentExternalContent = rddtScraper.getCommentExternalContent
+        self.getSelftextExternalContent = rddtScraper.getSelftextExternalContent
         self.getSubmissionContent = rddtScraper.getSubmissionContent
-        self.getCommentData = rddtScraper.getCommentData
         self.subSort = rddtScraper.subSort
         self.subLimit = rddtScraper.subLimit
         self.operMap = rddtScraper.operMap
@@ -77,8 +78,9 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
 
         self.avoidDuplCheckBox.clicked.connect(lambda: self.changeCheckBox(self.avoidDuplCheckBox, 'avoidDuplicates'))
         self.getExternalContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.getExternalContentCheckBox, 'getExternalContent'))
+        self.getCommentExternalContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.getCommentExternalContentCheckBox, 'getCommentExternalContent'))
+        self.getSelftextExternalContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.getSelftextExternalContentCheckBox, 'getSelftextExternalContent'))
         self.getSubmissionContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.getSubmissionContentCheckBox, 'getSubmissionContent'))
-        self.getCommentDataCheckBox.clicked.connect(lambda: self.changeCheckBox(self.getCommentDataCheckBox, 'getCommentData'))
 
         self.hotBtn.clicked.connect(lambda: self.changeSubSort("hot"))
         self.newBtn.clicked.connect(lambda: self.changeSubSort("new"))
@@ -112,8 +114,10 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
 
         self.avoidDuplCheckBox.setChecked(self.avoidDuplicates)
         self.getExternalContentCheckBox.setChecked(self.getExternalContent)
+        self.getCommentExternalContentCheckBox.setChecked(self.getCommentExternalContent)
+        self.getSelftextExternalContentCheckBox.setChecked(self.getSelftextExternalContent)
+
         self.getSubmissionContentCheckBox.setChecked(self.getSubmissionContent)
-        self.getCommentDataCheckBox.setChecked(self.getCommentData)
 
         self.filterExternalContentCheckBox.setChecked(self.filterExternalContent)
         self.filterSubmissionContentCheckBox.setChecked(self.filterSubmissionContent)

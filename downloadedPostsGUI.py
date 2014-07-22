@@ -54,7 +54,7 @@ class DownloadedPostsGUI(QDialog, Ui_DownloadedPostsDialog):
                         del self.data.redditPosts[postURL]
                     else:
                         self.data.redditPosts[postURL] = posts
-                    if type == DownloadedPostType.EXTERNAL_DATA:
+                    if type == DownloadedPostType.EXTERNAL_SUBMISSION_DATA or type == DownloadedPostType.EXTERNAL_COMMENT_DATA:
                         for externalURL in post.externalDownloadURLs:
                             if externalURL in self.data.externalDownloads:
                                 self.data.externalDownloads.remove(externalURL)

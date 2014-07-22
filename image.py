@@ -8,9 +8,9 @@ class Image():
     gifHeader = [hex(ord("G")), hex(ord("I")), hex(ord("F"))]
 
     __slots__ = (
-        'user', 'postID', 'fileType', 'defaultPath', 'savePath', 'URL', 'redditPostURL', 'iterContent', 'numInSeq', 'commentAuthor', 'commentAuthorURLCount')
+        'user', 'postID', 'fileType', 'defaultPath', 'savePath', 'URL', 'redditPostURL', 'iterContent', 'numInSeq', 'specialString', 'specialCount', 'specialPath')
 
-    def __init__(self, user, postID, fileType, defaultPath, URL, redditPostURL, iterContent, numInSeq="", commentAuthor=None, commentAuthorURLCount=None):
+    def __init__(self, user, postID, fileType, defaultPath, URL, redditPostURL, iterContent, numInSeq="", specialString=None, specialCount=None, specialPath=None):
         self.user = user
         self.postID = postID
         self.fileType = fileType
@@ -20,8 +20,9 @@ class Image():
         self.iterContent = iterContent
         self.numInSeq = numInSeq
         self.savePath = ""
-        self.commentAuthor = commentAuthor
-        self.commentAuthorURLCount = commentAuthorURLCount
+        self.specialString = specialString
+        self.specialCount = specialCount
+        self.specialPath = specialPath
         self.makeSavePath()
 
     def makeSavePath(self):
@@ -29,15 +30,16 @@ class Image():
             imageFile = self.postID + " " + str(self.numInSeq) + self.fileType
         else:
             imageFile = self.postID + self.fileType
-        if self.commentAuthor is not None and self.commentAuthorURLCount is not None:
+        if self.specialString is not None and self.specialCount is not None:
             if self.numInSeq != "":
-                imageFile = self.postID + "_comment_" + str(self.commentAuthorURLCount) + " " + str(self.numInSeq) + self.fileType
+                imageFile = self.postID + self.specialString + str(self.specialCount) + " " + str(self.numInSeq) + self.fileType
             else:
-                imageFile = self.postID + "_comment_" + str(self.commentAuthorURLCount) + self.fileType
-            directory = os.path.abspath(os.path.join(self.defaultPath, self.user, self.commentAuthor))
+                imageFile = self.postID + self.specialString + str(self.specialCount) + self.fileType
+        if self.specialPath is not None:
+            directory = os.path.abspath(os.path.join(self.defaultPath, self.user, self.specialPath))
             if not os.path.exists(directory):
                 os.makedirs(directory)
-            self.savePath = os.path.abspath(os.path.join(self.defaultPath, self.user, self.commentAuthor, imageFile))
+            self.savePath = os.path.abspath(os.path.join(directory, imageFile))
         else:
             self.savePath = os.path.abspath(os.path.join(self.defaultPath, self.user, imageFile))
 

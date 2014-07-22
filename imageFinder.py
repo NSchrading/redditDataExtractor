@@ -15,6 +15,7 @@ class ImgurLinkTypeEnum():
     DIRECT = 1
     SINGLE_PAGE = 2
     ALBUM = 3
+    GALLERY = 4
 
 class ImageFinder():
     __slots__ = ('requestsSession', 'queue')
@@ -97,15 +98,15 @@ class ImageFinder():
             return True, response
         return False, None
 
-    def makeImage(self, user, postID, URL, redditPostURL, defaultPath, count, response, commentAuthor=None, commentAuthorURLCount=None):
+    def makeImage(self, user, postID, URL, redditPostURL, defaultPath, count, response, specialString=None, specialCount=None, specialPath=None):
         fileType = self.getFileType(URL)
         return Image(user, postID, fileType, defaultPath, URL, redditPostURL, response,
-                         str(count), commentAuthor, commentAuthorURLCount)
+                         str(count), specialString, specialCount, specialPath)
 
-    def getImages(self, post, defaultPath, user, commentAuthor=None, commentAuthorURLCount=None):
+    def getImages(self, post, defaultPath, user, specialString=None, specialCount=None, specialPath=None):
         valid, response = self.validURLImage(post.url)
         if valid:
-            params = (user.name, post.id, post.url, post.permalink, defaultPath, 1, response, commentAuthor, commentAuthorURLCount)
+            params = (user.name, post.id, post.url, post.permalink, defaultPath, 1, response, specialString, specialCount, specialPath)
             yield self.makeImage(*params)
 
 class ImgurImageFinder(ImageFinder):
@@ -132,6 +133,9 @@ class ImgurImageFinder(ImageFinder):
             if dotIndex != -1:
                 imgurHashID = imgurHashID[:imgurHashID.rfind('.')]
             apiURL += 'image/' + imgurHashID
+        elif self.imgurLinkType == ImgurLinkTypeEnum.GALLERY:
+            imgurHashID = url[url.rfind('/') + 1:]
+            apiURL += 'gallery/' + imgurHashID
         else:
             imgurHashID = url[url.rfind('/') + 1:]
             apiURL += 'album/' + imgurHashID
@@ -188,7 +192,7 @@ class ImgurImageFinder(ImageFinder):
                 self.getImageURLsDirect(json, imageURLs)
             elif self.imgurLinkType == ImgurLinkTypeEnum.SINGLE_PAGE:
                 self.getImageURLsPage(json, imageURLs)
-            else:
+            else: # album and gallery json response is the same
                 self.getImageURLsAlbum(json, imageURLs)
         return imageURLs
 
@@ -197,10 +201,12 @@ class ImgurImageFinder(ImageFinder):
             return ImgurLinkTypeEnum.DIRECT
         elif "imgur.com/a/" in url:
             return ImgurLinkTypeEnum.ALBUM
+        elif "imgur.com/gallery/" in url:
+            return ImgurLinkTypeEnum.GALLERY
         else:
             return ImgurLinkTypeEnum.SINGLE_PAGE
 
-    def getImages(self, post, defaultPath, user, commentAuthor=None, commentAuthorURLCount=None):
+    def getImages(self, post, defaultPath, user, specialString=None, specialCount=None, specialPath=None):
         self.imgurLinkType = self.getImgurLinkType(post.url)
         imageURLs = self.getImageURLs(post.url)
         count = 1
@@ -208,7 +214,7 @@ class ImgurImageFinder(ImageFinder):
             response = self.exceptionSafeImageRequest(imageURL, stream=True)
             if response is None:
                 continue
-            params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
+            params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, specialString, specialCount, specialPath)
             image = self.makeImage(*params)
             if image is not None:
                 count += 1
@@ -248,14 +254,14 @@ class GfycatImageFinder(ImageFinder):
         return validURLs
 
 
-    def getImages(self, post, defaultPath, user, commentAuthor=None, commentAuthorURLCount=None):
+    def getImages(self, post, defaultPath, user, specialString=None, specialCount=None, specialPath=None):
         URL = post.url
         imageURLs = self.getImageURLs(URL)
         count = 1
         for imageURL in imageURLs:
             valid, response = self.validURLImage(imageURL)
             if valid:
-                params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
+                params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, specialString, specialCount, specialPath)
                 image = self.makeImage(*params)
                 if image is not None:
                     count += 1
@@ -306,13 +312,13 @@ class MinusImageFinder(ImageFinder):
                             validURLs.append(imageHTML.get("href"))
         return validURLs
 
-    def getImages(self, post, defaultPath, user, commentAuthor=None, commentAuthorURLCount=None):
+    def getImages(self, post, defaultPath, user, specialString=None, specialCount=None, specialPath=None):
         imageURLs = self.getImageURLs(post.url)
         count = 1
         for imageURL in imageURLs:
             valid, response = self.validURLImage(imageURL)
             if valid:
-                params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
+                params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, specialString, specialCount, specialPath)
                 image = self.makeImage(*params)
                 if image is not None:
                     count += 1
@@ -367,14 +373,14 @@ class VidbleImageFinder(ImageFinder):
         return validURLs
 
 
-    def getImages(self, post, defaultPath, user, commentAuthor=None, commentAuthorURLCount=None):
+    def getImages(self, post, defaultPath, user, specialString=None, specialCount=None, specialPath=None):
         URL = post.url
         imageURLs = self.getImageURLs(URL)
         count = 1
         for imageURL in imageURLs:
             valid, response = self.validURLImage(imageURL)
             if valid:
-                params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, commentAuthor, commentAuthorURLCount)
+                params = (user.name, post.id, imageURL, post.permalink, defaultPath, count, response, specialString, specialCount, specialPath)
                 image = self.makeImage(*params)
                 if image is not None:
                     count += 1

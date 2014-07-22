@@ -5,6 +5,7 @@ import os
 import shutil
 import glob
 import itertools
+import json
 from hashlib import sha256
 from redditData import RedditData, DownloadType, ListType
 from queue import Queue
@@ -54,7 +55,14 @@ class rddtScrapeGUIText(unittest.TestCase):
             '2b9cfw 2.jpg': b'8A\xb3\xf0\x889\x7f\xec\xa37\x10ElFD\xa4\xee\xde\xd1\xc4OI\\|\x99U\x9d\xa6\x8ev\x9e\xe9',
             '2b83a2 1.jpg': b'=\xaa\xae:\xc7\xa2K \xceT\xc6\x88\xd1\x84\xa1\x11\xdc^!\x94\x04shu\xfb\x9d7\x89\xbaE\xc4\xf5'}
 
-        self.submissionHashes = {}
+        self.externalCommentImageHashes = {
+            '2bby9l_comment_1 1.webm': b'\x0cN\xe1\x96\x1eo\xc8r3A\xbf{:\xba\xfa\x90\xcd\x95\xd1\xa1\xaa\xe03fP\xcb\xf6~\xfa\x9c\xd0\x07',
+            '2bby9l_comment_2 1.gif': b'\xe7\xca\xa6\xe9\x0f\xb7ZPE\x82{\x9b\xd4V\x15M\x815\xa4i\xf3\xb5\xbd\xa5\xbbf@yz\xd7!\xe8',
+            '2b8uyr_comment_1 1.webm': b'\xd6\x07r\xd0\xbbo\x12\xd1\x1b\x07\xa8:\xbf[ r\xabn<t\xa5\x84\xe3\xd4Vy_\x8e\x15\x1b\xf4<',
+            '2bby9l_comment_3 1.jpg': b'\xa6\xc8p\x86\t\x0c\xef\xf1d\x8c\x93S\x94\xa6\xa3\xf0a\x7fp\xac\xe2\xd3Q\x17\x06\xd3\xbf)P\xfb\xf8\xf7',
+            '2bby9l_comment_4 1.gif': b'\x03\xba\xa8\xdeC\xd1\xba\xb4\x84\xad[d]\x16\xff\x11\xa3\xbeb/\xbc\xfd\xa3C\xa32l\xfd\xe8y\x10h',
+            '2bcnhu_comment_1 1.jpg': b'\xd5r8\xb0e\x7f\\M\xbe\x14\xe7\x13\xcd\xe4};s\xe0\x1ad\x14\x9b(H\xb1\\[/\x1b\x9b\xe8\xbe',
+            '2bby9l_comment_4 2.gif': b'4\x86rl/CAq6Bn\xe8\xbc\x1fb5ie\x1c$\x88!\xb8\x9fw\x8cP\xadYs\x9bF'}
 
     def changeToTestConfig(self):
         listName = "test subreddit"
@@ -119,18 +127,45 @@ class rddtScrapeGUIText(unittest.TestCase):
                 buf = file.read(blocksize)
         return hasher.digest()
 
-    def compareHashes(self, fileTypes, knownGoodHashes):
-        fileTypes = ["*.jpg", "*.jpeg", "*.gif", "*.png", "*.webm", "*.json"]
-        downloadedFilesLst = list(itertools.chain(
-            *[glob.glob(os.path.join("Downloads", "rddt_data_extractor", fileType)) for fileType in fileTypes]))
-        hashesDownloaded = {os.path.basename(fileName): self.hashfile(fileName) for fileName in downloadedFilesLst}
+    def compareHashes(self, fileTypes, knownGoodHashes, downloadedFilePaths):
+        downloadedFilesSet = set()
+        for filePath in downloadedFilePaths:
+            downloadedFilesSet = downloadedFilesSet.union(
+                set(itertools.chain(*[glob.glob(os.path.join(filePath, fileType)) for fileType in fileTypes])))
+        hashesDownloaded = {os.path.basename(fileName): self.hashfile(fileName) for fileName in downloadedFilesSet}
+        print(hashesDownloaded)
         return hashesDownloaded == knownGoodHashes
+
+    def compareJSON(self, fileNames):
+        for fileName in fileNames:
+            goodJSONFilePath = os.path.join("test", "knownGoodTestFiles", fileName)
+            testJSONFilePath = os.path.join("Downloads", "rddt_data_extractor", fileName)
+            with open(goodJSONFilePath) as goodJSONFile:
+                with open(testJSONFilePath) as testJSONFile:
+                    goodJSON = json.load(goodJSONFile)
+                    testJSON = json.load(testJSONFile)
+                    if goodJSON != testJSON:
+                        return False
+        return True
+
+
+    def compareJSONFiles(self, fileTypes):
+        downloadedFilesSet = set(itertools.chain(
+            *[glob.glob(os.path.join("Downloads", "rddt_data_extractor", fileType)) for fileType in fileTypes]))
+        knownGoodJSONFilesSet = set(itertools.chain(
+            *[glob.glob(os.path.join("test", "knownGoodTestFiles", fileType)) for fileType in fileTypes]))
+        knownGoodJSONFiles = {os.path.basename(fileName) for fileName in knownGoodJSONFilesSet}
+        filesDownloaded = {os.path.basename(fileName) for fileName in downloadedFilesSet}
+        self.assertEqual(filesDownloaded, knownGoodJSONFiles)
+        self.assertTrue(self.compareJSON(filesDownloaded))
+
 
     def download(self):
         QTest.mouseClick(self.form.downloadBtn, Qt.LeftButton)
 
         # gross workarounds for signals being missed due to not being in an event loop in the GUI
         redditorValidator = self.form.redditorValidator
+        print(redditorValidator)
         maxIter = 2
         i = 0
         while len(redditorValidator.valid) <= 0 and i < maxIter:
@@ -138,30 +173,47 @@ class rddtScrapeGUIText(unittest.TestCase):
             i += 1
         if len(redditorValidator.valid) > 0:
             self.form.downloadValid(redditorValidator.valid)
+            i = 0
+            maxIter = 50
             while not self.form.downloader.finishSignalForTest:
+                self.assertTrue(i < maxIter)
+                i += 1
                 time.sleep(5)
+
             self.form.activateDownloadBtn()
             i = 0
+            maxIter = 2
             while self.form.downloadBtn.text() == "Downloading..." and i < maxIter:
                 time.sleep(5)
+                i += 1
+    def testDownloadCommentExternals(self):
+        self.changeToTestConfig()
+        self.form.rddtScraper.getSubmissionContent = False
+        self.form.rddtScraper.getExternalContent = False
+        self.form.rddtScraper.getCommentExternalContent = True
+        self.download()
+        fileTypes = ["*.jpg", "*.jpeg", "*.gif", "*.png", "*.webm"]
+        self.assertTrue(self.compareHashes(fileTypes, self.externalCommentImageHashes,
+                                           [os.path.join("Downloads", "rddt_data_extractor", "rddt_data_extractor"),
+                                            os.path.join("Downloads", "rddt_data_extractor", "GfycatLinkFixerBot")]))
 
     def testDownloadSubmission(self):
         self.changeToTestConfig()
         self.download()
         fileTypes = ["*.txt"]
-        #self.assertTrue(self.compareHashes(fileTypes, self.submissionHashes))
+        # The order of JSON files is not always the same because it's like a dictionary. So we
+        # can't use hashes. Must compare the actual JSON
+        self.compareJSONFiles(fileTypes)
+        shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"))
 
-    '''
     def testDownloadExternal(self):
         self.changeToTestConfig()
-
         self.form.rddtScraper.getSubmissionContent = False
         self.form.rddtScraper.getExternalContent = True
         self.download()
         fileTypes = ["*.jpg", "*.jpeg", "*.gif", "*.png", "*.webm"]
-        self.assertTrue(self.compareHashes(fileTypes, self.externalImageHashes))
+        self.assertTrue(self.compareHashes(fileTypes, self.externalImageHashes, [os.path.join("Downloads", "rddt_data_extractor")]))
         shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"))
-    '''
 
 
 if __name__ == "__main__":

@@ -523,8 +523,9 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
 
             self.rddtScraper.avoidDuplicates = settings.avoidDuplicates
             self.rddtScraper.getExternalContent = settings.getExternalContent
+            self.rddtScraper.getCommentExternalContent = settings.getCommentExternalContent
+            self.rddtScraper.getSelftextExternalContent = settings.getSelftextExternalContent
             self.rddtScraper.getSubmissionContent = settings.getSubmissionContent
-            self.rddtScraper.getCommentData = settings.getCommentData
 
             self.rddtScraper.subSort = settings.subSort
             self.rddtScraper.subLimit = settings.subLimit

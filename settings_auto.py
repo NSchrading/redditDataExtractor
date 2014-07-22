@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'settings.ui'
 #
-# Created: Sat Jul 19 00:50:31 2014
+# Created: Mon Jul 21 18:01:33 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -104,13 +104,19 @@ class Ui_SettingsDialog(object):
         self.line_3.setObjectName(_fromUtf8("line_3"))
         self.gridLayout.addWidget(self.line_3, 6, 0, 1, 1)
         self.verticalLayout.addLayout(self.gridLayout)
+        self.horizontalLayout_10 = QtGui.QHBoxLayout()
+        self.horizontalLayout_10.setObjectName(_fromUtf8("horizontalLayout_10"))
+        self.getCommentExternalContentCheckBox = QtGui.QCheckBox(SettingsDialog)
+        self.getCommentExternalContentCheckBox.setObjectName(_fromUtf8("getCommentExternalContentCheckBox"))
+        self.horizontalLayout_10.addWidget(self.getCommentExternalContentCheckBox)
+        self.getSelftextExternalContentCheckBox = QtGui.QCheckBox(SettingsDialog)
+        self.getSelftextExternalContentCheckBox.setObjectName(_fromUtf8("getSelftextExternalContentCheckBox"))
+        self.horizontalLayout_10.addWidget(self.getSelftextExternalContentCheckBox)
+        self.verticalLayout.addLayout(self.horizontalLayout_10)
         self.getSubmissionContentCheckBox = QtGui.QCheckBox(SettingsDialog)
         self.getSubmissionContentCheckBox.setChecked(True)
         self.getSubmissionContentCheckBox.setObjectName(_fromUtf8("getSubmissionContentCheckBox"))
         self.verticalLayout.addWidget(self.getSubmissionContentCheckBox)
-        self.getCommentDataCheckBox = QtGui.QCheckBox(SettingsDialog)
-        self.getCommentDataCheckBox.setObjectName(_fromUtf8("getCommentDataCheckBox"))
-        self.verticalLayout.addWidget(self.getCommentDataCheckBox)
         self.line = QtGui.QFrame(SettingsDialog)
         self.line.setFrameShape(QtGui.QFrame.HLine)
         self.line.setFrameShadow(QtGui.QFrame.Sunken)
@@ -194,10 +200,12 @@ class Ui_SettingsDialog(object):
         self.topBtn.setText(_translate("SettingsDialog", "Top", None))
         self.risingBtn.setText(_translate("SettingsDialog", "Rising", None))
         self.controversialBtn.setText(_translate("SettingsDialog", "Controversial", None))
+        self.getCommentExternalContentCheckBox.setToolTip(_translate("SettingsDialog", "Select to attempt to download images, gifs, and gfys from the comments in a submission.", None))
+        self.getCommentExternalContentCheckBox.setText(_translate("SettingsDialog", "Download External Content Linked In Comments", None))
+        self.getSelftextExternalContentCheckBox.setToolTip(_translate("SettingsDialog", "Select to attempt to download external images, gifs, and gfys in the selftext.", None))
+        self.getSelftextExternalContentCheckBox.setText(_translate("SettingsDialog", "Download External Content Linked In Selftext", None))
         self.getSubmissionContentCheckBox.setToolTip(_translate("SettingsDialog", "Select to download the title, self-text, comments, upvote statistics, and other information in a json-encoded text file.", None))
         self.getSubmissionContentCheckBox.setText(_translate("SettingsDialog", "Download Submission Content", None))
-        self.getCommentDataCheckBox.setToolTip(_translate("SettingsDialog", "Select to attempt to download images, gifs, and gfys from the comments in a submission.", None))
-        self.getCommentDataCheckBox.setText(_translate("SettingsDialog", "Download External Content In Comments", None))
         self.restrictDownloadsByCreationDateCheckBox.setToolTip(_translate("SettingsDialog", "<html><head/><body><p>Always works for users, only works for subreddits when downloading by \'New\'.</p><p>Uncheck this option to gather all available submissions of users and download ones that have not been downloaded already. </p><p>This is useful to attempt to download posts that failed due to a connection loss.</p><p>Checking this option may speed up the downloading process.</p></body></html>", None))
         self.restrictDownloadsByCreationDateCheckBox.setText(_translate("SettingsDialog", "Restrict retrieved submissions to creation dates after the last downloaded submission", None))
         self.filterExternalContentCheckBox.setToolTip(_translate("SettingsDialog", "Dowload external images / gifs / gfys only if the following criteria are met.", None))
