@@ -139,40 +139,11 @@ class listViewAndChooser(QListView):
         index = self.getCurrentSelectedIndex()
         if model is not None and index is not None:
             selected = model.getObjectInLst(index)
-            downloadedPosts = selected.redditPosts
-            if downloadedPosts is not None and len(downloadedPosts) > 0:
-                downloadedPostsGUI = DownloadedPostsGUI(selected, confirmDialog, self.gui.saveState)
-                for postURL in downloadedPosts:
-                    for post in downloadedPosts.get(postURL):
-                        image = post.representativeImage
-                        if image is None or not os.path.exists(image):
-                            continue
-                        item = QListWidgetItem("", downloadedPostsGUI.downloadedPostsList)
-                        labelWidget = QLabel()
-                        labelWidget.setOpenExternalLinks(True)
-                        labelWidget.setTextFormat(Qt.RichText)
-                        size = QSize(128, 158)
-                        item.setSizeHint(size)
-                        size = QSize(128, 128)
-                        if(image.endswith(".webm")):
-                            image = "images/webmImage.png"
-                        pixmap = QPixmap(image)
-                        pixmap = pixmap.scaled(size, Qt.KeepAspectRatio)
-                        height = pixmap.height()
-                        width = pixmap.width()
-                        postTitle = postURL[postURL[0:-1].rfind("/") + 1:-1]
-                        labelWidget.setText(
-                            '<a href="' + postURL + '"><img src="' + str(image) + '" height="' + str(
-                                height) + '" width="' + str(width) + '"><p>' + postTitle)
-                        downloadedPostsGUI.downloadedPostsList.setItemWidget(item, labelWidget)
-                        downloadedPostsGUI.posts.append((postURL, post.type))
-                downloadedPostsGUI.exec_()
-            else:
-                QMessageBox.information(QMessageBox(), "Reddit Scraper",
-                                        "The selected " + self.objectName() + " has no downloaded posts. Download some by hitting the download button.")
+            downloadedPostsGUI = DownloadedPostsGUI(selected, self.model(), confirmDialog, self.gui.saveState)
+            downloadedPostsGUI.exec_()
         elif index is None:
             QMessageBox.information(QMessageBox(), "Reddit Scraper",
-                                    "To view a " + self.objectName() + "'s downloaded posts, please select a " + self.objectName() + " in the " + self.objectName() + " list.")
+                                "To view a " + self.objectName() + "'s downloaded posts, please select a " + self.objectName() + " in the " + self.objectName() + " list.")
 
 class userListViewAndChooser(listViewAndChooser):
     def __init__(self, gui):

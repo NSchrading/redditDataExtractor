@@ -64,6 +64,17 @@ class rddtScrapeGUIText(unittest.TestCase):
             '2bcnhu_comment_1 1.jpg': b'\xd5r8\xb0e\x7f\\M\xbe\x14\xe7\x13\xcd\xe4};s\xe0\x1ad\x14\x9b(H\xb1\\[/\x1b\x9b\xe8\xbe',
             '2bby9l_comment_4 2.gif': b'4\x86rl/CAq6Bn\xe8\xbc\x1fb5ie\x1c$\x88!\xb8\x9fw\x8cP\xadYs\x9bF'}
 
+        self.externalSelftextImageHashes = {
+            '2bcokj_selftext_2 1.png': b"\xba\xe37g\xb1\x8f\x97\xdc\xdeB\x12S\x12\xd7\xa1\xc2g\xfbL\x18\xf698R\xa3\x06?\x0b'V\xb0\xa1",
+            '2bcma6_selftext_1 1.jpg': b'\x16m\x81\x81I\x00\xa9\xd2d\xe7\xb1\xd8_o\xf9\xb8\xb1\x9ej<\xb0r\x03\xbae\x96g\x02\xfb\xa7\r\x19',
+            '2bcokj_selftext_1 3.jpg': b'\xbf<\x15\x8b#\xd5\x9dZ\xa2~\x8d\xa9j\xf4\x84/\xd0K\x08-}I\xb4]9\xdc\xb3\x8d\xd1\xf9;\x95',
+            '2bcnhu_selftext_1 1.jpg': b'+%\xf7\xc1\x8d\x14 J)\x84\xfc=\xf3\xeb\x943\xc7\xa8\xa3\xc8\xf8\xd6\x17;D;\x8f\xbe\xc2\xdc5%',
+            '2bcokj_selftext_1 1.jpg': b'\xed\t\xd2\x02i%\xd3\x05\x8b}\x85\xb6b\x8d}\xf4J\xb6\xaa\xb6U\xadZ\xa6"_\xaf\x08\xd8[\x93}',
+            '2bcokj_selftext_1 2.jpg': b'<\x00|M\xdca\xd5y&G\x10\xbf6\x81\xf4e\xb9\x86\xb9\xe9\xaaF\x9a\xbaS\xd0\xda\xa7^m\xba\xc0'}
+
+        self.imageFileTypes = ["*.jpg", "*.jpeg", "*.gif", "*.png", "*.webm"]
+        self.jsonFileTypes = [".txt"]
+
     def changeToTestConfig(self):
         listName = "test subreddit"
         self.form.subredditList.lstChooser.addItem(listName)
@@ -134,7 +145,7 @@ class rddtScrapeGUIText(unittest.TestCase):
                 set(itertools.chain(*[glob.glob(os.path.join(filePath, fileType)) for fileType in fileTypes])))
         hashesDownloaded = {os.path.basename(fileName): self.hashfile(fileName) for fileName in downloadedFilesSet}
         print(hashesDownloaded)
-        return hashesDownloaded == knownGoodHashes
+        self.assertEqual(hashesDownloaded, knownGoodHashes)
 
     def compareJSON(self, fileNames):
         for fileName in fileNames:
@@ -176,9 +187,9 @@ class rddtScrapeGUIText(unittest.TestCase):
             i = 0
             maxIter = 50
             while not self.form.downloader.finishSignalForTest:
-                self.assertTrue(i < maxIter)
                 i += 1
                 time.sleep(5)
+            print("Took " + str(i) + " iterations to complete download.")
 
             self.form.activateDownloadBtn()
             i = 0
@@ -186,24 +197,24 @@ class rddtScrapeGUIText(unittest.TestCase):
             while self.form.downloadBtn.text() == "Downloading..." and i < maxIter:
                 time.sleep(5)
                 i += 1
+
     def testDownloadCommentExternals(self):
         self.changeToTestConfig()
         self.form.rddtScraper.getSubmissionContent = False
         self.form.rddtScraper.getExternalContent = False
         self.form.rddtScraper.getCommentExternalContent = True
         self.download()
-        fileTypes = ["*.jpg", "*.jpeg", "*.gif", "*.png", "*.webm"]
-        self.assertTrue(self.compareHashes(fileTypes, self.externalCommentImageHashes,
+        self.compareHashes(self.imageFileTypes, self.externalCommentImageHashes,
                                            [os.path.join("Downloads", "rddt_data_extractor", "rddt_data_extractor"),
-                                            os.path.join("Downloads", "rddt_data_extractor", "GfycatLinkFixerBot")]))
+                                            os.path.join("Downloads", "rddt_data_extractor", "GfycatLinkFixerBot")])
+        shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"))
 
     def testDownloadSubmission(self):
         self.changeToTestConfig()
         self.download()
-        fileTypes = ["*.txt"]
         # The order of JSON files is not always the same because it's like a dictionary. So we
         # can't use hashes. Must compare the actual JSON
-        self.compareJSONFiles(fileTypes)
+        self.compareJSONFiles(self.jsonFileTypes)
         shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"))
 
     def testDownloadExternal(self):
@@ -211,8 +222,16 @@ class rddtScrapeGUIText(unittest.TestCase):
         self.form.rddtScraper.getSubmissionContent = False
         self.form.rddtScraper.getExternalContent = True
         self.download()
-        fileTypes = ["*.jpg", "*.jpeg", "*.gif", "*.png", "*.webm"]
-        self.assertTrue(self.compareHashes(fileTypes, self.externalImageHashes, [os.path.join("Downloads", "rddt_data_extractor")]))
+        self.compareHashes(self.imageFileTypes, self.externalImageHashes, [os.path.join("Downloads", "rddt_data_extractor")])
+        shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"))
+
+    def testDownloadSelftextExternals(self):
+        self.changeToTestConfig()
+        self.form.rddtScraper.getSubmissionContent = False
+        self.form.rddtScraper.getExternalContent = False
+        self.form.rddtScraper.getSelftextExternalContent = True
+        self.download()
+        self.compareHashes(self.imageFileTypes, self.externalSelftextImageHashes, [os.path.join("Downloads", "rddt_data_extractor")])
         shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"))
 
 

@@ -13,8 +13,8 @@ class DownloadedPost():
     def __init__(self, redditURL, type):
         self.redditURL = redditURL
         self.type = type
-        self.files = []
-        self.externalDownloadURLs = []
+        self.files = set()
+        self.externalDownloadURLs = set()
         self.representativeImage = None
 
     def deleteFiles(self):
@@ -45,6 +45,7 @@ class Downloader(QObject):
             self.dataPool.waitForDone()
         self.finished.emit()
         self.finishSignalForTest = True
+        print("FINISHED DOWNLOADING!!!")
 
 class Worker(QRunnable):
     def __init__(self, rddtScraper, listModel, prawData, queue, listModelType):
@@ -81,7 +82,7 @@ class Worker(QRunnable):
             self.startDownloadImages(images, downloadedPost, post)
         if self.rddtScraper.getSubmissionContent:
             downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.JSON_DATA)
-            submissionWorker = SubmissionWorker(self.rddtScraper, post, self.queue, self.listModel, self.listModelType, name, downloadedPost)
+            submissionWorker = SubmissionWorker(self.rddtScraper, post, self.queue, self.listModel, self.listModelType, name, downloadedPost, self.setMostRecentDownloadTimestamp)
             self.submissionPool.start(submissionWorker)
 
     def startDownloadImages(self, images, downloadedPost, post):
@@ -109,7 +110,7 @@ class Worker(QRunnable):
 
 
 class SubmissionWorker(QRunnable):
-    def __init__(self, rddtScraper, submission, queue, listModel, listModelType, listModelName, downloadedPost):
+    def __init__(self, rddtScraper, submission, queue, listModel, listModelType, listModelName, downloadedPost, setMostRecentDownloadTimestamp):
         super().__init__()
 
         self.rddtScraper = rddtScraper
@@ -120,6 +121,7 @@ class SubmissionWorker(QRunnable):
         self.listModelName = listModelName
         self.downloadedPost = downloadedPost
         self.downloadedPost.representativeImage = "images/jsonImage.png"
+        self.setMostRecentDownloadTimestamp = setMostRecentDownloadTimestamp
 
     def run(self):
         title = self.submission.title
@@ -128,13 +130,13 @@ class SubmissionWorker(QRunnable):
         else:
             success, savePath = self.rddtScraper.downloadSubmission(self.submission)
         if success:
-            self.downloadedPost.files.append(savePath)
+            self.downloadedPost.files.add(savePath)
             posts = self.listModel.redditPosts.get(self.downloadedPost.redditURL)
             if posts is None:
                 self.listModel.redditPosts[self.downloadedPost.redditURL] = [self.downloadedPost]
             elif posts is not None and self.downloadedPost not in posts:
                 self.listModel.redditPosts[self.downloadedPost.redditURL].append(self.downloadedPost)
-            self.listModel.mostRecentDownloadTimestamp = self.submission.created_utc
+            self.setMostRecentDownloadTimestamp(self.submission.created_utc)
             self.queue.put("Saved submission: " + title + "\n")
         else:
             self.queue.put(">>> Error saving submission: " + title + '.\n>>> To attempt to redownload this file, uncheck "Restrict retrieved submissions to creation dates after the last downloaded submission" in the settings.\n')
@@ -163,10 +165,10 @@ class ImageWorker(QRunnable):
                     self.user.redditPosts[self.downloadedPost.redditURL] = [self.downloadedPost]
                 elif posts is not None and self.downloadedPost not in posts:
                     self.user.redditPosts[self.downloadedPost.redditURL].append(self.downloadedPost)
-                if self.image.specialPath is None and self.downloadedPost.representativeImage is None:
+                if self.downloadedPost.representativeImage is None:
                     self.downloadedPost.representativeImage = self.image.savePath
-                self.downloadedPost.files.append(self.image.savePath)
-                self.downloadedPost.externalDownloadURLs.append(self.image.URL)
+                self.downloadedPost.files.add(self.image.savePath)
+                self.downloadedPost.externalDownloadURLs.add(self.image.URL)
                 self.queue.put('Saved %s' % self.image.savePath + "\n")
             else:
                 if self.image.URL in self.user.externalDownloads:

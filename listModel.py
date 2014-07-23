@@ -48,7 +48,6 @@ class ListModel(QAbstractListModel):
     def getIndexOfName(self, name):
         for i in range(len(self.lst)):
             obj = self.lst[i]
-            print(obj.name, name)
             if obj.name == name:
                 return i
         return -1
