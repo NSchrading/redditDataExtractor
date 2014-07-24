@@ -7,7 +7,7 @@ import glob
 import itertools
 import json
 from hashlib import sha256
-from redditData import RedditData, DownloadType, ListType
+from redditDataExtractor import RedditDataExtractor, DownloadType, ListType
 from queue import Queue
 from listModel import ListModel
 from PyQt4.QtGui import QApplication
@@ -20,11 +20,11 @@ import rddtScrapeGUI
 class rddtScrapeGUIText(unittest.TestCase):
     def setUp(self):
         self.app = QApplication(sys.argv)
-        rddtScraper = RedditData()
+        rddtDataExtractor = RedditDataExtractor()
         queue = Queue()
         self.thread = QThread()
         self.recv = rddtScrapeGUI.MyReceiver(queue)
-        w = rddtScrapeGUI.RddtScrapeGUI(rddtScraper, queue, self.recv)
+        w = rddtScrapeGUI.RddtScrapeGUI(rddtDataExtractor, queue, self.recv)
         self.recv.mysignal.connect(w.append_text)
         self.recv.moveToThread(self.thread)
         self.thread.started.connect(self.recv.run)
@@ -200,9 +200,9 @@ class rddtScrapeGUIText(unittest.TestCase):
 
     def testDownloadCommentExternals(self):
         self.changeToTestConfig()
-        self.form.rddtScraper.getSubmissionContent = False
-        self.form.rddtScraper.getExternalContent = False
-        self.form.rddtScraper.getCommentExternalContent = True
+        self.form.rddtDataExtractor.getSubmissionContent = False
+        self.form.rddtDataExtractor.getExternalContent = False
+        self.form.rddtDataExtractor.getCommentExternalContent = True
         self.download()
         self.compareHashes(self.imageFileTypes, self.externalCommentImageHashes,
                                            [os.path.join("Downloads", "rddt_data_extractor", "rddt_data_extractor"),
@@ -219,17 +219,17 @@ class rddtScrapeGUIText(unittest.TestCase):
 
     def testDownloadExternal(self):
         self.changeToTestConfig()
-        self.form.rddtScraper.getSubmissionContent = False
-        self.form.rddtScraper.getExternalContent = True
+        self.form.rddtDataExtractor.getSubmissionContent = False
+        self.form.rddtDataExtractor.getExternalContent = True
         self.download()
         self.compareHashes(self.imageFileTypes, self.externalImageHashes, [os.path.join("Downloads", "rddt_data_extractor")])
         shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"))
 
     def testDownloadSelftextExternals(self):
         self.changeToTestConfig()
-        self.form.rddtScraper.getSubmissionContent = False
-        self.form.rddtScraper.getExternalContent = False
-        self.form.rddtScraper.getSelftextExternalContent = True
+        self.form.rddtDataExtractor.getSubmissionContent = False
+        self.form.rddtDataExtractor.getExternalContent = False
+        self.form.rddtDataExtractor.getSelftextExternalContent = True
         self.download()
         self.compareHashes(self.imageFileTypes, self.externalSelftextImageHashes, [os.path.join("Downloads", "rddt_data_extractor")])
         shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"))

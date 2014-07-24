@@ -55,7 +55,7 @@ class ListType():
     USER = 1
     SUBREDDIT = 2
 
-class RedditData():
+class RedditDataExtractor():
     __slots__ = ('defaultPath', 'subredditLists', 'userLists', 'currentSubredditListName', 'currentUserListName',
                  'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r', 'downloadType',
                  'avoidDuplicates', 'getExternalContent', 'getSubmissionContent', 'getCommentExternalContent', 'subSort',
@@ -78,7 +78,7 @@ class RedditData():
         self.currentUserListName = 'Default User List'
         self.defaultSubredditListName = 'Default Subs'
         self.defaultUserListName = 'Default User List'
-        self.r = praw.Reddit(user_agent='RedditUserScraper by /u/VoidXC')
+        self.r = praw.Reddit(user_agent='Reddit Data Extractor v1.0 by /u/VoidXC')
         self.downloadType = DownloadType.USER_SUBREDDIT_CONSTRAINED
         self.avoidDuplicates = True
         self.getExternalContent = False
@@ -208,7 +208,7 @@ class RedditData():
             contentFunc = validSubreddit.get_top
         else:
             contentFunc = validSubreddit.get_hot
-        return list(contentFunc(limit=self.subLimit))
+        return contentFunc(limit=self.subLimit)
 
     def downloadSubmission(self, submission, user=""):
         MAX_PATH = 260  # Windows is stupid and only lets you make paths up to a length of 260 chars
@@ -355,7 +355,7 @@ class RedditData():
             try:
                 self.userLists = None  # QAbstractListModel is not pickleable so set this to None
                 self.subredditLists = None
-                shelf['rddtScraper'] = self
+                shelf['rddtDataExtractor'] = self
                 shelf['userLists'] = userListSettings  # Save QAbstractList data as a simple dict of list
                 shelf['subredditLists'] = subredditListSettings
                 print("Saving program")

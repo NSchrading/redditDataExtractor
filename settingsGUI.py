@@ -5,7 +5,7 @@ from genericListModelObjects import GenericListModelObj
 def findKey(dict, value):
     return next((k for k, v in dict.items() if v == value), None)
 
-class ConnectComboBox(QComboBox):
+class ConnectCombobox(QComboBox):
 
     # ~ooooohhhh~ static class variables
     text = "And"
@@ -18,7 +18,7 @@ class ConnectComboBox(QComboBox):
         self.connectMap = connectMap
         for connect in self.connectMap:
             self.addItem(connect)
-        self.setCurrentIndex(self.findText(ConnectComboBox.text))
+        self.setCurrentIndex(self.findText(ConnectCombobox.text))
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.displayContextMenu)
         self.activated.connect(self.changeAllConnects)
@@ -33,40 +33,120 @@ class ConnectComboBox(QComboBox):
             self.filterTable.removeCellWidget(self.row, self.filtTableConnectCol)
 
     def changeAllConnects(self, index):
-        ConnectComboBox.text = self.currentText()
+        ConnectCombobox.text = self.currentText()
         for row in range(self.filterTable.rowCount() - 1):
             self.filterTable.removeCellWidget(row, self.filtTableConnectCol)
-            print("Row: " + str(row) + " changing to text: " + ConnectComboBox.text)
-            combobox = ConnectComboBox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
-            combobox.setCurrentIndex(self.findText(ConnectComboBox.text))
+            print("Row: " + str(row) + " changing to text: " + ConnectCombobox.text)
+            combobox = ConnectCombobox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
+            combobox.setCurrentIndex(self.findText(ConnectCombobox.text))
             self.filterTable.setCellWidget(row, self.filtTableConnectCol, combobox)
 
+class TypeCombobox(QComboBox):
+
+    def __init__(self, row, propCombobox):
+        super().__init__()
+        self.row = row
+        self.addItem("Submission")
+        self.addItem("Comment")
+        self.propCombobox = propCombobox
+        self.currentIndexChanged.connect(self.changePropComboBox)
+        self.setCurrentIndex(1) # just change it to kick off the flow of comboboxes changing to their proper values
+
+    def changePropComboBox(self, index):
+        if self.currentText() == "Submission":
+            self.propCombobox.initSubmission()
+        elif self.currentText() == "Comment":
+            self.propCombobox.initComment()
+
+
+class PropCombobox(QComboBox):
+
+    def __init__(self, row, operCombobox, validOperForPropMap):
+        super().__init__()
+        self.row = row
+        self.operCombobox = operCombobox
+        self.validOperForPropMap = validOperForPropMap
+        self.initSubmission()
+        self.currentIndexChanged.connect(self.changeOperCombobox)
+
+    def initSubmission(self):
+        self.clear()
+        self.addItem("selftext")
+        self.addItem("title")
+        self.addItem("score")
+        self.addItem("domain")
+        self.addItem("edited")
+        self.addItem("stickied")
+        self.addItem("permalink")
+        self.addItem("over_18")
+        self.addItem("subreddit")
+        self.addItem("url")
+        self.addItem("author")
+        self.addItem("is_self")
+
+    def initComment(self):
+        self.clear()
+        self.addItem("body")
+        self.addItem("gilded")
+        self.addItem("score")
+        self.addItem("author")
+        self.addItem("edited")
+        self.addItem("subreddit")
+        self.addItem("controversiality")
+
+    def getPropType(self):
+        propType = ""
+        if self.currentText() in {"selftext", "title", "domain", "subreddit", "url", "author", "body", "permalink"}:
+            propType = "string"
+        elif self.currentText() in {"score", "controversiality"}:
+            propType = "number"
+        elif self.currentText() in {"edited", "stickied", "over_18", "is_self", "gilded"}:
+            propType = "boolean"
+        return propType
+
+    def changeOperCombobox(self, index):
+        propType = self.getPropType()
+        validOpers = self.validOperForPropMap.get(propType)
+        if validOpers is not None:
+            self.operCombobox.changeOpers(validOpers)
+
+
+class OperCombobox(QComboBox):
+
+    def __init__(self, row):
+        super().__init__()
+        self.row = row
+
+    def changeOpers(self, validOpers):
+        self.clear()
+        for oper in validOpers:
+            self.addItem(oper)
 
 
 class SettingsGUI(QDialog, Ui_SettingsDialog):
-    def __init__(self, rddtScraper):
+    def __init__(self, rddtDataExtractor):
         QDialog.__init__(self)
 
         # Set up the user interface from Designer.
         self.setupUi(self)
 
-        self.userLists = rddtScraper.userLists
-        self.subredditLists = rddtScraper.subredditLists
-        self.currentUserListName = rddtScraper.defaultUserListName
-        self.currentSubredditListName = rddtScraper.defaultSubredditListName
-        self.avoidDuplicates = rddtScraper.avoidDuplicates
-        self.getExternalContent = rddtScraper.getExternalContent
-        self.getCommentExternalContent = rddtScraper.getCommentExternalContent
-        self.getSelftextExternalContent = rddtScraper.getSelftextExternalContent
-        self.getSubmissionContent = rddtScraper.getSubmissionContent
-        self.subSort = rddtScraper.subSort
-        self.subLimit = rddtScraper.subLimit
-        self.operMap = rddtScraper.operMap
-        self.validOperForPropMap = rddtScraper.validOperForPropMap
-        self.connectMap = rddtScraper.connectMap
-        self.filterExternalContent= rddtScraper.filterExternalContent
-        self.filterSubmissionContent = rddtScraper.filterSubmissionContent
-        self.restrictDownloadsByCreationDate = rddtScraper.restrictDownloadsByCreationDate
+        self.userLists = rddtDataExtractor.userLists
+        self.subredditLists = rddtDataExtractor.subredditLists
+        self.currentUserListName = rddtDataExtractor.defaultUserListName
+        self.currentSubredditListName = rddtDataExtractor.defaultSubredditListName
+        self.avoidDuplicates = rddtDataExtractor.avoidDuplicates
+        self.getExternalContent = rddtDataExtractor.getExternalContent
+        self.getCommentExternalContent = rddtDataExtractor.getCommentExternalContent
+        self.getSelftextExternalContent = rddtDataExtractor.getSelftextExternalContent
+        self.getSubmissionContent = rddtDataExtractor.getSubmissionContent
+        self.subSort = rddtDataExtractor.subSort
+        self.subLimit = rddtDataExtractor.subLimit
+        self.operMap = rddtDataExtractor.operMap
+        self.validOperForPropMap = rddtDataExtractor.validOperForPropMap
+        self.connectMap = rddtDataExtractor.connectMap
+        self.filterExternalContent= rddtDataExtractor.filterExternalContent
+        self.filterSubmissionContent = rddtDataExtractor.filterSubmissionContent
+        self.restrictDownloadsByCreationDate = rddtDataExtractor.restrictDownloadsByCreationDate
         self.validator = QIntValidator(1, 100)
         self.filtTableTypeCol = 0
         self.filtTablePropCol = 1
@@ -94,7 +174,7 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.subLimitTextEdit.setText(str(self.subLimit))
 
         self.filterTable.cellPressed.connect(self.addFilter)
-        self.constructFilterTable(rddtScraper.postFilts, rddtScraper.commentFilts, rddtScraper.connector, rddtScraper.operMap, rddtScraper.connectMap)
+        self.constructFilterTable(rddtDataExtractor.postFilts, rddtDataExtractor.commentFilts, rddtDataExtractor.connector, rddtDataExtractor.operMap, rddtDataExtractor.connectMap)
         self.filterExternalContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.filterExternalContentCheckBox, 'filterExternalContent'))
         self.filterSubmissionContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.filterSubmissionContentCheckBox, 'filterSubmissionContent'))
 
@@ -143,16 +223,12 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         print("adding for row:" + str(row))
         self.addFilter(row, self.filtTableTypeCol, type)
         typeCombobox = self.filterTable.cellWidget(row, self.filtTableTypeCol)
-        typeCombobox.setCurrentIndex(typeCombobox.findText(type))
         print(typeCombobox.currentText())
         propCombobox = self.filterTable.cellWidget(row, self.filtTablePropCol)
         propCombobox.setCurrentIndex(propCombobox.findText(prop))
         print(prop)
-        propType = self.getPropType(propCombobox.currentText())
-        validOpers = self.validOperForPropMap.get(propType)
-        if validOpers is not None:
-            operCombobox = self.filterTable.cellWidget(row, self.filtTableOperCol)
-            operCombobox.setCurrentIndex(operCombobox.findText(findKey(operMap, oper)))
+        operCombobox = self.filterTable.cellWidget(row, self.filtTableOperCol)
+        operCombobox.setCurrentIndex(operCombobox.findText(findKey(operMap, oper)))
         print(findKey(operMap, oper))
         valTextWidget = self.filterTable.cellWidget(row, self.filtTableValCol)
         valTextWidget.setPlainText(str(val))
@@ -173,9 +249,9 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
                 row += 1
             connectorText = findKey(connectMap, connector)
             for row in range(self.filterTable.rowCount() - 1):
-                ConnectComboBox.text = connectorText # Set this to whatever the connector is currently so on creation of new ones, it doesn't default to And
+                ConnectCombobox.text = connectorText # Set this to whatever the connector is currently so on creation of new ones, it doesn't default to And
                 print("adding connector for row: " + str(row))
-                connectCombobox = ConnectComboBox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
+                connectCombobox = ConnectCombobox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
                 connectCombobox.setCurrentIndex(connectCombobox.findText(connectorText))
                 self.filterTable.setCellWidget(row, self.filtTableConnectCol, connectCombobox)
         else:
@@ -204,91 +280,20 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
             print("valid: " + text + "\n---------------------------------")
             self.subLimit = int(text)
 
-    def makeTypeComboBox(self, row):
-        combobox = QComboBox()
-        combobox.addItem("Submission")
-        combobox.addItem("Comment")
-        combobox.activated.connect(lambda: self.changePropComboBox(combobox.currentText(), row))
-        return combobox
-
-    def makeSubmissionPropComboBox(self, row):
-        combobox = QComboBox()
-        combobox.addItem("selftext")
-        combobox.addItem("title")
-        combobox.addItem("score")
-        combobox.addItem("domain")
-        combobox.addItem("edited")
-        combobox.addItem("stickied")
-        combobox.addItem("permalink")
-        combobox.addItem("over_18")
-        combobox.addItem("subreddit")
-        combobox.addItem("url")
-        combobox.addItem("author")
-        combobox.addItem("is_self")
-        combobox.activated.connect(lambda: self.changeOperComboBox(combobox.currentText(), row))
-        return combobox
-
-    def makeCommentPropComboBox(self, row):
-        combobox = QComboBox()
-        combobox.addItem("body")
-        combobox.addItem("gilded")
-        combobox.addItem("score")
-        combobox.addItem("author")
-        combobox.addItem("edited")
-        combobox.addItem("subreddit")
-        combobox.addItem("controversiality")
-        combobox.activated.connect(lambda: self.changeOperComboBox(combobox.currentText(), row))
-        return combobox
-
-    def makeOperComboBox(self, validOpers):
-        combobox = QComboBox()
-        for oper in validOpers:
-            combobox.addItem(oper)
-        return combobox
-
-    def changePropComboBox(self, text, row):
-        if text == "Submission":
-            combobox = self.makeSubmissionPropComboBox(row)
-        elif text == "Comment":
-            combobox = self.makeCommentPropComboBox(row)
-        if combobox is not None:
-            self.filterTable.setCellWidget(row, self.filtTablePropCol, combobox)
-
-    def changeOperComboBox(self, curText, row):
-        propType = self.getPropType(curText)
-        validOpers = self.validOperForPropMap.get(propType)
-        if validOpers is not None:
-            combobox = self.makeOperComboBox(validOpers)
-            self.filterTable.setCellWidget(row, self.filtTableOperCol, combobox)
-
-    def getPropType(self, curText):
-        propType = ""
-        if curText in {"selftext", "title", "domain", "subreddit", "url", "author", "body", "permalink"}:
-            propType = "string"
-        elif curText in {"score", "controversiality"}:
-            propType = "number"
-        elif curText in {"edited", "stickied", "over_18", "is_self", "gilded"}:
-            propType = "boolean"
-        return propType
 
     def addFilter(self, row, col, type="Submission"):
         if col == self.filtTableTypeCol:
-            typeCombobox = self.makeTypeComboBox(row)
-            if type == "Submission":
-                propCombobox = self.makeSubmissionPropComboBox(row)
-            elif type == "Comment":
-                propCombobox = self.makeCommentPropComboBox(row)
-            propType = self.getPropType(propCombobox.currentText())
-            validOpers = self.validOperForPropMap.get(propType)
-            if validOpers is not None:
-                operCombobox = self.makeOperComboBox(validOpers)
-                self.filterTable.setCellWidget(row, self.filtTableOperCol, operCombobox)
+            operCombobox = OperCombobox(row)
+            propCombobox = PropCombobox(row, operCombobox, self.validOperForPropMap)
+            typeCombobox = TypeCombobox(row, propCombobox)
+            typeCombobox.setCurrentIndex(typeCombobox.findText(type))
             textEdit = QPlainTextEdit()
             self.filterTable.setCellWidget(row, self.filtTableTypeCol, typeCombobox)
             self.filterTable.setCellWidget(row, self.filtTablePropCol, propCombobox)
+            self.filterTable.setCellWidget(row, self.filtTableOperCol, operCombobox)
             self.filterTable.setCellWidget(row, self.filtTableValCol, textEdit)
         elif col == self.filtTableConnectCol:
-            connectCombobox = ConnectComboBox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
+            connectCombobox = ConnectCombobox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
             self.filterTable.setCellWidget(row, self.filtTableConnectCol, connectCombobox)
             self.filterTable.insertRow(row + 1)
             self.addFilter(row + 1, self.filtTableTypeCol, "Submission")

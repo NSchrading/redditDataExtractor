@@ -5,7 +5,7 @@ import shelve
 from PyQt4.Qt import *
 from rddtScrape_auto import Ui_RddtScrapeMainWindow
 from settingsGUI import SettingsGUI
-from redditData import RedditData, DownloadType, ListType
+from redditDataExtractor import RedditDataExtractor, DownloadType, ListType
 from downloadedPostsGUI import DownloadedPostsGUI
 from listModel import ListModel
 from genericListModelObjects import GenericListModelObj, User, Subreddit
@@ -48,9 +48,9 @@ class Validator(QObject):
     finished = pyqtSignal(list)
     invalid = pyqtSignal(str)
 
-    def __init__(self, rddtScraper, queue, data, listType):
+    def __init__(self, rddtDataExtractor, queue, data, listType):
         super().__init__()
-        self.rddtScraper = rddtScraper
+        self.rddtDataExtractor = rddtDataExtractor
         self.queue = queue
         self.data = data
         self.listType = listType
@@ -60,10 +60,10 @@ class Validator(QObject):
     def run(self):
         if self.listType == ListType.USER:
             s = "user "
-            validateFunc = self.rddtScraper.getRedditor
+            validateFunc = self.rddtDataExtractor.getRedditor
         else:
             s = "subreddit "
-            validateFunc = self.rddtScraper.getSubreddit
+            validateFunc = self.rddtDataExtractor.getSubreddit
         for d in self.data:
             name = d.name
             self.queue.put("Validating " + s + name + "\n")
@@ -84,6 +84,7 @@ class listViewAndChooser(QListView):
         self.defaultLstName = defaultLstName
         self.classToUse = classToUse
         self.gui = gui
+        self.rddtDataExtractor = self.gui.rddtDataExtractor
 
         for lstKey in self.chooserDict:
             print("Adding to chooser: " + str(lstKey))
@@ -123,15 +124,15 @@ class listViewAndChooser(QListView):
                                                        "New " + self.objectName().capitalize() + " List Name:",
                                                        QLineEdit.Normal, "New " + self.objectName().capitalize() + " List")
         if okay and len(listName) > 0:
-            if any([listName in lst for lst in self.rddtScraper.subredditLists]):
+            if any([listName in lst for lst in self.rddtDataExtractor.subredditLists]):
                 QMessageBox.information(QMessageBox(), "Reddit Scraper", "Duplicate subreddit list names not allowed.")
                 return
             self.lstChooser.addItem(listName)
             self.lstChooser.setCurrentIndex(self.lstChooser.count() - 1)
             self.chooserDict[listName] = ListModel([], self.classToUse)
             self.chooseNewList(self.lstChooser.count() - 1)
-            if self.rddtScraper.defaultSubredditListName is None:  # becomes None if user deletes all subreddit lists
-                self.rddtScraper.defaultSubredditListName = listName
+            if self.rddtDataExtractor.defaultSubredditListName is None:  # becomes None if user deletes all subreddit lists
+                self.rddtDataExtractor.defaultSubredditListName = listName
             self.gui.setUnsavedChanges(True)
 
     def viewDownloadedPosts(self):
@@ -152,36 +153,35 @@ class listViewAndChooser(QListView):
 
 class userListViewAndChooser(listViewAndChooser):
     def __init__(self, gui):
-        super().__init__(gui, gui.userListChooser, gui.rddtScraper.userLists, gui.rddtScraper.defaultUserListName, User, "user")
-        self.rddtScraper = self.gui.rddtScraper
-        self.rddtScraper.currentUserListName = self.defaultLstName
+        super().__init__(gui, gui.userListChooser, gui.rddtDataExtractor.userLists, gui.rddtDataExtractor.defaultUserListName, User, "user")
+        self.rddtDataExtractor.currentUserListName = self.defaultLstName
 
     def chooseNewList(self, listIndex):
         listName = self.lstChooser.itemText(listIndex)
         print("Choosing new list: " + listName)
-        self.rddtScraper.currentUserListName = listName
+        self.rddtDataExtractor.currentUserListName = listName
         model = self.chooserDict.get(listName)
         self.setModel(model)
 
     def removeNonDefaultLst(self):
-        self.rddtScraper.currentUserListName = self.rddtScraper.defaultUserListName
-        name = self.rddtScraper.currentUserListName
+        self.rddtDataExtractor.currentUserListName = self.rddtDataExtractor.defaultUserListName
+        name = self.rddtDataExtractor.currentUserListName
         index = self.lstChooser.findText(name)
         self.lstChooser.setCurrentIndex(index)
         self.chooseNewList(index)
 
     def removeDefaultLst(self):
         modelName = list(self.chooserDict)[0]
-        self.rddtScraper.currentUserListName = modelName
-        self.rddtScraper.defaultUserListName = modelName
+        self.rddtDataExtractor.currentUserListName = modelName
+        self.rddtDataExtractor.defaultUserListName = modelName
         index = self.lstChooser.findText(modelName)
         self.lstChooser.setCurrentIndex(index)
         self.chooseNewList(index)
 
     def removeLastLst(self):
         print('deleting last list')
-        self.rddtScraper.currentUserListName = None
-        self.rddtScraper.defaultUserListName = None
+        self.rddtDataExtractor.currentUserListName = None
+        self.rddtDataExtractor.defaultUserListName = None
         self.setModel(ListModel([], GenericListModelObj))
 
     def removeLst(self):
@@ -196,7 +196,7 @@ class userListViewAndChooser(listViewAndChooser):
                 return
             self.lstChooser.removeItem(self.lstChooser.currentIndex())
             del self.chooserDict[name]
-            defaultName = self.rddtScraper.defaultUserListName
+            defaultName = self.rddtDataExtractor.defaultUserListName
             # if default is not being removed, just remove and switch to default
             if name != defaultName:
                 self.removeNonDefaultLst()
@@ -210,36 +210,35 @@ class userListViewAndChooser(listViewAndChooser):
 
 class subredditListViewAndChooser(listViewAndChooser):
     def __init__(self, gui):
-        super().__init__(gui, gui.subredditListChooser, gui.rddtScraper.subredditLists, gui.rddtScraper.defaultSubredditListName, Subreddit, "subreddit")
-        self.rddtScraper = self.gui.rddtScraper
-        self.rddtScraper.currentSubredditListName = self.defaultLstName
+        super().__init__(gui, gui.subredditListChooser, gui.rddtDataExtractor.subredditLists, gui.rddtDataExtractor.defaultSubredditListName, Subreddit, "subreddit")
+        self.rddtDataExtractor.currentSubredditListName = self.defaultLstName
 
     def chooseNewList(self, listIndex):
         listName = self.lstChooser.itemText(listIndex)
         print("Choosing new list: " + listName)
-        self.rddtScraper.currentSubredditListName = listName
+        self.rddtDataExtractor.currentSubredditListName = listName
         model = self.chooserDict.get(listName)
         self.setModel(model)
 
     def removeNonDefaultLst(self):
-        self.rddtScraper.currentSubredditListName = self.rddtScraper.defaultSubredditListName
-        name = self.rddtScraper.currentSubredditListName
+        self.rddtDataExtractor.currentSubredditListName = self.rddtDataExtractor.defaultSubredditListName
+        name = self.rddtDataExtractor.currentSubredditListName
         index = self.lstChooser.findText(name)
         self.lstChooser.setCurrentIndex(index)
         self.chooseNewList(index)
 
     def removeDefaultLst(self):
         modelName = list(self.chooserDict)[0]
-        self.rddtScraper.currentSubredditListName = modelName
-        self.rddtScraper.defaultSubredditListName = modelName
+        self.rddtDataExtractor.currentSubredditListName = modelName
+        self.rddtDataExtractor.defaultSubredditListName = modelName
         index = self.lstChooser.findText(modelName)
         self.lstChooser.setCurrentIndex(index)
         self.chooseNewList(index)
 
     def removeLastLst(self):
         print('deleting last list')
-        self.rddtScraper.currentSubredditListName = None
-        self.rddtScraper.defaultSubredditListName = None
+        self.rddtDataExtractor.currentSubredditListName = None
+        self.rddtDataExtractor.defaultSubredditListName = None
         self.setModel(ListModel([], GenericListModelObj))
 
     def removeLst(self):
@@ -254,7 +253,7 @@ class subredditListViewAndChooser(listViewAndChooser):
                 return
             self.lstChooser.removeItem(self.lstChooser.currentIndex())
             del self.chooserDict[name]
-            defaultName = self.rddtScraper.defaultSubredditListName
+            defaultName = self.rddtDataExtractor.defaultSubredditListName
             # if default is not being removed, just remove and switch to default
             if name != defaultName:
                 self.removeNonDefaultLst()
@@ -267,13 +266,13 @@ class subredditListViewAndChooser(listViewAndChooser):
             self.gui.setUnsavedChanges(True)
 
 class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
-    def __init__(self, rddtScraper, queue, recv):
+    def __init__(self, rddtDataExtractor, queue, recv):
         QMainWindow.__init__(self)
 
         # Set up the user interface from Designer.
         self.setupUi(self)
 
-        self.rddtScraper = rddtScraper
+        self.rddtDataExtractor = rddtDataExtractor
 
         self.currentSelectedUserText = ""
         self.currentSelectedSubredditText = ""
@@ -291,7 +290,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
     def setup(self):
         self.init()
 
-        self.directoryBox.setText(self.rddtScraper.defaultPath)
+        self.directoryBox.setText(self.rddtDataExtractor.defaultPath)
 
         self.directorySelectBtn.clicked.connect(self.selectDirectory)
         self.addUserBtn.clicked.connect(self.userList.addToList)
@@ -334,9 +333,9 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.downloadBtn.clicked.connect(self.beginDownload)
 
         self.userSubBtn.clicked.connect(
-            lambda: self.rddtScraper.changeDownloadType(DownloadType.USER_SUBREDDIT_CONSTRAINED))
-        self.allUserBtn.clicked.connect(lambda: self.rddtScraper.changeDownloadType(DownloadType.USER_SUBREDDIT_ALL))
-        self.allSubBtn.clicked.connect(lambda: self.rddtScraper.changeDownloadType(DownloadType.SUBREDDIT_CONTENT))
+            lambda: self.rddtDataExtractor.changeDownloadType(DownloadType.USER_SUBREDDIT_CONSTRAINED))
+        self.allUserBtn.clicked.connect(lambda: self.rddtDataExtractor.changeDownloadType(DownloadType.USER_SUBREDDIT_ALL))
+        self.allSubBtn.clicked.connect(lambda: self.rddtDataExtractor.changeDownloadType(DownloadType.SUBREDDIT_CONTENT))
 
         self.actionAbout.triggered.connect(self.displayAbout)
 
@@ -351,11 +350,11 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
     def init(self):
         self.initUserList()
         self.initSubredditList()
-        if(self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED):
+        if(self.rddtDataExtractor.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED):
             self.userSubBtn.setChecked(True)
-        elif(self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_ALL):
+        elif(self.rddtDataExtractor.downloadType == DownloadType.USER_SUBREDDIT_ALL):
             self.allUserBtn.setChecked(True)
-        elif(self.rddtScraper.downloadType == DownloadType.SUBREDDIT_CONTENT):
+        elif(self.rddtDataExtractor.downloadType == DownloadType.SUBREDDIT_CONTENT):
             self.allSubBtn.setChecked(True)
 
     @pyqtSlot()
@@ -363,21 +362,21 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         self.downloadBtn.setText("Downloading...")
         self.downloadBtn.setEnabled(False)
         self.logTextEdit.clear()
-        if self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED:
+        if self.rddtDataExtractor.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED:
             # need to validate both subreddits and redditors, start downloading user data once done
             self.getValidSubreddits()
             self.getValidRedditors(startDownload=True)
-        elif self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_ALL:
+        elif self.rddtDataExtractor.downloadType == DownloadType.USER_SUBREDDIT_ALL:
             self.getValidRedditors(startDownload=True)
-        elif self.rddtScraper.downloadType == DownloadType.SUBREDDIT_CONTENT:
+        elif self.rddtDataExtractor.downloadType == DownloadType.SUBREDDIT_CONTENT:
             self.getValidSubreddits(startDownload=True)
 
     @pyqtSlot(list)
     def downloadValid(self, validData):
-        if self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED or self.rddtScraper.downloadType == DownloadType.USER_SUBREDDIT_ALL:
-            self.downloader = Downloader(self.rddtScraper, validData, self.queue, ListType.USER)
-        elif self.rddtScraper.downloadType == DownloadType.SUBREDDIT_CONTENT:
-            self.downloader = Downloader(self.rddtScraper, validData, self.queue, ListType.SUBREDDIT)
+        if self.rddtDataExtractor.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED or self.rddtDataExtractor.downloadType == DownloadType.USER_SUBREDDIT_ALL:
+            self.downloader = Downloader(self.rddtDataExtractor, validData, self.queue, ListType.USER)
+        elif self.rddtDataExtractor.downloadType == DownloadType.SUBREDDIT_CONTENT:
+            self.downloader = Downloader(self.rddtDataExtractor, validData, self.queue, ListType.SUBREDDIT)
         self.thread = QThread()
         self.downloader.moveToThread(self.thread)
         self.thread.started.connect(self.downloader.run)
@@ -396,14 +395,14 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
     def activateDownloadBtn(self):
         self.downloadBtn.setText("Download!")
         self.downloadBtn.setEnabled(True)
-        self.rddtScraper.currentlyDownloading = False
+        self.rddtDataExtractor.currentlyDownloading = False
 
     def getValidRedditors(self, startDownload=False):
         model = self.userList.model()
         users = set(model.lst)  # create a new set so we don't change set size during iteration if we remove a user
         # These are class variables so that they don't get destroyed when we return from getValidRedditors()
         self.redditorValidatorThread = QThread()
-        self.redditorValidator = Validator(self.rddtScraper, self.queue, users, ListType.USER)
+        self.redditorValidator = Validator(self.rddtDataExtractor, self.queue, users, ListType.USER)
         self.redditorValidator.moveToThread(self.redditorValidatorThread)
         self.redditorValidatorThread.started.connect(self.redditorValidator.run)
         self.redditorValidator.invalid.connect(self.notifyInvalidRedditor)
@@ -429,7 +428,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         model = self.subredditList.model()
         subreddits = set(model.lst)
         self.subredditValidatorThread = QThread()
-        self.subredditValidator = Validator(self.rddtScraper, self.queue, subreddits, ListType.SUBREDDIT)
+        self.subredditValidator = Validator(self.rddtDataExtractor, self.queue, subreddits, ListType.SUBREDDIT)
         self.subredditValidator.moveToThread(self.subredditValidatorThread)
         self.subredditValidatorThread.started.connect(self.subredditValidator.run)
         self.subredditValidator.invalid.connect(self.notifyInvalidSubreddit)
@@ -453,7 +452,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
     def selectDirectory(self):
         directory = QFileDialog.getExistingDirectory(QFileDialog())
         if len(directory) > 0 and os.path.exists(directory):
-            self.rddtScraper.defaultPath = directory
+            self.rddtDataExtractor.defaultPath = directory
             self.directoryBox.setText(directory)
             self.setUnsavedChanges(True)
 
@@ -465,14 +464,14 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         if filterTable.rowCount() > 0:
             connectorWidget = filterTable.cellWidget(0, settings.filtTableConnectCol)
             if connectorWidget is not None:
-                connector = self.rddtScraper.mapConnectorTextToOper(connectorWidget.currentText())
+                connector = self.rddtDataExtractor.mapConnectorTextToOper(connectorWidget.currentText())
             else:
                 connector = None # We are just filtering by a single thing
             for row in range(filterTable.rowCount()):
                 print("row: " + str(row))
                 type = filterTable.cellWidget(row, settings.filtTableTypeCol).currentText()
                 prop = filterTable.cellWidget(row, settings.filtTablePropCol).currentText()
-                oper = self.rddtScraper.mapFilterTextToOper(filterTable.cellWidget(row, settings.filtTableOperCol).currentText())
+                oper = self.rddtDataExtractor.mapFilterTextToOper(filterTable.cellWidget(row, settings.filtTableOperCol).currentText())
                 val = filterTable.cellWidget(row, settings.filtTableValCol).toPlainText()
                 if val.lower() == "false":
                     val = False
@@ -489,29 +488,29 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
         return postFilts, commentFilts, connector
 
     def showSettings(self):
-        settings = SettingsGUI(self.rddtScraper)
+        settings = SettingsGUI(self.rddtDataExtractor)
         ret = settings.exec_()
         if ret == QDialog.Accepted:
             self.logPrint(
                 "Saving settings:\n" + str(settings.currentUserListName) + "\n" + str(
                     settings.currentSubredditListName))
-            self.rddtScraper.defaultUserListName = settings.currentUserListName
-            self.rddtScraper.defaultSubredditListName = settings.currentSubredditListName
+            self.rddtDataExtractor.defaultUserListName = settings.currentUserListName
+            self.rddtDataExtractor.defaultSubredditListName = settings.currentSubredditListName
 
-            self.rddtScraper.avoidDuplicates = settings.avoidDuplicates
-            self.rddtScraper.getExternalContent = settings.getExternalContent
-            self.rddtScraper.getCommentExternalContent = settings.getCommentExternalContent
-            self.rddtScraper.getSelftextExternalContent = settings.getSelftextExternalContent
-            self.rddtScraper.getSubmissionContent = settings.getSubmissionContent
+            self.rddtDataExtractor.avoidDuplicates = settings.avoidDuplicates
+            self.rddtDataExtractor.getExternalContent = settings.getExternalContent
+            self.rddtDataExtractor.getCommentExternalContent = settings.getCommentExternalContent
+            self.rddtDataExtractor.getSelftextExternalContent = settings.getSelftextExternalContent
+            self.rddtDataExtractor.getSubmissionContent = settings.getSubmissionContent
 
-            self.rddtScraper.subSort = settings.subSort
-            self.rddtScraper.subLimit = settings.subLimit
-            self.rddtScraper.filterExternalContent = settings.filterExternalContent
-            self.rddtScraper.filterSubmissionContent=  settings.filterSubmissionContent
+            self.rddtDataExtractor.subSort = settings.subSort
+            self.rddtDataExtractor.subLimit = settings.subLimit
+            self.rddtDataExtractor.filterExternalContent = settings.filterExternalContent
+            self.rddtDataExtractor.filterSubmissionContent=  settings.filterSubmissionContent
             if settings.filterExternalContent or settings.filterSubmissionContent:
-                self.rddtScraper.postFilts, self.rddtScraper.commentFilts, self.rddtScraper.connector = self.convertFilterTableToFilters(settings)
+                self.rddtDataExtractor.postFilts, self.rddtDataExtractor.commentFilts, self.rddtDataExtractor.connector = self.convertFilterTableToFilters(settings)
 
-            self.rddtScraper.restrictDownloadsByCreationDate = settings.restrictDownloadsByCreationDate
+            self.rddtDataExtractor.restrictDownloadsByCreationDate = settings.restrictDownloadsByCreationDate
             self.saveState()
 
     def displayAbout(self):
@@ -587,43 +586,43 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
             print(s)
 
     def saveState(self):
-        successful = self.rddtScraper.saveState()
+        successful = self.rddtDataExtractor.saveState()
         self.setUnsavedChanges(not successful)
 
 
 def loadState():
     print("attempting to load state")
     shelf = shelve.open("settings.db")
-    rddtScraper = None
+    rddtDataExtractor = None
     try:
-        rddtScraper = shelf['rddtScraper']
+        rddtDataExtractor = shelf['rddtDataExtractor']
         userListSettings = shelf['userLists']
         subredditListSettings = shelf['subredditLists']
-        rddtScraper.userLists = {}
-        rddtScraper.subredditLists = {}
+        rddtDataExtractor.userLists = {}
+        rddtDataExtractor.subredditLists = {}
         for key, val in userListSettings.items():
             print("loading from saved " + key)
-            rddtScraper.userLists[key] = ListModel(val, User)
+            rddtDataExtractor.userLists[key] = ListModel(val, User)
         for key, val in subredditListSettings.items():
             print("loading from saved " + key)
-            rddtScraper.subredditLists[key] = ListModel(val, Subreddit)
+            rddtDataExtractor.subredditLists[key] = ListModel(val, Subreddit)
     except KeyError as e:
         print(e)
     finally:
         shelf.close()
-        return rddtScraper
+        return rddtDataExtractor
 
 def main():
     a = QApplication(sys.argv)
-    rddtScraper = loadState()
-    if rddtScraper is None:
+    rddtDataExtractor = loadState()
+    if rddtDataExtractor is None:
         print("rddt data client was None, making new one")
-        rddtScraper = RedditData()
-    rddtScraper.currentlyDownloading = False # If something weird happened to cause currentlyDownloading to be saved as True, set it back to False
+        rddtDataExtractor = RedditDataExtractor()
+    rddtDataExtractor.currentlyDownloading = False # If something weird happened to cause currentlyDownloading to be saved as True, set it back to False
     queue = Queue()
     thread = QThread()
     recv = MyReceiver(queue)
-    w = RddtScrapeGUI(rddtScraper, queue, recv)
+    w = RddtScrapeGUI(rddtDataExtractor, queue, recv)
     recv.mysignal.connect(w.append_text)
     recv.moveToThread(thread)
     thread.started.connect(recv.run)
