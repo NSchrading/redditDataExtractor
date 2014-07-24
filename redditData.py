@@ -32,13 +32,19 @@ def notBeginWith(s, val):
     return not s.lstrip().startswith(val)
 
 def endWith(s, val):
-    return s.rstrip().startswith(val)
+    return s.rstrip().endswith(val)
 
 def notEndWith(s, val):
     return not s.rstrip().endswith(val)
 
 def notContain(s, val):
     return not val in s
+
+def equalsBool(s, val):
+    if s == False or s == "False" or s == "":
+        return not val
+    else: # works with edited field which is a utc float if true and False if not true -- stupid reddit api
+        return val
 
 class DownloadType():
     USER_SUBREDDIT_CONSTRAINED = 1
@@ -53,7 +59,7 @@ class RedditData():
     __slots__ = ('defaultPath', 'subredditLists', 'userLists', 'currentSubredditListName', 'currentUserListName',
                  'defaultSubredditListName', 'defaultUserListName', 'downloadedUserPosts', 'r', 'downloadType',
                  'avoidDuplicates', 'getExternalContent', 'getSubmissionContent', 'getCommentExternalContent', 'subSort',
-                 'subLimit', 'supportedDomains', 'urlFinder', 'operMap', 'connectMap', 'postFilts', 'commentFilts', 'connector', 'filterExternalContent', 'filterSubmissionContent', 'commentCache', 'restrictDownloadsByCreationDate', 'getSelftextExternalContent')
+                 'subLimit', 'supportedDomains', 'urlFinder', 'operMap', 'connectMap', 'postFilts', 'commentFilts', 'connector', 'filterExternalContent', 'filterSubmissionContent', 'commentCache', 'restrictDownloadsByCreationDate', 'getSelftextExternalContent', 'currentlyDownloading', 'validOperForPropMap')
 
     def __init__(self):
         self.defaultPath = os.path.abspath(os.path.expanduser('Downloads'))
@@ -93,7 +99,9 @@ class RedditData():
                         "Does not begin with": notBeginWith, "Ends with": endWith,
                         "Does not end with": notEndWith, "Greater than": operator.gt,
                         "Less than": operator.lt, "Contains": operator.contains,
-                        "Does not contain": notContain}
+                        "Does not contain": notContain, "Equals bool": equalsBool}
+
+        self.validOperForPropMap = {"boolean": {"Equals bool"}, "number": {"Equals", "Does not equal", "Greater than", "Less than"}, "string": {"Equals", "Does not equal", "Begins with", "Does not begin with", "Ends with", "Does not end with", "Greater than", "Less than", "Contains", "Does not contain"}}
 
         self.connectMap = {"And": all, "Or": any, "Xor": xorLst}
 
@@ -104,6 +112,7 @@ class RedditData():
         self.filterSubmissionContent = False
         self.commentCache = {}
         self.restrictDownloadsByCreationDate = True
+        self.currentlyDownloading = False
 
     def getImages(self, post, user, queue, specialString=None, specialCount=None, specialPath=None):
         imageFinder = None
@@ -137,17 +146,10 @@ class RedditData():
     def isValidPost(self, post, listModel):
         """ Determines if this is a good post to download from
         Valid if:
-            it is a new submission (meaning the files have not been downloaded from this post already)
             it is not a xpost from another subreddit which is itself a valid subreddit (to avoid duplicate file downloads)
             it is not in a blacklisted post for the user
         """
-        return self.isNewSubmission(post, listModel) and self.isNotXPost(post) and listModel.isNotInBlacklist(post.permalink) and (not self.restrictDownloadsByCreationDate or listModel.postBeforeLastDownload(post))
-
-    @staticmethod
-    def isNewSubmission(post, user):
-        redditURL = post.permalink
-        downloads = user.redditPosts
-        return len(downloads) <= 0 or redditURL not in downloads
+        return self.isNotXPost(post) and listModel.isNotInBlacklist(post.permalink) and (not self.restrictDownloadsByCreationDate or listModel.postBeforeLastDownload(post))
 
     def isNotXPost(self, post):
         if not self.avoidDuplicates:
@@ -182,9 +184,18 @@ class RedditData():
                 passes = any([oper(comment.__dict__.get(prop), val) for comment in comments if isinstance(comment, praw.objects.Comment) and comment.__dict__.get(prop) is not None])
         return passes
 
+    @staticmethod
+    def isNewContent(post, lstModelObj, downloadedPostType):
+        redditURL = post.permalink
+        allRedditPostsOfLstModelObj = lstModelObj.redditPosts
+        downloadedContentOfPost = allRedditPostsOfLstModelObj.get(redditURL)
+        if len(allRedditPostsOfLstModelObj) <= 0 or downloadedContentOfPost is None:
+            return True
+        return not any([downloadedPost.type == downloadedPostType for downloadedPost in downloadedContentOfPost])
+
+
     def cacheComments(self, comments, postID):
-        pass
-        #self.commentCache[postID] = comments
+        self.commentCache[postID] = comments
 
     def getSubredditSubmissions(self, validSubreddit, subredditListModel):
         if self.subSort == 'new':
@@ -277,8 +288,10 @@ class RedditData():
         urls = {}
         if self.commentCache.get(submission.id) is None:
             allComments = praw.helpers.flatten_tree(submission.comments)
+            self.cacheComments(allComments, submission.id)
         else:
             allComments = self.commentCache.get(submission.id)
+            print("got from the cache!! YAY!!!")
         for comment in allComments:
             if isinstance(comment, praw.objects.Comment):  # Make sure it isn't a MoreComments object
                 author = comment.author
@@ -326,31 +339,35 @@ class RedditData():
         return self.connectMap.get(text)
 
     def saveState(self):
-        userListModels = self.userLists
-        userListSettings = {}  # Use this to save normally unpickleable stuff
-        subredditListModels = self.subredditLists
-        subredditListSettings = {}
         successful = False
-        for key, val in userListModels.items():
-            userListSettings[key] = val.lst
-        for key, val in subredditListModels.items():
-            subredditListSettings[key] = val.lst
-        shelf = shelve.open("settings.db")
-        try:
-            self.userLists = None  # QAbstractListModel is not pickleable so set this to None
-            self.subredditLists = None
-            shelf['rddtScraper'] = self
-            shelf['userLists'] = userListSettings  # Save QAbstractList data as a simple dict of list
-            shelf['subredditLists'] = subredditListSettings
-            self.userLists = userListModels  # Restore the user lists in case the user is not exiting program
-            self.subredditLists = subredditListModels
-            print("Saving program")
-            successful = True
-        except KeyError:
-            print("save fail")
-            successful = False
-        finally:
-            shelf.close()
+        if not self.currentlyDownloading:
+            userListModels = self.userLists
+            userListSettings = {}  # Use this to save normally unpickleable stuff
+            subredditListModels = self.subredditLists
+            subredditListSettings = {}
+            commentCache = self.commentCache
+            self.commentCache = {}
+            for key, val in userListModels.items():
+                userListSettings[key] = val.lst
+            for key, val in subredditListModels.items():
+                subredditListSettings[key] = val.lst
+            shelf = shelve.open("settings.db")
+            try:
+                self.userLists = None  # QAbstractListModel is not pickleable so set this to None
+                self.subredditLists = None
+                shelf['rddtScraper'] = self
+                shelf['userLists'] = userListSettings  # Save QAbstractList data as a simple dict of list
+                shelf['subredditLists'] = subredditListSettings
+                print("Saving program")
+                successful = True
+            except KeyError:
+                print("save fail")
+                successful = False
+            finally:
+                shelf.close()
+                self.userLists = userListModels  # Restore the user lists in case the user is not exiting program
+                self.subredditLists = subredditListModels
+                self.commentCache = commentCache
         return successful
 
     def isNotInBlacklist(self, post):

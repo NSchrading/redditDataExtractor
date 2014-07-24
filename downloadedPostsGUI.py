@@ -69,7 +69,7 @@ class DownloadedPostsGUI(QDialog, Ui_DownloadedPosts):
                         self.addToTab(post, postURL, self.selftextLst)
         else:
             QMessageBox.information(QMessageBox(), "Reddit Scraper",
-                                    "The selected " + self.objectName() + " has no downloaded posts. Download some by hitting the download button.")
+                                    self.startingLstModelObj.name + " has no downloaded posts. Download some by hitting the download button.")
 
     def clearLsts(self):
         self.submissionJSONLst.clear()

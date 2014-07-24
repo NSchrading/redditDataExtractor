@@ -62,6 +62,7 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.subSort = rddtScraper.subSort
         self.subLimit = rddtScraper.subLimit
         self.operMap = rddtScraper.operMap
+        self.validOperForPropMap = rddtScraper.validOperForPropMap
         self.connectMap = rddtScraper.connectMap
         self.filterExternalContent= rddtScraper.filterExternalContent
         self.filterSubmissionContent = rddtScraper.filterSubmissionContent
@@ -147,8 +148,11 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         propCombobox = self.filterTable.cellWidget(row, self.filtTablePropCol)
         propCombobox.setCurrentIndex(propCombobox.findText(prop))
         print(prop)
-        operCombobox = self.filterTable.cellWidget(row, self.filtTableOperCol)
-        operCombobox.setCurrentIndex(operCombobox.findText(findKey(operMap, oper)))
+        propType = self.getPropType(propCombobox.currentText())
+        validOpers = self.validOperForPropMap.get(propType)
+        if validOpers is not None:
+            operCombobox = self.filterTable.cellWidget(row, self.filtTableOperCol)
+            operCombobox.setCurrentIndex(operCombobox.findText(findKey(operMap, oper)))
         print(findKey(operMap, oper))
         valTextWidget = self.filterTable.cellWidget(row, self.filtTableValCol)
         valTextWidget.setPlainText(str(val))
@@ -207,7 +211,7 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         combobox.activated.connect(lambda: self.changePropComboBox(combobox.currentText(), row))
         return combobox
 
-    def makeSubmissionPropComboBox(self):
+    def makeSubmissionPropComboBox(self, row):
         combobox = QComboBox()
         combobox.addItem("selftext")
         combobox.addItem("title")
@@ -221,9 +225,10 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         combobox.addItem("url")
         combobox.addItem("author")
         combobox.addItem("is_self")
+        combobox.activated.connect(lambda: self.changeOperComboBox(combobox.currentText(), row))
         return combobox
 
-    def makeCommentPropComboBox(self):
+    def makeCommentPropComboBox(self, row):
         combobox = QComboBox()
         combobox.addItem("body")
         combobox.addItem("gilded")
@@ -232,34 +237,55 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         combobox.addItem("edited")
         combobox.addItem("subreddit")
         combobox.addItem("controversiality")
+        combobox.activated.connect(lambda: self.changeOperComboBox(combobox.currentText(), row))
         return combobox
 
-    def makeOperComboBox(self):
+    def makeOperComboBox(self, validOpers):
         combobox = QComboBox()
-        for oper in self.operMap:
+        for oper in validOpers:
             combobox.addItem(oper)
         return combobox
 
     def changePropComboBox(self, text, row):
         if text == "Submission":
-            combobox = self.makeSubmissionPropComboBox()
+            combobox = self.makeSubmissionPropComboBox(row)
         elif text == "Comment":
-            combobox = self.makeCommentPropComboBox()
+            combobox = self.makeCommentPropComboBox(row)
         if combobox is not None:
             self.filterTable.setCellWidget(row, self.filtTablePropCol, combobox)
+
+    def changeOperComboBox(self, curText, row):
+        propType = self.getPropType(curText)
+        validOpers = self.validOperForPropMap.get(propType)
+        if validOpers is not None:
+            combobox = self.makeOperComboBox(validOpers)
+            self.filterTable.setCellWidget(row, self.filtTableOperCol, combobox)
+
+    def getPropType(self, curText):
+        propType = ""
+        if curText in {"selftext", "title", "domain", "subreddit", "url", "author", "body", "permalink"}:
+            propType = "string"
+        elif curText in {"score", "controversiality"}:
+            propType = "number"
+        elif curText in {"edited", "stickied", "over_18", "is_self", "gilded"}:
+            propType = "boolean"
+        return propType
 
     def addFilter(self, row, col, type="Submission"):
         if col == self.filtTableTypeCol:
             typeCombobox = self.makeTypeComboBox(row)
             if type == "Submission":
-                propCombobox = self.makeSubmissionPropComboBox()
+                propCombobox = self.makeSubmissionPropComboBox(row)
             elif type == "Comment":
-                propCombobox = self.makeCommentPropComboBox()
-            operCombobox = self.makeOperComboBox()
+                propCombobox = self.makeCommentPropComboBox(row)
+            propType = self.getPropType(propCombobox.currentText())
+            validOpers = self.validOperForPropMap.get(propType)
+            if validOpers is not None:
+                operCombobox = self.makeOperComboBox(validOpers)
+                self.filterTable.setCellWidget(row, self.filtTableOperCol, operCombobox)
             textEdit = QPlainTextEdit()
             self.filterTable.setCellWidget(row, self.filtTableTypeCol, typeCombobox)
             self.filterTable.setCellWidget(row, self.filtTablePropCol, propCombobox)
-            self.filterTable.setCellWidget(row, self.filtTableOperCol, operCombobox)
             self.filterTable.setCellWidget(row, self.filtTableValCol, textEdit)
         elif col == self.filtTableConnectCol:
             connectCombobox = ConnectComboBox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)

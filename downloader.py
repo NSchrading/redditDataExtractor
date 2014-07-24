@@ -38,6 +38,7 @@ class Downloader(QObject):
     @pyqtSlot()
     def run(self):
         self.finishSignalForTest = False
+        self.rddtScraper.currentlyDownloading = True
         if len(self.validData) > 0:
             for listModel, prawData in self.validData:
                 worker = Worker(self.rddtScraper, listModel, prawData, self.queue, self.listModelType)
@@ -68,19 +69,19 @@ class Worker(QRunnable):
 
     def startDownloadsForPost(self, post):
         name = self.listModel.name
-        if self.rddtScraper.getExternalContent and not post.is_self and not "reddit" in post.domain:
+        if self.rddtScraper.getExternalContent and self.rddtScraper.isNewContent(post, self.listModel, DownloadedPostType.EXTERNAL_SUBMISSION_DATA) and not post.is_self and not "reddit" in post.domain:
             downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.EXTERNAL_SUBMISSION_DATA)
             images = self.rddtScraper.getImages(post, self.listModel, self.queue)
             self.startDownloadImages(images, downloadedPost, post)
-        if self.rddtScraper.getCommentExternalContent:
+        if self.rddtScraper.getCommentExternalContent and self.rddtScraper.isNewContent(post, self.listModel, DownloadedPostType.EXTERNAL_COMMENT_DATA):
             downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.EXTERNAL_COMMENT_DATA)
             images = self.rddtScraper.getCommentImages(post, self.listModel, self.queue)
             self.startDownloadImages(images, downloadedPost, post)
-        if self.rddtScraper.getSelftextExternalContent:
+        if self.rddtScraper.getSelftextExternalContent and self.rddtScraper.isNewContent(post, self.listModel, DownloadedPostType.EXTERNAL_SELFTEXT_DATA):
             downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.EXTERNAL_SELFTEXT_DATA)
             images = self.rddtScraper.getSelftextImages(post, self.listModel, self.queue)
             self.startDownloadImages(images, downloadedPost, post)
-        if self.rddtScraper.getSubmissionContent:
+        if self.rddtScraper.getSubmissionContent and self.rddtScraper.isNewContent(post, self.listModel, DownloadedPostType.JSON_DATA):
             downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.JSON_DATA)
             submissionWorker = SubmissionWorker(self.rddtScraper, post, self.queue, self.listModel, self.listModelType, name, downloadedPost, self.setMostRecentDownloadTimestamp)
             self.submissionPool.start(submissionWorker)

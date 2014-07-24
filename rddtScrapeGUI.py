@@ -139,8 +139,13 @@ class listViewAndChooser(QListView):
         index = self.getCurrentSelectedIndex()
         if model is not None and index is not None:
             selected = model.getObjectInLst(index)
-            downloadedPostsGUI = DownloadedPostsGUI(selected, self.model(), confirmDialog, self.gui.saveState)
-            downloadedPostsGUI.exec_()
+            downloadedPosts = selected.redditPosts
+            if downloadedPosts is not None and len(downloadedPosts) > 0:
+                downloadedPostsGUI = DownloadedPostsGUI(selected, self.model(), confirmDialog, self.gui.saveState)
+                downloadedPostsGUI.exec_()
+            else:
+                QMessageBox.information(QMessageBox(), "Reddit Scraper",
+                                    selected.name + " has no downloaded posts. Download some by hitting the download button.")
         elif index is None:
             QMessageBox.information(QMessageBox(), "Reddit Scraper",
                                 "To view a " + self.objectName() + "'s downloaded posts, please select a " + self.objectName() + " in the " + self.objectName() + " list.")
@@ -391,6 +396,7 @@ class RddtScrapeGUI(QMainWindow, Ui_RddtScrapeMainWindow):
     def activateDownloadBtn(self):
         self.downloadBtn.setText("Download!")
         self.downloadBtn.setEnabled(True)
+        self.rddtScraper.currentlyDownloading = False
 
     def getValidRedditors(self, startDownload=False):
         model = self.userList.model()
@@ -613,6 +619,7 @@ def main():
     if rddtScraper is None:
         print("rddt data client was None, making new one")
         rddtScraper = RedditData()
+    rddtScraper.currentlyDownloading = False # If something weird happened to cause currentlyDownloading to be saved as True, set it back to False
     queue = Queue()
     thread = QThread()
     recv = MyReceiver(queue)
