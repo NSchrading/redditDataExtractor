@@ -1,5 +1,6 @@
-from PyQt4.Qt import *
-from redditDataExtractor import ListType
+from PyQt4.Qt import QObject, QThreadPool, pyqtSlot, pyqtSignal, QRunnable
+from .redditDataExtractor import ListType
+
 
 class DownloadedPostType():
     EXTERNAL_SUBMISSION_DATA = 1
@@ -69,19 +70,19 @@ class Worker(QRunnable):
 
     def startDownloadsForPost(self, post):
         name = self.listModel.name
-        if self.rddtDataExtractor.getExternalContent and self.rddtDataExtractor.isNewContent(post, self.listModel, DownloadedPostType.EXTERNAL_SUBMISSION_DATA) and not post.is_self and not "reddit" in post.domain:
+        if self.rddtDataExtractor.getExternalContent and self.listModel.isNewContent(post, DownloadedPostType.EXTERNAL_SUBMISSION_DATA) and not post.is_self and not "reddit" in post.domain:
             downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.EXTERNAL_SUBMISSION_DATA)
             images = self.rddtDataExtractor.getImages(post, self.listModel, self.queue)
             self.startDownloadImages(images, downloadedPost, post)
-        if self.rddtDataExtractor.getCommentExternalContent and self.rddtDataExtractor.isNewContent(post, self.listModel, DownloadedPostType.EXTERNAL_COMMENT_DATA):
+        if self.rddtDataExtractor.getCommentExternalContent and self.listModel.isNewContent(post, DownloadedPostType.EXTERNAL_COMMENT_DATA):
             downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.EXTERNAL_COMMENT_DATA)
             images = self.rddtDataExtractor.getCommentImages(post, self.listModel, self.queue)
             self.startDownloadImages(images, downloadedPost, post)
-        if self.rddtDataExtractor.getSelftextExternalContent and self.rddtDataExtractor.isNewContent(post, self.listModel, DownloadedPostType.EXTERNAL_SELFTEXT_DATA):
+        if self.rddtDataExtractor.getSelftextExternalContent and self.listModel.isNewContent(post, DownloadedPostType.EXTERNAL_SELFTEXT_DATA):
             downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.EXTERNAL_SELFTEXT_DATA)
             images = self.rddtDataExtractor.getSelftextImages(post, self.listModel, self.queue)
             self.startDownloadImages(images, downloadedPost, post)
-        if self.rddtDataExtractor.getSubmissionContent and self.rddtDataExtractor.isNewContent(post, self.listModel, DownloadedPostType.JSON_DATA):
+        if self.rddtDataExtractor.getSubmissionContent and self.listModel.isNewContent(post, DownloadedPostType.JSON_DATA):
             downloadedPost = DownloadedPost(post.permalink, DownloadedPostType.JSON_DATA)
             submissionWorker = SubmissionWorker(self.rddtDataExtractor, post, self.queue, self.listModel, self.listModelType, name, downloadedPost, self.setMostRecentDownloadTimestamp)
             self.submissionPool.start(submissionWorker)

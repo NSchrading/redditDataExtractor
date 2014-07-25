@@ -7,24 +7,26 @@ import glob
 import itertools
 import json
 from hashlib import sha256
-from redditDataExtractor import RedditDataExtractor, DownloadType, ListType
 from queue import Queue
-from listModel import ListModel
-from PyQt4.QtGui import QApplication
+
 from PyQt4.Qt import *
 from PyQt4.QtTest import QTest
 from PyQt4.QtCore import Qt
-import rddtScrapeGUI
+
+from RedditDataExtractor.redditDataExtractor import RedditDataExtractor
+from RedditDataExtractor.GUI.listModel import ListModel
+from RedditDataExtractor.GUI import redditDataExtractorGUI
+from RedditDataExtractor.main import QueueMessageReceiver
 
 
-class rddtScrapeGUIText(unittest.TestCase):
+class rddtDataExtractorTest(unittest.TestCase):
     def setUp(self):
         self.app = QApplication(sys.argv)
         rddtDataExtractor = RedditDataExtractor()
         queue = Queue()
         self.thread = QThread()
-        self.recv = rddtScrapeGUI.MyReceiver(queue)
-        w = rddtScrapeGUI.RddtScrapeGUI(rddtDataExtractor, queue, self.recv)
+        self.recv = QueueMessageReceiver(queue)
+        w = redditDataExtractorGUI.RddtDataExtractorGUI(rddtDataExtractor, queue, self.recv)
         self.recv.mysignal.connect(w.append_text)
         self.recv.moveToThread(self.thread)
         self.thread.started.connect(self.recv.run)
@@ -73,7 +75,7 @@ class rddtScrapeGUIText(unittest.TestCase):
             '2bcokj_selftext_1 2.jpg': b'<\x00|M\xdca\xd5y&G\x10\xbf6\x81\xf4e\xb9\x86\xb9\xe9\xaaF\x9a\xbaS\xd0\xda\xa7^m\xba\xc0'}
 
         self.imageFileTypes = ["*.jpg", "*.jpeg", "*.gif", "*.png", "*.webm"]
-        self.jsonFileTypes = [".txt"]
+        self.jsonFileTypes = ["*.txt"]
 
     def changeToTestConfig(self):
         listName = "test subreddit"
@@ -149,26 +151,41 @@ class rddtScrapeGUIText(unittest.TestCase):
 
     def compareJSON(self, fileNames):
         for fileName in fileNames:
-            goodJSONFilePath = os.path.join("test", "knownGoodTestFiles", fileName)
+            goodJSONFilePath = os.path.join("knownGoodTestFiles", fileName)
             testJSONFilePath = os.path.join("Downloads", "rddt_data_extractor", fileName)
             with open(goodJSONFilePath) as goodJSONFile:
                 with open(testJSONFilePath) as testJSONFile:
                     goodJSON = json.load(goodJSONFile)
                     testJSON = json.load(testJSONFile)
-                    if goodJSON != testJSON:
-                        return False
-        return True
+                    # some items change by a small amount like created so check specific things that should never change
+                    self.assertEqual(testJSON['subreddit_id'], goodJSON['subreddit_id'])
+                    self.assertEqual(testJSON['selftext_html'], goodJSON['selftext_html'])
+                    self.assertEqual(testJSON['subreddit'], goodJSON['subreddit'])
+                    self.assertEqual(testJSON['is_self'], goodJSON['is_self'])
+                    self.assertEqual(testJSON['domain'], goodJSON['domain'])
+                    self.assertEqual(testJSON['distinguished'], goodJSON['distinguished'])
+                    self.assertEqual(testJSON['url'], goodJSON['url'])
+                    self.assertEqual(testJSON['comments'], goodJSON['comments'])
+                    self.assertEqual(testJSON['author'], goodJSON['author'])
+                    self.assertEqual(testJSON['name'], goodJSON['name'])
+                    self.assertEqual(testJSON['id'], goodJSON['id'])
+                    self.assertEqual(testJSON['over_18'], goodJSON['over_18'])
+                    self.assertEqual(testJSON['num_comments'], goodJSON['num_comments'])
+                    self.assertEqual(testJSON['selftext'], goodJSON['selftext'])
+                    self.assertEqual(testJSON['thumbnail'], goodJSON['thumbnail'])
+                    self.assertEqual(testJSON['title'], goodJSON['title'])
+                    self.assertEqual(testJSON['permalink'], goodJSON['permalink'])
 
 
     def compareJSONFiles(self, fileTypes):
         downloadedFilesSet = set(itertools.chain(
             *[glob.glob(os.path.join("Downloads", "rddt_data_extractor", fileType)) for fileType in fileTypes]))
         knownGoodJSONFilesSet = set(itertools.chain(
-            *[glob.glob(os.path.join("test", "knownGoodTestFiles", fileType)) for fileType in fileTypes]))
+            *[glob.glob(os.path.join("knownGoodTestFiles", fileType)) for fileType in fileTypes]))
         knownGoodJSONFiles = {os.path.basename(fileName) for fileName in knownGoodJSONFilesSet}
         filesDownloaded = {os.path.basename(fileName) for fileName in downloadedFilesSet}
         self.assertEqual(filesDownloaded, knownGoodJSONFiles)
-        self.assertTrue(self.compareJSON(filesDownloaded))
+        self.compareJSON(filesDownloaded)
 
 
     def download(self):
@@ -176,7 +193,6 @@ class rddtScrapeGUIText(unittest.TestCase):
 
         # gross workarounds for signals being missed due to not being in an event loop in the GUI
         redditorValidator = self.form.redditorValidator
-        print(redditorValidator)
         maxIter = 2
         i = 0
         while len(redditorValidator.valid) <= 0 and i < maxIter:

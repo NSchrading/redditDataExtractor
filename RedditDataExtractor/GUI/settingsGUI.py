@@ -1,6 +1,8 @@
-from PyQt4.Qt import *
-from settings_auto import Ui_SettingsDialog
-from genericListModelObjects import GenericListModelObj
+from PyQt4.Qt import QComboBox, Qt, QMenu, QDialog, QIntValidator, QValidator, QPlainTextEdit, QMessageBox
+
+from .settings_auto import Ui_SettingsDialog
+from .genericListModelObjects import GenericListModelObj
+
 
 def findKey(dict, value):
     return next((k for k, v in dict.items() if v == value), None)
@@ -302,7 +304,7 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         if self.filterExternalContentCheckBox.isChecked() or self.filterSubmissionContentCheckBox.isChecked():
             for row in range(self.filterTable.rowCount()):
                 if self.filterTable.cellWidget(row, self.filtTableValCol) is None or len(self.filterTable.cellWidget(row, self.filtTableValCol).toPlainText()) <= 0:
-                    QMessageBox.warning(QMessageBox(), "Reddit Scraper", "Please enter text in the value column or uncheck that you would like to filter content.")
+                    QMessageBox.warning(QMessageBox(), "Reddit Data Extractor", "Please enter text in the value column or uncheck that you would like to filter content.")
                     return False
         return True
 

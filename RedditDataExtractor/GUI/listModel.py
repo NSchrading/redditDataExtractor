@@ -1,6 +1,5 @@
-from PyQt4.Qt import *
-from genericListModelObjects import GenericListModelObj, User, Subreddit
-
+from PyQt4.Qt import QAbstractListModel, QObject, QModelIndex, Qt
+from .genericListModelObjects import User, Subreddit
 
 class ListModel(QAbstractListModel):
     def __init__(self, lst, lstObjType, parent=QObject()):

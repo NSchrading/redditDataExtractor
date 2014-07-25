@@ -1,4 +1,3 @@
-
 from PyQt4.Qt import QMessageBox
 
 def confirmDialog(message):

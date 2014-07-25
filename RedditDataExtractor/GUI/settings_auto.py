@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'settings.ui'
 #
-# Created: Mon Jul 21 18:01:33 2014
+# Created: Thu Jul 24 19:58:22 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_SettingsDialog(object):
     def setupUi(self, SettingsDialog):
         SettingsDialog.setObjectName(_fromUtf8("SettingsDialog"))
-        SettingsDialog.resize(573, 394)
+        SettingsDialog.resize(621, 394)
         self.verticalLayout = QtGui.QVBoxLayout(SettingsDialog)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.gridLayout = QtGui.QGridLayout()
@@ -164,7 +164,7 @@ class Ui_SettingsDialog(object):
         item = QtGui.QTableWidgetItem()
         self.filterTable.setHorizontalHeaderItem(4, item)
         self.filterTable.horizontalHeader().setVisible(True)
-        self.filterTable.horizontalHeader().setDefaultSectionSize(110)
+        self.filterTable.horizontalHeader().setDefaultSectionSize(120)
         self.filterTable.verticalHeader().setVisible(False)
         self.filterTable.verticalHeader().setCascadingSectionResizes(False)
         self.horizontalLayout_2.addWidget(self.filterTable)
@@ -184,7 +184,7 @@ class Ui_SettingsDialog(object):
         SettingsDialog.setWindowTitle(_translate("SettingsDialog", "Settings", None))
         self.defaultSubredditListLabel.setToolTip(_translate("SettingsDialog", "The subreddit list that will display on starting the application.", None))
         self.defaultSubredditListLabel.setText(_translate("SettingsDialog", "Default Subreddit List", None))
-        self.label_2.setToolTip(_translate("SettingsDialog", "The number of posts to retrieve from the subreddit. A max of 100 can be downloaded at a time. Download again at a later date to get the next (most recent) 100.", None))
+        self.label_2.setToolTip(_translate("SettingsDialog", "<html><head/><body><p>The number of posts to retrieve from the subreddit. A max of 100 can be downloaded at a time. Download again at a later date to get the next (most recent) 100.</p></body></html>", None))
         self.label_2.setText(_translate("SettingsDialog", "Max Posts Retrieved in Subreddit Content Download [1-100]", None))
         self.subLimitTextEdit.setText(_translate("SettingsDialog", "10", None))
         self.getExternalContentCheckBox.setToolTip(_translate("SettingsDialog", "Select to attempt to download images / gifs / gfys linked to by a reddit submission.", None))
@@ -193,7 +193,7 @@ class Ui_SettingsDialog(object):
         self.avoidDuplCheckBox.setText(_translate("SettingsDialog", "Avoid Downloading Duplicate Images If Possible", None))
         self.defaultUserListLabel.setToolTip(_translate("SettingsDialog", "The user list that will display on starting the application.", None))
         self.defaultUserListLabel.setText(_translate("SettingsDialog", "Default User List", None))
-        self.label.setToolTip(_translate("SettingsDialog", "When downloading subreddit content, this determines the types of posts that are downloaded. E.g. to get the top 10 new posts in the subreddits, select \"New\".", None))
+        self.label.setToolTip(_translate("SettingsDialog", "<html><head/><body><p>When downloading subreddit content, this determines the types of posts that are downloaded. E.g. to get the top 10 new posts in the subreddits, select &quot;New&quot;.</p></body></html>", None))
         self.label.setText(_translate("SettingsDialog", "Sort Subreddit Content by: ", None))
         self.hotBtn.setText(_translate("SettingsDialog", "Hot", None))
         self.newBtn.setText(_translate("SettingsDialog", "New", None))
@@ -212,7 +212,7 @@ class Ui_SettingsDialog(object):
         self.filterExternalContentCheckBox.setText(_translate("SettingsDialog", "Only download external content when:", None))
         self.filterSubmissionContentCheckBox.setToolTip(_translate("SettingsDialog", "Download json encoded submission data only if the following criteria are met.", None))
         self.filterSubmissionContentCheckBox.setText(_translate("SettingsDialog", "Only download submission content when:", None))
-        self.filterTable.setToolTip(_translate("SettingsDialog", "Select the filters you would like to apply to the download. Will download the content only if the submission or a comment within the submission has the matching criteria.", None))
+        self.filterTable.setToolTip(_translate("SettingsDialog", "<html><head/><body><p>Select the filters you would like to apply to the download. </p><p>Will download the content only if the submission or a comment within the submission has the matching criteria.</p><p>Posts with any comment passing the filter will be downloaded - there is currently no way to download only if all comments pass the filter.</p><p>Filters on comment body may slow the download process significantly.</p><p>If the operator is Equals Bool, enter only True or False.</p></body></html>", None))
         item = self.filterTable.verticalHeaderItem(0)
         item.setText(_translate("SettingsDialog", "New Row", None))
         item = self.filterTable.horizontalHeaderItem(0)

@@ -1,8 +1,10 @@
-from PyQt4.Qt import *
-from PyQt4 import QtGui
-from downloadedPosts_auto import Ui_DownloadedPosts
-from downloader import DownloadedPostType
 import os
+
+from PyQt4.Qt import QDialog, QMessageBox, QListWidgetItem, QListWidget, Qt, QLabel, QSize, QPixmap
+from PyQt4 import QtGui
+
+from .downloadedPosts_auto import Ui_DownloadedPosts
+from ..downloader import DownloadedPostType
 
 
 class DownloadedPostsGUI(QDialog, Ui_DownloadedPosts):
@@ -68,7 +70,7 @@ class DownloadedPostsGUI(QDialog, Ui_DownloadedPosts):
                     elif post.type == DownloadedPostType.EXTERNAL_SELFTEXT_DATA:
                         self.addToTab(post, postURL, self.selftextLst)
         else:
-            QMessageBox.information(QMessageBox(), "Reddit Scraper",
+            QMessageBox.information(QMessageBox(), "Reddit Data Extractor",
                                     self.startingLstModelObj.name + " has no downloaded posts. Download some by hitting the download button.")
 
     def clearLsts(self):
@@ -161,7 +163,7 @@ class DownloadedPostsGUI(QDialog, Ui_DownloadedPosts):
                     item = currentTabLst.takeItem(currentTabLst.currentRow())
                     del item
                     [os.remove(file) for file in files if os.path.exists(file)]
-                    QMessageBox.information(QMessageBox(), "Reddit Scraper", "Successfully removed requested files.")
+                    QMessageBox.information(QMessageBox(), "Reddit Data Extractor", "Successfully removed requested files.")
                     self.saveState()
                     return True
                 return False

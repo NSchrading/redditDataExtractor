@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>RddtScrapeMainWindow</class>
- <widget class="QMainWindow" name="RddtScrapeMainWindow">
+ <class>RddtDataExtractorMainWindow</class>
+ <widget class="QMainWindow" name="RddtDataExtractorMainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Reddit Scraper</string>
+   <string>Reddit Data Extractor</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -50,6 +50,9 @@
           <property name="acceptDrops">
            <bool>false</bool>
           </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Lists of Users you can download from. &lt;/p&gt;&lt;p&gt;If you want to download from separate users / subreddits, make a new list.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
           <property name="editable">
            <bool>false</bool>
           </property>
@@ -73,6 +76,9 @@
          <widget class="QComboBox" name="subredditListChooser">
           <property name="contextMenuPolicy">
            <enum>Qt::ActionsContextMenu</enum>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Lists of Subreddits you can download from. &lt;/p&gt;&lt;p&gt;If you want to download from separate users / subreddits, make a new list.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
          </widget>
         </item>
@@ -123,7 +129,11 @@
        </layout>
       </item>
       <item row="4" column="0">
-       <widget class="QLineEdit" name="directoryBox"/>
+       <widget class="QLineEdit" name="directoryBox">
+        <property name="toolTip">
+         <string>Directory to download content to.</string>
+        </property>
+       </widget>
       </item>
       <item row="5" column="0" colspan="2">
        <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -214,6 +224,9 @@
       </item>
       <item row="7" column="0" colspan="2">
        <widget class="QTextEdit" name="logTextEdit">
+        <property name="toolTip">
+         <string>Status of the download is displayed here.</string>
+        </property>
         <property name="readOnly">
          <bool>true</bool>
         </property>

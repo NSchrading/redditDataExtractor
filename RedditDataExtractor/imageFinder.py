@@ -1,7 +1,8 @@
 import requests
-from image import Image
+
 from bs4 import BeautifulSoup
 from contextlib import closing
+from .image import Image
 
 
 def debug(target):

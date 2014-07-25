@@ -28,6 +28,14 @@ class GenericListModelObj():
     def postBeforeLastDownload(self, post):
         return self._mostRecentDownloadTimestamp is None or post.created_utc > self._mostRecentDownloadTimestamp
 
+    def isNewContent(self, post, downloadedPostType):
+        redditURL = post.permalink
+        allRedditPostsOfLstModelObj = self.redditPosts
+        downloadedContentOfPost = allRedditPostsOfLstModelObj.get(redditURL)
+        if len(allRedditPostsOfLstModelObj) <= 0 or downloadedContentOfPost is None:
+            return True
+        return not any([downloadedPost.type == downloadedPostType for downloadedPost in downloadedContentOfPost])
+
 class User(GenericListModelObj):
 
     def __init__(self, name):

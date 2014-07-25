@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>573</width>
+    <width>621</width>
     <height>394</height>
    </rect>
   </property>
@@ -38,7 +38,7 @@
        <item>
         <widget class="QLabel" name="label_2">
          <property name="toolTip">
-          <string>The number of posts to retrieve from the subreddit. A max of 100 can be downloaded at a time. Download again at a later date to get the next (most recent) 100.</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of posts to retrieve from the subreddit. A max of 100 can be downloaded at a time. Download again at a later date to get the next (most recent) 100.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>Max Posts Retrieved in Subreddit Content Download [1-100]</string>
@@ -109,7 +109,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="toolTip">
-          <string>When downloading subreddit content, this determines the types of posts that are downloaded. E.g. to get the top 10 new posts in the subreddits, select &quot;New&quot;.</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When downloading subreddit content, this determines the types of posts that are downloaded. E.g. to get the top 10 new posts in the subreddits, select &amp;quot;New&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>Sort Subreddit Content by: </string>
@@ -272,7 +272,7 @@
      <item>
       <widget class="QTableWidget" name="filterTable">
        <property name="toolTip">
-        <string>Select the filters you would like to apply to the download. Will download the content only if the submission or a comment within the submission has the matching criteria.</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the filters you would like to apply to the download. &lt;/p&gt;&lt;p&gt;Will download the content only if the submission or a comment within the submission has the matching criteria.&lt;/p&gt;&lt;p&gt;Posts with any comment passing the filter will be downloaded - there is currently no way to download only if all comments pass the filter.&lt;/p&gt;&lt;p&gt;Filters on comment body may slow the download process significantly.&lt;/p&gt;&lt;p&gt;If the operator is Equals Bool, enter only True or False.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="horizontalScrollBarPolicy">
         <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -284,7 +284,7 @@
         <bool>true</bool>
        </attribute>
        <attribute name="horizontalHeaderDefaultSectionSize">
-        <number>110</number>
+        <number>120</number>
        </attribute>
        <attribute name="verticalHeaderVisible">
         <bool>false</bool>
