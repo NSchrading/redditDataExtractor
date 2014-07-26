@@ -176,7 +176,7 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.subLimitTextEdit.setText(str(self.subLimit))
 
         self.filterTable.cellPressed.connect(self.addFilter)
-        self.constructFilterTable(rddtDataExtractor.postFilts, rddtDataExtractor.commentFilts, rddtDataExtractor.connector, rddtDataExtractor.operMap, rddtDataExtractor.connectMap)
+        self.constructFilterTable(rddtDataExtractor.submissionFilts, rddtDataExtractor.commentFilts, rddtDataExtractor.connector, rddtDataExtractor.operMap, rddtDataExtractor.connectMap)
         self.filterExternalContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.filterExternalContentCheckBox, 'filterExternalContent'))
         self.filterSubmissionContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.filterSubmissionContentCheckBox, 'filterSubmissionContent'))
 
@@ -236,14 +236,14 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         valTextWidget.setPlainText(str(val))
         print(val)
 
-    def constructFilterTable(self, postFilts, commentFilts, connector, operMap, connectMap):
-        numFilts = len(postFilts) + len(commentFilts)
+    def constructFilterTable(self, submissionFilts, commentFilts, connector, operMap, connectMap):
+        numFilts = len(submissionFilts) + len(commentFilts)
         if numFilts > 0:
             for row in range(1, numFilts): # first row is already added
                 print("Adding row")
                 self.filterTable.insertRow(row)
             row = 0
-            for prop, oper, val in postFilts:
+            for prop, oper, val in submissionFilts:
                 self.constructFilterTableWidgets("Submission", prop, oper, val, operMap, row)
                 row += 1
             for prop, oper, val in commentFilts:

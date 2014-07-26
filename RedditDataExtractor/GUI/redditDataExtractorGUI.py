@@ -6,7 +6,7 @@ from PyQt4.Qt import (QInputDialog, QObject, pyqtSignal, pyqtSlot, QListView, Qt
 from .redditDataExtractorGUI_auto import Ui_RddtDataExtractorMainWindow
 from .settingsGUI import SettingsGUI
 from .GUIFuncs import confirmDialog
-from .downloadedPostsGUI import DownloadedPostsGUI
+from .downloadedContentGUI import DownloadedContentGUI
 from .listModel import ListModel
 from .genericListModelObjects import GenericListModelObj, User, Subreddit
 from ..redditDataExtractor import DownloadType, ListType
@@ -25,13 +25,13 @@ class Validator(QObject):
     finished = pyqtSignal(list)
     invalid = pyqtSignal(str)
 
-    def __init__(self, rddtDataExtractor, queue, data, listType):
+    def __init__(self, rddtDataExtractor, queue, userOrSub, listType):
         super().__init__()
         self.rddtDataExtractor = rddtDataExtractor
         self.queue = queue
-        self.data = data
+        self.userOrSub = userOrSub
         self.listType = listType
-        self.valid = []
+        self.validUsersOrSubs = []
 
     @pyqtSlot()
     def run(self):
@@ -41,15 +41,15 @@ class Validator(QObject):
         else:
             s = "subreddit "
             validateFunc = self.rddtDataExtractor.getSubreddit
-        for d in self.data:
-            name = d.name
+        for userOrSubLstModelObj in self.userOrSub:
+            name = userOrSubLstModelObj.name
             self.queue.put("Validating " + s + name + "\n")
-            validatedData = validateFunc(name)
-            if validatedData is None:
+            validatedPRAWUserOrSub = validateFunc(name)
+            if validatedPRAWUserOrSub is None:
                 self.invalid.emit(name)
             else:
-                self.valid.append((d, validatedData))
-        self.finished.emit(self.valid)
+                self.validUsersOrSubs.append((userOrSubLstModelObj, validatedPRAWUserOrSub))
+        self.finished.emit(self.validUsersOrSubs)
 
 
 class listViewAndChooser(QListView):
@@ -114,21 +114,21 @@ class listViewAndChooser(QListView):
                 self.rddtDataExtractor.defaultSubredditListName = listName
             self.gui.setUnsavedChanges(True)
 
-    def viewDownloadedPosts(self):
+    def viewDownloadedContent(self):
         model = self.model()
         index = self.getCurrentSelectedIndex()
         if model is not None and index is not None:
             selected = model.getObjectInLst(index)
-            downloadedPosts = selected.redditPosts
-            if downloadedPosts is not None and len(downloadedPosts) > 0:
-                downloadedPostsGUI = DownloadedPostsGUI(selected, self.model(), confirmDialog, self.gui.saveState)
-                downloadedPostsGUI.exec_()
+            downloadedContent = selected.redditSubmissions
+            if downloadedContent is not None and len(downloadedContent) > 0:
+                downloadedContentGUI = DownloadedContentGUI(selected, self.model(), confirmDialog, self.gui.saveState)
+                downloadedContentGUI.exec_()
             else:
                 QMessageBox.information(QMessageBox(), "Reddit Data Extractor",
-                                        selected.name + " has no downloaded posts. Download some by hitting the download button.")
+                                        selected.name + " has no downloaded content. Download some by hitting the download button.")
         elif index is None:
             QMessageBox.information(QMessageBox(), "Reddit Data Extractor",
-                                    "To view a " + self.objectName() + "'s downloaded posts, please select a " + self.objectName() + " in the " + self.objectName() + " list.")
+                                    "To view a " + self.objectName() + "'s downloaded content, please select a " + self.objectName() + " in the " + self.objectName() + " list.")
 
 
 class userListViewAndChooser(listViewAndChooser):
@@ -305,14 +305,14 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         self.userList.addAction(self.actionDownloaded_Reddit_User_Posts)
         self.userList.addAction(self.actionNew_User)
         self.userList.addAction(self.actionRemove_Selected_User)
-        self.actionDownloaded_Reddit_User_Posts.triggered.connect(self.userList.viewDownloadedPosts)
+        self.actionDownloaded_Reddit_User_Posts.triggered.connect(self.userList.viewDownloadedContent)
         self.actionNew_User.triggered.connect(self.userList.addToList)
         self.actionRemove_Selected_User.triggered.connect(self.userList.deleteFromList)
 
         self.subredditList.addAction(self.actionDownloaded_Subreddit_Posts)
         self.subredditList.addAction(self.actionNew_Subreddit)
         self.subredditList.addAction(self.actionRemove_Selected_Subreddit)
-        self.actionDownloaded_Subreddit_Posts.triggered.connect(self.subredditList.viewDownloadedPosts)
+        self.actionDownloaded_Subreddit_Posts.triggered.connect(self.subredditList.viewDownloadedContent)
         self.actionNew_Subreddit.triggered.connect(self.subredditList.addToList)
         self.actionRemove_Selected_Subreddit.triggered.connect(self.subredditList.deleteFromList)
 
@@ -360,11 +360,11 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
             self.getValidSubreddits(startDownload=True)
 
     @pyqtSlot(list)
-    def downloadValid(self, validData):
+    def downloadValidUserOrSub(self, validUsersOrSubs):
         if self.rddtDataExtractor.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED or self.rddtDataExtractor.downloadType == DownloadType.USER_SUBREDDIT_ALL:
-            self.downloader = Downloader(self.rddtDataExtractor, validData, self.queue, ListType.USER)
+            self.downloader = Downloader(self.rddtDataExtractor, validUsersOrSubs, self.queue, ListType.USER)
         elif self.rddtDataExtractor.downloadType == DownloadType.SUBREDDIT_CONTENT:
-            self.downloader = Downloader(self.rddtDataExtractor, validData, self.queue, ListType.SUBREDDIT)
+            self.downloader = Downloader(self.rddtDataExtractor, validUsersOrSubs, self.queue, ListType.SUBREDDIT)
         self.thread = QThread()
         self.downloader.moveToThread(self.thread)
         self.thread.started.connect(self.downloader.run)
@@ -396,7 +396,7 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         self.redditorValidator.invalid.connect(self.notifyInvalidRedditor)
         # When the validation finishes, start the downloading process on the validated users
         if startDownload:
-            self.redditorValidator.finished.connect(self.downloadValid)
+            self.redditorValidator.finished.connect(self.downloadValidUserOrSub)
         self.redditorValidator.finished.connect(self.redditorValidatorThread.quit)
         self.redditorValidator.finished.connect(self.redditorValidator.deleteLater)
         self.redditorValidatorThread.finished.connect(self.redditorValidatorThread.deleteLater)
@@ -421,7 +421,7 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         self.subredditValidatorThread.started.connect(self.subredditValidator.run)
         self.subredditValidator.invalid.connect(self.notifyInvalidSubreddit)
         if startDownload:
-            self.subredditValidator.finished.connect(self.downloadValid)
+            self.subredditValidator.finished.connect(self.downloadValidUserOrSub)
         self.subredditValidator.finished.connect(self.subredditValidatorThread.quit)
         self.subredditValidator.finished.connect(self.subredditValidator.deleteLater)
         self.subredditValidatorThread.finished.connect(self.subredditValidatorThread.deleteLater)
@@ -446,7 +446,7 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
 
     def convertFilterTableToFilters(self, settings):
         filterTable = settings.filterTable
-        postFilts = []
+        submissionFilts = []
         commentFilts = []
         connector = None
         if filterTable.rowCount() > 0:
@@ -470,11 +470,11 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
                     val = float(val)
                 filt = (prop, oper, val)
                 if type == "Submission":
-                    postFilts.append(filt)
+                    submissionFilts.append(filt)
                 elif type == "Comment":
                     commentFilts.append(filt)
-        print(postFilts, commentFilts, connector)
-        return postFilts, commentFilts, connector
+        print(submissionFilts, commentFilts, connector)
+        return submissionFilts, commentFilts, connector
 
     def showSettings(self):
         settings = SettingsGUI(self.rddtDataExtractor)
@@ -497,7 +497,7 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
             self.rddtDataExtractor.filterExternalContent = settings.filterExternalContent
             self.rddtDataExtractor.filterSubmissionContent = settings.filterSubmissionContent
             if settings.filterExternalContent or settings.filterSubmissionContent:
-                self.rddtDataExtractor.postFilts, self.rddtDataExtractor.commentFilts, self.rddtDataExtractor.connector = self.convertFilterTableToFilters(
+                self.rddtDataExtractor.submissionFilts, self.rddtDataExtractor.commentFilts, self.rddtDataExtractor.connector = self.convertFilterTableToFilters(
                     settings)
 
             self.rddtDataExtractor.restrictDownloadsByCreationDate = settings.restrictDownloadsByCreationDate

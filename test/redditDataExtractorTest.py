@@ -16,7 +16,7 @@ from PyQt4.QtCore import Qt
 from RedditDataExtractor.redditDataExtractor import RedditDataExtractor
 from RedditDataExtractor.GUI.listModel import ListModel
 from RedditDataExtractor.GUI import redditDataExtractorGUI
-from RedditDataExtractor.main import QueueMessageReceiver
+from main import QueueMessageReceiver
 
 
 class rddtDataExtractorTest(unittest.TestCase):
@@ -27,7 +27,7 @@ class rddtDataExtractorTest(unittest.TestCase):
         self.thread = QThread()
         self.recv = QueueMessageReceiver(queue)
         w = redditDataExtractorGUI.RddtDataExtractorGUI(rddtDataExtractor, queue, self.recv)
-        self.recv.mysignal.connect(w.append_text)
+        self.recv.queuePutSignal.connect(w.append_text)
         self.recv.moveToThread(self.thread)
         self.thread.started.connect(self.recv.run)
         self.recv.finished.connect(self.thread.quit)
@@ -195,11 +195,11 @@ class rddtDataExtractorTest(unittest.TestCase):
         redditorValidator = self.form.redditorValidator
         maxIter = 2
         i = 0
-        while len(redditorValidator.valid) <= 0 and i < maxIter:
+        while len(redditorValidator.validUsersOrSubs) <= 0 and i < maxIter:
             time.sleep(5)
             i += 1
-        if len(redditorValidator.valid) > 0:
-            self.form.downloadValid(redditorValidator.valid)
+        if len(redditorValidator.validUsersOrSubs) > 0:
+            self.form.downloadValidUserOrSub(redditorValidator.validUsersOrSubs)
             i = 0
             maxIter = 50
             while not self.form.downloader.finishSignalForTest:

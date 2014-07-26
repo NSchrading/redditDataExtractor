@@ -1,10 +1,10 @@
 class GenericListModelObj():
-    slots = ('name', 'redditPosts', 'externalDownloads' 'blacklist')
+    slots = ('name', 'redditSubmissions', 'externalDownloads' 'blacklist')
     subSort = "Hot"
 
     def __init__(self, name):
         self.name = name.lower()
-        self.redditPosts = {}
+        self.redditSubmissions = {}
         self.externalDownloads = set()
         self.blacklist = set()
         self._mostRecentDownloadTimestamp = None
@@ -22,19 +22,19 @@ class GenericListModelObj():
         if utc is not None and (self._mostRecentDownloadTimestamp is None or utc > self._mostRecentDownloadTimestamp):
             self._mostRecentDownloadTimestamp = utc
 
-    def isNotInBlacklist(self, redditPost):
-        return redditPost not in self.blacklist
+    def submissionNotInBlacklist(self, submission):
+        return submission not in self.blacklist
 
-    def postBeforeLastDownload(self, post):
-        return self._mostRecentDownloadTimestamp is None or post.created_utc > self._mostRecentDownloadTimestamp
+    def submissionBeforeLastDownload(self, submission):
+        return self._mostRecentDownloadTimestamp is None or submission.created_utc > self._mostRecentDownloadTimestamp
 
-    def isNewContent(self, post, downloadedPostType):
-        redditURL = post.permalink
-        allRedditPostsOfLstModelObj = self.redditPosts
-        downloadedContentOfPost = allRedditPostsOfLstModelObj.get(redditURL)
-        if len(allRedditPostsOfLstModelObj) <= 0 or downloadedContentOfPost is None:
+    def isNewContent(self, submission, downloadedContentType):
+        redditURL = submission.permalink
+        allRedditSubmissionsOfLstModelObj = self.redditSubmissions
+        downloadedContentOfSubmission = allRedditSubmissionsOfLstModelObj.get(redditURL)
+        if len(allRedditSubmissionsOfLstModelObj) <= 0 or downloadedContentOfSubmission is None:
             return True
-        return not any([downloadedPost.type == downloadedPostType for downloadedPost in downloadedContentOfPost])
+        return not any([downloadedContent.type == downloadedContentType for downloadedContent in downloadedContentOfSubmission])
 
 class User(GenericListModelObj):
 
@@ -57,5 +57,5 @@ class Subreddit(GenericListModelObj):
         elif GenericListModelObj.subSort == "new" and utc > self._mostRecentDownloadTimestamp:
             self._mostRecentDownloadTimestamp = utc
 
-    def postBeforeLastDownload(self, post):
-        return GenericListModelObj.subSort != "new" or (self._mostRecentDownloadTimestamp is None or post.created_utc > self._mostRecentDownloadTimestamp)
+    def submissionBeforeLastDownload(self, submission):
+        return GenericListModelObj.subSort != "new" or (self._mostRecentDownloadTimestamp is None or submission.created_utc > self._mostRecentDownloadTimestamp)

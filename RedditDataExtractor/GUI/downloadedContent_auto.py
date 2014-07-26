@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'downloadedPosts.ui'
+# Form implementation generated from reading ui file 'downloadedContent.ui'
 #
-# Created: Tue Jul 22 23:40:45 2014
+# Created: Fri Jul 25 17:22:48 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -23,18 +23,18 @@ except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
 
-class Ui_DownloadedPosts(object):
-    def setupUi(self, DownloadedPosts):
-        DownloadedPosts.setObjectName(_fromUtf8("DownloadedPosts"))
-        DownloadedPosts.resize(732, 536)
+class Ui_DownloadedContentWindow(object):
+    def setupUi(self, DownloadedContentWindow):
+        DownloadedContentWindow.setObjectName(_fromUtf8("DownloadedContentWindow"))
+        DownloadedContentWindow.resize(732, 536)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(DownloadedPosts.sizePolicy().hasHeightForWidth())
-        DownloadedPosts.setSizePolicy(sizePolicy)
-        self.horizontalLayout = QtGui.QHBoxLayout(DownloadedPosts)
+        sizePolicy.setHeightForWidth(DownloadedContentWindow.sizePolicy().hasHeightForWidth())
+        DownloadedContentWindow.setSizePolicy(sizePolicy)
+        self.horizontalLayout = QtGui.QHBoxLayout(DownloadedContentWindow)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.userSubredditLst = QtGui.QListWidget(DownloadedPosts)
+        self.userSubredditLst = QtGui.QListWidget(DownloadedContentWindow)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
@@ -42,7 +42,7 @@ class Ui_DownloadedPosts(object):
         self.userSubredditLst.setSizePolicy(sizePolicy)
         self.userSubredditLst.setObjectName(_fromUtf8("userSubredditLst"))
         self.horizontalLayout.addWidget(self.userSubredditLst)
-        self.tabWidget = QtGui.QTabWidget(DownloadedPosts)
+        self.tabWidget = QtGui.QTabWidget(DownloadedContentWindow)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(2)
         sizePolicy.setVerticalStretch(0)
@@ -92,14 +92,14 @@ class Ui_DownloadedPosts(object):
         self.tabWidget.addTab(self.selftextTab, _fromUtf8(""))
         self.horizontalLayout.addWidget(self.tabWidget)
 
-        self.retranslateUi(DownloadedPosts)
+        self.retranslateUi(DownloadedContentWindow)
         self.tabWidget.setCurrentIndex(0)
-        QtCore.QMetaObject.connectSlotsByName(DownloadedPosts)
+        QtCore.QMetaObject.connectSlotsByName(DownloadedContentWindow)
 
-    def retranslateUi(self, DownloadedPosts):
-        DownloadedPosts.setWindowTitle(_translate("DownloadedPosts", "Downloaded Content", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.submissionJSONTab), _translate("DownloadedPosts", "Submission JSON", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.submissionExternalTab), _translate("DownloadedPosts", "Submission External", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.commentTab), _translate("DownloadedPosts", "Comment External", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.selftextTab), _translate("DownloadedPosts", "Selftext External", None))
+    def retranslateUi(self, DownloadedContentWindow):
+        DownloadedContentWindow.setWindowTitle(_translate("DownloadedContentWindow", "Downloaded Content", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.submissionJSONTab), _translate("DownloadedContentWindow", "Submission JSON", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.submissionExternalTab), _translate("DownloadedContentWindow", "Submission External", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.commentTab), _translate("DownloadedContentWindow", "Comment External", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.selftextTab), _translate("DownloadedContentWindow", "Selftext External", None))
 

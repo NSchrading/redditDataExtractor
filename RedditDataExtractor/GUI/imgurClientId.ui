@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ImgurClientIdDialog</class>
+ <widget class="QDialog" name="ImgurClientIdDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>754</width>
+    <height>467</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Download from Imgur</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="3" column="0">
+    <widget class="QPushButton" name="enterClientIdBtn">
+     <property name="text">
+      <string>Enter Client-Id</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;In order to download album, page, or gallery images from Imgur, you must register&lt;br/&gt;for a client-id.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;You can download directly-linked imgur images without one.&lt;br/&gt;If you do not already have an Imgur account you will also need to make an account before you are able to register for a client-id&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://api.imgur.com/oauth2/addclient&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;Click here&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt; to log in and register for a client-id.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;When you get to the &amp;quot;Register an Application&amp;quot; page enter these details:&lt;br/&gt;Application name: Reddit Data Extractor&lt;br/&gt;Authorization type: Anonymous usage without user authorization&lt;br/&gt;Authorization callback URL: (leave blank)&lt;br/&gt;Application website: (leave blank)&lt;br/&gt;Email: Your email address to send the client-id to.&lt;br/&gt;Description: An application that checks for the existence of Imgur images linked from Reddit and downloads them. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Once you have logged in and registered for a client-id you will receive an email from no-reply@imgur.com.&lt;br/&gt;This email will contain your client-id and a client-secret.&lt;br/&gt;Copy and paste the client-id in the box below and enjoy all the images Imgur has to offer! &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Keep your client-secret private and do not share it with anyone.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;With your client-id you will be able to make approximately 12,500 requests per day. &lt;br/&gt;You can check your remaining requests for the day by selecting help &amp;gt; View Remaining Imgur Requests. &lt;br/&gt;Do not exceed these limits or you may get rate-limited or blocked from downloading from Imgur.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::RichText</enum>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+       <property name="textInteractionFlags">
+        <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Imgur Client-id</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="clientIdLineEdit"/>
+     </item>
+    </layout>
+   </item>
+   <item row="3" column="1">
+    <widget class="QPushButton" name="enterLaterBtn">
+     <property name="text">
+      <string>I don't care about album, gallery, or page images right now</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

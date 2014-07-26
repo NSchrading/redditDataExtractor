@@ -3,25 +3,26 @@ import sys
 import os
 from queue import Queue
 
-from PyQt4.Qt import QApplication, QThread, QObject, pyqtSignal, pyqtSlot
+from PyQt4.Qt import QApplication, QThread, QObject, pyqtSignal, pyqtSlot, QDialog
 
 from RedditDataExtractor.redditDataExtractor import RedditDataExtractor
 from RedditDataExtractor.GUI.listModel import ListModel
 from RedditDataExtractor.GUI.genericListModelObjects import User, Subreddit
 from RedditDataExtractor.GUI.redditDataExtractorGUI import RddtDataExtractorGUI
-
-
+from RedditDataExtractor.GUI.imgurClientIdGUI import ImgurClientIdGUI
 
 class QueueMessageReceiver(QObject):
-    """
-    A QObject (to be run in a QThread) which sits waiting for data to come through a Queue.Queue().
-    It blocks until data is available, and once it has got something from the queue, it sends
-    it to the main GUI thread by emitting the pyqtSignal 'finished'
-    """
-    mysignal = pyqtSignal(str)
+    queuePutSignal = pyqtSignal(str)
     finished = pyqtSignal()
 
     def __init__(self, queue, *args, **kwargs):
+        """
+        A QObject (to be run in a QThread) which sits waiting for data to come through a Queue.Queue().
+        It blocks until data is available, and once it has got something from the queue, it sends
+        it to the main GUI thread by emitting the pyqtSignal 'finished'
+
+        :type queue: Queue.queue
+        """
         QObject.__init__(self, *args, **kwargs)
         self.queue = queue
         self.continueOperation = True
@@ -30,16 +31,21 @@ class QueueMessageReceiver(QObject):
     def run(self):
         while(self.continueOperation):
             text = self.queue.get()
-            self.mysignal.emit(text)
+            self.queuePutSignal.emit(text)
         self.finished.emit()
 
     def stop(self):
+        """
+        Stop the receiver thread from running. Useful for cleaning up threads when the program is exiting.
+        """
         self.continueOperation = False
         self.queue.put("") # wake up the queue (it blocks until it gets something)
 
 def loadState():
-    print("attempting to load state")
-    shelf = shelve.open(os.path.join("saves", "settings.db"))
+    """
+    Attempt to load the program from a pickled state in the saves directory.
+    """
+    shelf = shelve.open(os.path.join("RedditDataExtractor", "saves", "settings.db"))
     rddtDataExtractor = None
     try:
         rddtDataExtractor = shelf['rddtDataExtractor']
@@ -47,11 +53,10 @@ def loadState():
         subredditListSettings = shelf['subredditLists']
         rddtDataExtractor.userLists = {}
         rddtDataExtractor.subredditLists = {}
+        # Reconstruct the lists because GUI stuff isn't pickleable
         for key, val in userListSettings.items():
-            print("loading from saved " + key)
             rddtDataExtractor.userLists[key] = ListModel(val, User)
         for key, val in subredditListSettings.items():
-            print("loading from saved " + key)
             rddtDataExtractor.subredditLists[key] = ListModel(val, Subreddit)
     except KeyError as e:
         print(e)
@@ -59,28 +64,42 @@ def loadState():
         shelf.close()
         return rddtDataExtractor
 
+def notifyImgurAPI(rddtDataExtractor):
+    imgurClientIdGUI = ImgurClientIdGUI()
+    ret = imgurClientIdGUI.exec_()
+    if ret == QDialog.Accepted:
+        rddtDataExtractor.imgurAPIClientID = imgurClientIdGUI.imgurAPIClientID
+        rddtDataExtractor.saveState()
+
 def main():
-    a = QApplication(sys.argv)
+    app = QApplication(sys.argv)
     rddtDataExtractor = loadState()
     if rddtDataExtractor is None:
         print("rddt data client was None, making new one")
         rddtDataExtractor = RedditDataExtractor()
     rddtDataExtractor.currentlyDownloading = False # If something weird happened to cause currentlyDownloading to be saved as True, set it back to False
+
+    if rddtDataExtractor.imgurAPIClientID is None:
+        notifyImgurAPI(rddtDataExtractor)
+
     queue = Queue()
     thread = QThread()
     recv = QueueMessageReceiver(queue)
-    w = RddtDataExtractorGUI(rddtDataExtractor, queue, recv)
-    recv.mysignal.connect(w.append_text)
+    mainGUIWindow = RddtDataExtractorGUI(rddtDataExtractor, queue, recv)
+    recv.queuePutSignal.connect(mainGUIWindow.append_text)
     recv.moveToThread(thread)
     thread.started.connect(recv.run)
+    # Add clean up finished signals so the threads end appropriately when the program ends
     recv.finished.connect(thread.quit)
     recv.finished.connect(recv.deleteLater)
     thread.finished.connect(thread.deleteLater)
+
+    # start the receiver
     thread.start()
-
-    w.show()
-
-    sys.exit(a.exec_())
+    # show the GUI
+    mainGUIWindow.show()
+    # and wait for the user to exit
+    sys.exit(app.exec_())
 
 
 if __name__ == "__main__":
