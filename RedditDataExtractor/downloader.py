@@ -18,10 +18,12 @@
 import os
 import shutil
 from PyQt4.Qt import QObject, QThreadPool, pyqtSlot, pyqtSignal, QRunnable
+from enum import Enum
+
 from .redditDataExtractor import ListType
 
 
-class DownloadedContentType():
+class DownloadedContentType(Enum):
     EXTERNAL_SUBMISSION_DATA = 1
     EXTERNAL_COMMENT_DATA = 2
     EXTERNAL_SELFTEXT_DATA = 3
@@ -53,7 +55,7 @@ class DownloadedContent():
         self.representativeImage = None
 
     def deleteFiles(self):
-        if self.type == DownloadedContentType.EXTERNAL_COMMENT_DATA:
+        if self.type is DownloadedContentType.EXTERNAL_COMMENT_DATA:
             # Comments appear in a folder for the user making the comment.
             # Always remove the submissions's files (that's the point of the function) but,
             # comments from the same user can come from different submissions so only remove the folder if the folder
@@ -171,7 +173,7 @@ class Worker(QRunnable):
         name = self._lstModelObj.name
         self._queue.put("Starting download for " + name + "\n")
         self._rddtDataExtractor.makeDirectory(name)
-        if self._lstModelType == ListType.SUBREDDIT:
+        if self._lstModelType is ListType.SUBREDDIT:
             submitted = self._rddtDataExtractor.getSubredditSubmissions(self._validatedPRAWUserOrSub)
         else:
             submitted = self._validatedPRAWUserOrSub.get_submitted(limit=None)
@@ -224,7 +226,7 @@ class SubmissionWorker(QRunnable):
 
     def run(self):
         title = self._submission.title
-        if self._lstModelType == ListType.USER:
+        if self._lstModelType is ListType.USER:
             success, savePath = self._rddtDataExtractor.downloadSubmission(self._submission, self._lstModelObj.name)
         else:
             success, savePath = self._rddtDataExtractor.downloadSubmission(self._submission)

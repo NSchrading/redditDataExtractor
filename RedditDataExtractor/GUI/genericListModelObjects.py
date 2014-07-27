@@ -72,7 +72,7 @@ class GenericListModelObj():
         downloadedContentOfSubmission = allRedditSubmissionsOfLstModelObj.get(redditURL)
         if len(allRedditSubmissionsOfLstModelObj) <= 0 or downloadedContentOfSubmission is None:
             return True
-        return not any([downloadedContent.type == downloadedContentType for downloadedContent in downloadedContentOfSubmission])
+        return not any([downloadedContent.type is downloadedContentType for downloadedContent in downloadedContentOfSubmission])
 
 class User(GenericListModelObj):
 

@@ -23,7 +23,7 @@ from PyQt4.Qt import (QInputDialog, QObject, pyqtSignal, pyqtSlot, QListView, Qt
 
 from .redditDataExtractorGUI_auto import Ui_RddtDataExtractorMainWindow
 from .settingsGUI import SettingsGUI
-from .GUIFuncs import confirmDialog, exceptionSafeJsonRequest
+from .CommonFuncs import confirmDialog, exceptionSafeJsonRequest
 from .downloadedContentGUI import DownloadedContentGUI
 from .listModel import ListModel
 from .genericListModelObjects import GenericListModelObj, User, Subreddit
@@ -69,7 +69,7 @@ class Validator(QObject):
 
     @pyqtSlot()
     def run(self):
-        if self._listType == ListType.USER:
+        if self._listType is ListType.USER:
             s = "user "
             validateFunc = self._rddtDataExtractor.getRedditor
         else:
@@ -402,11 +402,11 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
     def init(self):
         self.initUserList()
         self.initSubredditList()
-        if (self._rddtDataExtractor.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED):
+        if (self._rddtDataExtractor.downloadType is DownloadType.USER_SUBREDDIT_CONSTRAINED):
             self.userSubBtn.setChecked(True)
-        elif (self._rddtDataExtractor.downloadType == DownloadType.USER_SUBREDDIT_ALL):
+        elif (self._rddtDataExtractor.downloadType is DownloadType.USER_SUBREDDIT_ALL):
             self.allUserBtn.setChecked(True)
-        elif (self._rddtDataExtractor.downloadType == DownloadType.SUBREDDIT_CONTENT):
+        elif (self._rddtDataExtractor.downloadType is DownloadType.SUBREDDIT_CONTENT):
             self.allSubBtn.setChecked(True)
         icon = QIcon()
         icon.addPixmap(QPixmap("RedditDataExtractor/images/logo.png"), QIcon.Normal, QIcon.Off)
@@ -417,13 +417,13 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         self.downloadBtn.setText("Downloading...")
         self.downloadBtn.setEnabled(False)
         self.logTextEdit.clear()
-        if self._rddtDataExtractor.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED:
+        if self._rddtDataExtractor.downloadType is DownloadType.USER_SUBREDDIT_CONSTRAINED:
             # need to validate both subreddits and redditors, start downloading user data once done
             self.getValidSubreddits()
             self.getValidRedditors(startDownload=True)
-        elif self._rddtDataExtractor.downloadType == DownloadType.USER_SUBREDDIT_ALL:
+        elif self._rddtDataExtractor.downloadType is DownloadType.USER_SUBREDDIT_ALL:
             self.getValidRedditors(startDownload=True)
-        elif self._rddtDataExtractor.downloadType == DownloadType.SUBREDDIT_CONTENT:
+        elif self._rddtDataExtractor.downloadType is DownloadType.SUBREDDIT_CONTENT:
             self.getValidSubreddits(startDownload=True)
 
     @pyqtSlot(list)
@@ -432,9 +432,9 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         Begin the download process for the validated users or subreddits
         :type validUsersOrSubs: list
         """
-        if self._rddtDataExtractor.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED or self._rddtDataExtractor.downloadType == DownloadType.USER_SUBREDDIT_ALL:
+        if self._rddtDataExtractor.downloadType is DownloadType.USER_SUBREDDIT_CONSTRAINED or self._rddtDataExtractor.downloadType is DownloadType.USER_SUBREDDIT_ALL:
             self.downloader = Downloader(self._rddtDataExtractor, validUsersOrSubs, self.queue, ListType.USER)
-        elif self._rddtDataExtractor.downloadType == DownloadType.SUBREDDIT_CONTENT:
+        elif self._rddtDataExtractor.downloadType is DownloadType.SUBREDDIT_CONTENT:
             self.downloader = Downloader(self._rddtDataExtractor, validUsersOrSubs, self.queue, ListType.SUBREDDIT)
         self.thread = QThread()
         self.downloader.moveToThread(self.thread)

@@ -88,13 +88,13 @@ class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
         if downloadedContent is not None and len(downloadedContent) > 0:
             for submissionURL in downloadedContent:
                 for submission in downloadedContent.get(submissionURL):
-                    if submission.type == DownloadedContentType.JSON_DATA:
+                    if submission.type is DownloadedContentType.JSON_DATA:
                         self._addToTab(submission, submissionURL, self.submissionJSONLst)
-                    elif submission.type == DownloadedContentType.EXTERNAL_SUBMISSION_DATA:
+                    elif submission.type is DownloadedContentType.EXTERNAL_SUBMISSION_DATA:
                         self._addToTab(submission, submissionURL, self.submissionExternalLst)
-                    elif submission.type == DownloadedContentType.EXTERNAL_COMMENT_DATA:
+                    elif submission.type is DownloadedContentType.EXTERNAL_COMMENT_DATA:
                         self._addToTab(submission, submissionURL, self.commentLst)
-                    elif submission.type == DownloadedContentType.EXTERNAL_SELFTEXT_DATA:
+                    elif submission.type is DownloadedContentType.EXTERNAL_SELFTEXT_DATA:
                         self._addToTab(submission, submissionURL, self.selftextLst)
         else:
             QMessageBox.information(QMessageBox(), "Data Extractor for reddit",
@@ -200,7 +200,7 @@ class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
                         del currentLstModelObj.redditSubmissions[submissionURL]
                     else:
                         currentLstModelObj.redditSubmissions[submissionURL] = downloadedContentForSubmission
-                    if downloadedContentType != DownloadedContentType.JSON_DATA:
+                    if downloadedContentType is not DownloadedContentType.JSON_DATA:
                         for externalURL in content.externalDownloadURLs:
                             if externalURL in currentLstModelObj.externalDownloads:
                                 currentLstModelObj.externalDownloads.remove(externalURL)

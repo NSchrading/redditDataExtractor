@@ -20,8 +20,9 @@ import requests
 from bs4 import BeautifulSoup
 from contextlib import closing
 from .image import Image
+from enum import Enum
 
-class ImgurLinkTypeEnum():
+class ImgurLinkTypeEnum(Enum):
     DIRECT = 1
     SINGLE_PAGE = 2
     ALBUM = 3
@@ -176,13 +177,13 @@ class ImgurImageFinder(ImageFinder):
     def _validURLImage(self, url):
         headers = {'Authorization': 'Client-ID ' + self._CLIENT_ID}
         apiURL = 'https://api.imgur.com/3/'
-        if self.imgurLinkType == ImgurLinkTypeEnum.DIRECT or self.imgurLinkType == ImgurLinkTypeEnum.SINGLE_PAGE:
+        if self.imgurLinkType is ImgurLinkTypeEnum.DIRECT or self.imgurLinkType is ImgurLinkTypeEnum.SINGLE_PAGE:
             imgurHashID = url[url.rfind('/') + 1:]
             dotIndex = imgurHashID.rfind('.')
             if dotIndex != -1:
                 imgurHashID = imgurHashID[:imgurHashID.rfind('.')]
             apiURL += 'image/' + imgurHashID
-        elif self.imgurLinkType == ImgurLinkTypeEnum.GALLERY:
+        elif self.imgurLinkType is ImgurLinkTypeEnum.GALLERY:
             imgurHashID = url[url.rfind('/') + 1:]
             apiURL += 'gallery/' + imgurHashID
         else:
@@ -259,9 +260,9 @@ class ImgurImageFinder(ImageFinder):
         """
         valid, json = self._validURLImage(url)
         if valid:
-            if self.imgurLinkType == ImgurLinkTypeEnum.DIRECT:
+            if self.imgurLinkType is ImgurLinkTypeEnum.DIRECT:
                 imageURLs = self._getImageURLsDirect(json)
-            elif self.imgurLinkType == ImgurLinkTypeEnum.SINGLE_PAGE:
+            elif self.imgurLinkType is ImgurLinkTypeEnum.SINGLE_PAGE:
                 imageURLs = self._getImageURLsPage(json)
             else: # album and gallery json response is the same
                 imageURLs = self._getImageURLsAlbum(json)

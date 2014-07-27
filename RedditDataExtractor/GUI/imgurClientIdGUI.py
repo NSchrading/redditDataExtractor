@@ -17,7 +17,7 @@
 
 from PyQt4.Qt import QDialog, QMessageBox
 from .imgurClientId_auto import Ui_ImgurClientIdDialog
-from .GUIFuncs import exceptionSafeJsonRequest
+from .CommonFuncs import exceptionSafeJsonRequest
 import requests
 
 class ImgurClientIdGUI(QDialog, Ui_ImgurClientIdDialog):

@@ -26,6 +26,7 @@ import requests
 from .imageFinder import ImageFinder, ImgurImageFinder, MinusImageFinder, VidbleImageFinder, GfycatImageFinder
 from .GUI.listModel import ListModel
 from .GUI.genericListModelObjects import User, Subreddit
+from enum import Enum
 
 
 def xorLst(lst):
@@ -109,12 +110,12 @@ def equalsBool(s, val):
         return val
 
 
-class DownloadType():
+class DownloadType(Enum):
     USER_SUBREDDIT_CONSTRAINED = 1
     USER_SUBREDDIT_ALL = 2
     SUBREDDIT_CONTENT = 3
 
-class ListType():
+class ListType(Enum):
     USER = 1
     SUBREDDIT = 2
 
@@ -248,12 +249,12 @@ class RedditDataExtractor():
             return True
         xpostSynonyms = ['xpost', 'x-post', 'x post', 'crosspost', 'cross-post', 'cross post']
         title = submission.title.lower()
-        if self.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED:
+        if self.downloadType is DownloadType.USER_SUBREDDIT_CONSTRAINED:
             validSubreddits = self.subredditLists.get(self.currentSubredditListName).stringsInLst
             for subreddit in validSubreddits:
                 if (subreddit in title) and any(syn in title for syn in xpostSynonyms):
                     return False
-        elif self.downloadType == DownloadType.USER_SUBREDDIT_ALL:
+        elif self.downloadType is DownloadType.USER_SUBREDDIT_ALL:
             if any(syn in title for syn in xpostSynonyms):
                 return False
         return True
@@ -404,7 +405,7 @@ class RedditDataExtractor():
         :rtype: generator
         """
         validSubreddits = None
-        if self.downloadType == DownloadType.USER_SUBREDDIT_CONSTRAINED:
+        if self.downloadType is DownloadType.USER_SUBREDDIT_CONSTRAINED:
             validSubreddits = self.subredditLists.get(self.currentSubredditListName).stringsInLst
         for submission in submitted:
             subreddit = submission.subreddit.display_name
