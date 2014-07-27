@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Reddit Data Extractor</string>
+   <string>Data Extractor for reddit</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -296,6 +296,7 @@
     </property>
     <addaction name="actionDownloaded_Reddit_User_Posts"/>
     <addaction name="actionDownloaded_Subreddit_Posts"/>
+    <addaction name="actionRemaining_Imgur_Requests"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -416,6 +417,11 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionRemaining_Imgur_Requests">
+   <property name="text">
+    <string>&amp;Remaining Imgur Requests</string>
    </property>
   </action>
  </widget>

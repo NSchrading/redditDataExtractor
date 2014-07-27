@@ -12,7 +12,7 @@ class Image():
     gifHeader = [hex(ord("G")), hex(ord("I")), hex(ord("F"))]
 
     __slots__ = (
-        'userOrSubName', 'submissionID', 'fileType', 'defaultPath', 'URL', 'redditSubmissionURL', 'iterContent', 'numInSeq', 'savePath', 'specialString', 'specialCount', 'specialPath')
+        'userOrSubName', 'submissionID', 'fileType', 'defaultPath', 'URL', 'redditSubmissionURL', '_iterContent', 'numInSeq', 'savePath', 'specialString', 'specialCount', 'specialPath')
 
     def __init__(self, userOrSubName, submissionID, fileType, defaultPath, URL, redditSubmissionURL, iterContent, numInSeq="", specialString=None, specialCount=None, specialPath=None):
         """
@@ -42,15 +42,15 @@ class Image():
         self.defaultPath = defaultPath
         self.URL = URL
         self.redditSubmissionURL = redditSubmissionURL
-        self.iterContent = iterContent
+        self._iterContent = iterContent
         self.numInSeq = numInSeq
         self.savePath = ""
         self.specialString = specialString
         self.specialCount = specialCount
         self.specialPath = specialPath
-        self.makeSavePath()
+        self._makeSavePath()
 
-    def makeSavePath(self):
+    def _makeSavePath(self):
         if self.numInSeq != "":
             imageFile = self.submissionID + " " + str(self.numInSeq) + self.fileType
         else:
@@ -68,7 +68,7 @@ class Image():
         else:
             self.savePath = os.path.abspath(os.path.join(self.defaultPath, self.userOrSubName, imageFile))
 
-    def isActuallyGif(self):
+    def _isActuallyGif(self):
         """
         If this image is actually a gif but the URL indicated it was a .jpg or .png we want to save it as a .gif and
         set its information to indicate that it is, in fact, a gif.
@@ -82,11 +82,11 @@ class Image():
     def download(self):
         try:
             with open(self.savePath, 'wb') as fo:
-                for chunk in self.iterContent:
+                for chunk in self._iterContent:
                     fo.write(chunk)
             filePath, fileExtension = os.path.splitext(self.savePath)
             if fileExtension in {".jpg", ".jpeg", ".png"}:
-                if self.isActuallyGif():
+                if self._isActuallyGif():
                     newPath = filePath + ".gif"
                     os.rename(self.savePath, newPath)
                     self.savePath = newPath

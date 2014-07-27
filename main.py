@@ -3,13 +3,12 @@ import sys
 import os
 from queue import Queue
 
-from PyQt4.Qt import QApplication, QThread, QObject, pyqtSignal, pyqtSlot, QDialog
+from PyQt4.Qt import QApplication, QThread, QObject, pyqtSignal, pyqtSlot
 
 from RedditDataExtractor.redditDataExtractor import RedditDataExtractor
 from RedditDataExtractor.GUI.listModel import ListModel
 from RedditDataExtractor.GUI.genericListModelObjects import User, Subreddit
 from RedditDataExtractor.GUI.redditDataExtractorGUI import RddtDataExtractorGUI
-from RedditDataExtractor.GUI.imgurClientIdGUI import ImgurClientIdGUI
 
 class QueueMessageReceiver(QObject):
     queuePutSignal = pyqtSignal(str)
@@ -64,13 +63,6 @@ def loadState():
         shelf.close()
         return rddtDataExtractor
 
-def notifyImgurAPI(rddtDataExtractor):
-    imgurClientIdGUI = ImgurClientIdGUI()
-    ret = imgurClientIdGUI.exec_()
-    if ret == QDialog.Accepted:
-        rddtDataExtractor.imgurAPIClientID = imgurClientIdGUI.imgurAPIClientID
-        rddtDataExtractor.saveState()
-
 def main():
     app = QApplication(sys.argv)
     rddtDataExtractor = loadState()
@@ -79,13 +71,11 @@ def main():
         rddtDataExtractor = RedditDataExtractor()
     rddtDataExtractor.currentlyDownloading = False # If something weird happened to cause currentlyDownloading to be saved as True, set it back to False
 
-    if rddtDataExtractor.imgurAPIClientID is None:
-        notifyImgurAPI(rddtDataExtractor)
-
     queue = Queue()
     thread = QThread()
     recv = QueueMessageReceiver(queue)
     mainGUIWindow = RddtDataExtractorGUI(rddtDataExtractor, queue, recv)
+
     recv.queuePutSignal.connect(mainGUIWindow.append_text)
     recv.moveToThread(thread)
     thread.started.connect(recv.run)
@@ -98,6 +88,9 @@ def main():
     thread.start()
     # show the GUI
     mainGUIWindow.show()
+    # display Imgur API pop up if not hidden by user and client-id isn't set
+    if rddtDataExtractor.showImgurAPINotification and rddtDataExtractor.imgurAPIClientID is None:
+        mainGUIWindow.notifyImgurAPI()
     # and wait for the user to exit
     sys.exit(app.exec_())
 

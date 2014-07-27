@@ -2,21 +2,42 @@ from PyQt4.Qt import QAbstractListModel, QObject, QModelIndex, Qt
 from .genericListModelObjects import User, Subreddit
 
 class ListModel(QAbstractListModel):
+
     def __init__(self, lst, lstObjType, parent=QObject()):
+        """
+        A QAbstractListModel for the ListViews in the GUI that show the Users / Subreddits
+        :param list: a list of genericListModelObjects (Users or Subreddits)
+        :param lstObjType: the function (constructor?) to call to make a User / Subreddit
+        :type lst: list
+        :type lstObjType: function
+        """
         super().__init__(parent)
         self.lst = lst
         self.lstObjType = lstObjType
         self.stringsInLst = set([lstObj.name.lower() for lstObj in self.lst])
 
     def swapStrs(self, oldStr, newStr):
+        """
+        Function called when changing the name of the user / subreddit in the list
+        :type oldStr: str
+        :type newStr: str
+        """
         self.stringsInLst.remove(oldStr.lower())
         self.stringsInLst.add(newStr.lower())
         print(self.stringsInLst)
 
     def removeFromStringsInLst(self, string):
+        """
+        Function to remove the passed in string from the stringsInLst set
+        :type string: str
+        """
         self.stringsInLst.remove(string.lower())
 
     def generateUniqueStr(self, name="New List Item"):
+        """
+        Function to make a new temporary name in the list guaranteed to be unique
+        :rtype: str
+        """
         count = 1
         uniqueName = name + " " + str(count)
         while uniqueName.lower() in self.stringsInLst:
@@ -25,9 +46,17 @@ class ListModel(QAbstractListModel):
         return uniqueName
 
     def rowCount(self, parent=QModelIndex()):
+        """
+        :rtype: int
+        """
         return len(self.lst)
 
     def data(self, index, role=Qt.DisplayRole):
+        """
+        Function that returns relevant data given the role.
+        :type index: QModelIndex
+        :type role: Qt.ItemDataRole
+        """
         if role == Qt.DisplayRole:
             return self.lst[index.row()].name
         elif role == Qt.DecorationRole:
@@ -42,6 +71,10 @@ class ListModel(QAbstractListModel):
             return self.lst[index.row()].name
 
     def getObjectInLst(self, index):
+        """
+        :type index: QModelIndex
+        :rtype: RedditDataExtractor.GUI.genericListModelObjects.GenericListModelObj
+        """
         return self.lst[index.row()]
 
     def getIndexOfName(self, name):
@@ -51,12 +84,19 @@ class ListModel(QAbstractListModel):
                 return i
         return -1
 
-
     def flags(self, index):
-        # All items have these properties so we don't care about index
+        """
+        All items have these properties so we don't care about index
+        """
         return Qt.ItemIsEditable | Qt.ItemIsSelectable | Qt.ItemIsEnabled
 
     def setData(self, index, value, role=Qt.EditRole):
+        """
+        Function called when the user wants to set the name of the user / subreddit
+        :type index: QModelIndex
+        :type value: str
+        :rtype: bool
+        """
         if role == Qt.EditRole:
             row = index.row()
             obj = self.lst[row]
@@ -73,6 +113,12 @@ class ListModel(QAbstractListModel):
         return False
 
     def insertRows(self, position, rows, parent=QModelIndex()):
+        """
+        Function to insert new data into the list
+        :type position: int
+        :type rows: int
+        :rtype: bool
+        """
         self.beginInsertRows(QModelIndex(), position, position + rows - 1)
         for i in range(rows):
             newName = self.generateUniqueStr()
@@ -83,6 +129,12 @@ class ListModel(QAbstractListModel):
         return True
 
     def removeRows(self, position, rows, parent=QModelIndex()):
+        """
+        Function to remove data from the list
+        :type position: int
+        :type rows: int
+        :rtype: bool
+        """
         self.beginRemoveRows(QModelIndex(), position, position + rows - 1)
         for i in range(rows):
             obj = self.lst[position]

@@ -108,7 +108,7 @@ class RedditDataExtractor():
     that gets pickled and saved to store user settings and downloaded content information.
     """
     def __init__(self):
-        self._r = praw.Reddit(user_agent='Reddit Data Extractor v1.0 by /u/VoidXC')
+        self._r = praw.Reddit(user_agent='Data Extractor for reddit v1.0 by /u/VoidXC')
         # domains that are specifically targeted to work for downloading external content
         self._supportedDomains = ['imgur', 'minus', 'vidble', 'gfycat']
         # This is a regex to parse URLs, courtesy of John Gruber, http://daringfireball.net/2010/07/improved_regex_for_matching_urls
@@ -173,6 +173,7 @@ class RedditDataExtractor():
         self.subSort = 'hot'
         self.subLimit = 10
         self.restrictDownloadsByCreationDate = True
+        self.showImgurAPINotification = True
 
     def _isValidSubmission(self, submission, lstModelObj):
         """ Determines if this is a good submission to download from
@@ -457,12 +458,13 @@ class RedditDataExtractor():
             urls = commentImageURLs.get(author)
             count = 1
             for url in urls:
-                canDownload = self._fudgeSubmissionDomainAndURL(submission, url)
-                if canDownload:
-                    images = self.getImages(submission, lstModelObj, queue, "_comment_", count, author)
-                    count += 1
-                    for image in images:
-                        yield image
+                if url.lstrip().startswith("http"): # sometimes the regex returns matches without http in the front.
+                    canDownload = self._fudgeSubmissionDomainAndURL(submission, url)
+                    if canDownload:
+                        images = self.getImages(submission, lstModelObj, queue, "_comment_", count, author)
+                        count += 1
+                        for image in images:
+                            yield image
         submission.url = origSubmissionURL  # Restore the submission info back to what it was
         submission.domain = origSubmissionDomain
 
@@ -482,12 +484,13 @@ class RedditDataExtractor():
             urls = self._urlFinder.findall(submission.selftext)
             count = 1
             for url in urls:
-                canDownload = self._fudgeSubmissionDomainAndURL(submission, url)
-                if canDownload:
-                    images = self.getImages(submission, lstModelObj, queue, "_selftext_", count)
-                    count += 1
-                    for image in images:
-                        yield image
+                if url.lstrip().startswith("http"): # sometimes the regex returns matches without http in the front.
+                    canDownload = self._fudgeSubmissionDomainAndURL(submission, url)
+                    if canDownload:
+                        images = self.getImages(submission, lstModelObj, queue, "_selftext_", count)
+                        count += 1
+                        for image in images:
+                            yield image
         submission.url = origSubmissionURL  # Restore the submission info back to what it was
         submission.domain = origSubmissionDomain
 

@@ -5,14 +5,25 @@ from .genericListModelObjects import GenericListModelObj
 
 
 def findKey(dict, value):
+    """
+    Find a key in the dictionary given a value (the dictionary should have a 1 to 1 mapping between key and value)
+    :type dict: dict
+    """
     return next((k for k, v in dict.items() if v == value), None)
 
 class ConnectCombobox(QComboBox):
 
-    # ~ooooohhhh~ static class variables
+    # static class variable so it can't be different for other connect comboboxes
     text = "And"
 
     def __init__(self, row, filterTable, filtTableConnectCol, connectMap):
+        """
+        A class to represent the connector (And / Or / Xor) comboboxes
+        :type row: int
+        :type filterTable: QTableWidget
+        :type filtTableConnectCol: int
+        :type connectMap: dict
+        """
         super().__init__()
         self.row = row
         self.filterTable = filterTable
@@ -26,6 +37,9 @@ class ConnectCombobox(QComboBox):
         self.activated.connect(self.changeAllConnects)
 
     def displayContextMenu(self, pos):
+        """
+        type pos: int
+        """
         menu = QMenu()
         removeAction = menu.addAction("Remove")
         action = menu.exec_(self.mapToGlobal(pos))
@@ -35,6 +49,9 @@ class ConnectCombobox(QComboBox):
             self.filterTable.removeCellWidget(self.row, self.filtTableConnectCol)
 
     def changeAllConnects(self, index):
+        """
+        Change all combobox text
+        """
         ConnectCombobox.text = self.currentText()
         for row in range(self.filterTable.rowCount() - 1):
             self.filterTable.removeCellWidget(row, self.filtTableConnectCol)
@@ -46,6 +63,12 @@ class ConnectCombobox(QComboBox):
 class TypeCombobox(QComboBox):
 
     def __init__(self, row, propCombobox):
+        """
+        A class to handle the type comboboxes and what happens when the user changes the text
+        :param propCombobox: The property combobox connected to the text of the type combobox
+        :type row: int
+        :type propCombobox: QComboBox
+        """
         super().__init__()
         self.row = row
         self.addItem("Submission")
@@ -64,6 +87,13 @@ class TypeCombobox(QComboBox):
 class PropCombobox(QComboBox):
 
     def __init__(self, row, operCombobox, validOperForPropMap):
+        """
+        A class to handle the property comboboxes and what happens when the user changes the text
+        :param operCombobox: The operator combobox connected to the text of the property combobox
+        :type row: int
+        :type operCombobox: QComboBox
+        :type validOperForPropMap: dict
+        """
         super().__init__()
         self.row = row
         self.operCombobox = operCombobox
@@ -116,6 +146,10 @@ class PropCombobox(QComboBox):
 class OperCombobox(QComboBox):
 
     def __init__(self, row):
+        """
+        A class to handle the operator comboboxes and what happens when the user changes the text
+        :type row: int
+        """
         super().__init__()
         self.row = row
 
@@ -126,7 +160,12 @@ class OperCombobox(QComboBox):
 
 
 class SettingsGUI(QDialog, Ui_SettingsDialog):
-    def __init__(self, rddtDataExtractor):
+    def __init__(self, rddtDataExtractor, notifyImgurAPI):
+        """
+        The Dialog that handles changing settings for how the program operates
+        :type rddtDataExtractor: RedditDataExtractor.redditDataExtractor.RedditDataExtractor
+        :type notifyImgurAPI: function
+        """
         QDialog.__init__(self)
 
         # Set up the user interface from Designer.
@@ -149,6 +188,8 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.filterExternalContent= rddtDataExtractor.filterExternalContent
         self.filterSubmissionContent = rddtDataExtractor.filterSubmissionContent
         self.restrictDownloadsByCreationDate = rddtDataExtractor.restrictDownloadsByCreationDate
+        self.showImgurAPINotification = rddtDataExtractor.showImgurAPINotification
+        self.notifyImgurAPI = notifyImgurAPI
         self.validator = QIntValidator(1, 100)
         self.filtTableTypeCol = 0
         self.filtTablePropCol = 1
@@ -164,6 +205,9 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.getCommentExternalContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.getCommentExternalContentCheckBox, 'getCommentExternalContent'))
         self.getSelftextExternalContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.getSelftextExternalContentCheckBox, 'getSelftextExternalContent'))
         self.getSubmissionContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.getSubmissionContentCheckBox, 'getSubmissionContent'))
+        self.showImgurAPINotificationCheckBox.clicked.connect(lambda: self.changeCheckBox(self.showImgurAPINotificationCheckBox, 'showImgurAPINotification'))
+
+        self.resetClientIdCheckBox.clicked.connect(self.notifyImgurAPI)
 
         self.hotBtn.clicked.connect(lambda: self.changeSubSort("hot"))
         self.newBtn.clicked.connect(lambda: self.changeSubSort("new"))
@@ -199,6 +243,7 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.getExternalContentCheckBox.setChecked(self.getExternalContent)
         self.getCommentExternalContentCheckBox.setChecked(self.getCommentExternalContent)
         self.getSelftextExternalContentCheckBox.setChecked(self.getSelftextExternalContent)
+        self.showImgurAPINotificationCheckBox.setChecked(self.showImgurAPINotification)
 
         self.getSubmissionContentCheckBox.setChecked(self.getSubmissionContent)
 
@@ -222,6 +267,16 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
             self.topBtn.setChecked(True)
 
     def constructFilterTableWidgets(self, type, prop, oper, val, operMap, row):
+        """
+        Given the type, property, operation, value, operator map, and row,
+        construct a row's filter table comboboxes and text edits
+        :type type: str
+        :type prop: str
+        :type oper: str
+        :type val: str
+        :type operMap: dict
+        :type row: int
+        """
         print("adding for row:" + str(row))
         self.addFilter(row, self.filtTableTypeCol, type)
         typeCombobox = self.filterTable.cellWidget(row, self.filtTableTypeCol)
@@ -237,6 +292,14 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         print(val)
 
     def constructFilterTable(self, submissionFilts, commentFilts, connector, operMap, connectMap):
+        """
+        Given the filters from a previous save, reconstruct the filter table
+        :type submissionFilts: list
+        :type commentFilts: list
+        :type connector: str
+        :type operMap: dict
+        :type connectMap: dict
+        """
         numFilts = len(submissionFilts) + len(commentFilts)
         if numFilts > 0:
             for row in range(1, numFilts): # first row is already added
@@ -266,11 +329,21 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.currentSubredditListName = self.defaultSubredditListComboBox.currentText()
 
     def changeCheckBox(self, checkBox, setting):
+        """
+        Given the name of the setting in the SettingsGUI object, and the corresponding checkbox,
+        set it to whether the checkbox is checked or not
+        :type checkBox: QCheckBox
+        :type setting: str
+        """
         settingExists = self.__dict__.get(setting)
         if settingExists is not None:
             self.__dict__[setting] = checkBox.isChecked()
 
     def changeSubSort(self, subSort):
+        """
+        Change the sorting method for subreddits
+        :type subSort: str
+        """
         GenericListModelObj.subSort = subSort
         self.subSort = subSort
 
@@ -282,8 +355,13 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
             print("valid: " + text + "\n---------------------------------")
             self.subLimit = int(text)
 
-
     def addFilter(self, row, col, type="Submission"):
+        """
+        Add a whole row of filter comboboxes
+        :type row: int
+        :type col: int
+        :type type: str
+        """
         if col == self.filtTableTypeCol:
             operCombobox = OperCombobox(row)
             propCombobox = PropCombobox(row, operCombobox, self.validOperForPropMap)
@@ -301,10 +379,13 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
             self.addFilter(row + 1, self.filtTableTypeCol, "Submission")
 
     def checkFilterTable(self):
+        """
+        Make sure the user entered a value in the textedit field
+        """
         if self.filterExternalContentCheckBox.isChecked() or self.filterSubmissionContentCheckBox.isChecked():
             for row in range(self.filterTable.rowCount()):
                 if self.filterTable.cellWidget(row, self.filtTableValCol) is None or len(self.filterTable.cellWidget(row, self.filtTableValCol).toPlainText()) <= 0:
-                    QMessageBox.warning(QMessageBox(), "Reddit Data Extractor", "Please enter text in the value column or uncheck that you would like to filter content.")
+                    QMessageBox.warning(QMessageBox(), "Data Extractor for reddit", "Please enter text in the value column or uncheck that you would like to filter content.")
                     return False
         return True
 

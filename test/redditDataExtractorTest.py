@@ -79,10 +79,10 @@ class rddtDataExtractorTest(unittest.TestCase):
 
     def changeToTestConfig(self):
         listName = "test subreddit"
-        self.form.subredditList.lstChooser.addItem(listName)
-        self.form.subredditList.lstChooser.setCurrentIndex(self.form.subredditList.lstChooser.count() - 1)
-        self.form.subredditList.chooserDict[listName] = ListModel([], self.form.subredditList.classToUse)
-        self.form.subredditList.chooseNewList(self.form.subredditList.lstChooser.count() - 1)
+        self.form.subredditList._lstChooser.addItem(listName)
+        self.form.subredditList._lstChooser.setCurrentIndex(self.form.subredditList._lstChooser.count() - 1)
+        self.form.subredditList._chooserDict[listName] = ListModel([], self.form.subredditList._classToUse)
+        self.form.subredditList.chooseNewList(self.form.subredditList._lstChooser.count() - 1)
 
         QTest.mouseClick(self.form.addUserBtn, Qt.LeftButton)
         index = self.form.userList.model().createIndex(0, 0)
@@ -94,11 +94,14 @@ class rddtDataExtractorTest(unittest.TestCase):
         self.form.subredditList.model().setData(index, "reddit_data_extractor")
         self.assertIn("reddit_data_extractor", self.form.subredditList.model().stringsInLst)
 
+        # Please don't steal this client-id. I don't want to get rate-limited.
+        self.form._rddtDataExtractor.imgurAPIClientID = 'e0ea61b57d4c3c9'
+
     def testStartUpDefault(self):
-        self.assertEqual(self.form.userList.lstChooser.currentText(), "Default User List")
-        self.assertEqual(self.form.subredditList.lstChooser.currentText(), "Default Subs")
-        self.assertEqual(self.form.userList.lstChooser.count(), 1)
-        self.assertEqual(self.form.subredditList.lstChooser.count(), 1)
+        self.assertEqual(self.form.userList._lstChooser.currentText(), "Default User List")
+        self.assertEqual(self.form.subredditList._lstChooser.currentText(), "Default Subs")
+        self.assertEqual(self.form.userList._lstChooser.count(), 1)
+        self.assertEqual(self.form.subredditList._lstChooser.count(), 1)
 
         self.assertEqual(len(self.form.userList.model().stringsInLst), 0)
         self.assertEqual(len(self.form.subredditList.model().stringsInLst), 15)
@@ -216,14 +219,14 @@ class rddtDataExtractorTest(unittest.TestCase):
 
     def testDownloadCommentExternals(self):
         self.changeToTestConfig()
-        self.form.rddtDataExtractor.getSubmissionContent = False
-        self.form.rddtDataExtractor.getExternalContent = False
-        self.form.rddtDataExtractor.getCommentExternalContent = True
+        self.form._rddtDataExtractor.getSubmissionContent = False
+        self.form._rddtDataExtractor.getExternalContent = False
+        self.form._rddtDataExtractor.getCommentExternalContent = True
         self.download()
         self.compareHashes(self.imageFileTypes, self.externalCommentImageHashes,
                                            [os.path.join("Downloads", "rddt_data_extractor", "rddt_data_extractor"),
                                             os.path.join("Downloads", "rddt_data_extractor", "GfycatLinkFixerBot")])
-        shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"))
+        shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"), ignore_errors=True)
 
     def testDownloadSubmission(self):
         self.changeToTestConfig()
@@ -231,25 +234,24 @@ class rddtDataExtractorTest(unittest.TestCase):
         # The order of JSON files is not always the same because it's like a dictionary. So we
         # can't use hashes. Must compare the actual JSON
         self.compareJSONFiles(self.jsonFileTypes)
-        shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"))
+        shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"), ignore_errors=True)
 
     def testDownloadExternal(self):
         self.changeToTestConfig()
-        self.form.rddtDataExtractor.getSubmissionContent = False
-        self.form.rddtDataExtractor.getExternalContent = True
+        self.form._rddtDataExtractor.getSubmissionContent = False
+        self.form._rddtDataExtractor.getExternalContent = True
         self.download()
         self.compareHashes(self.imageFileTypes, self.externalImageHashes, [os.path.join("Downloads", "rddt_data_extractor")])
-        shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"))
+        shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"), ignore_errors=True)
 
     def testDownloadSelftextExternals(self):
         self.changeToTestConfig()
-        self.form.rddtDataExtractor.getSubmissionContent = False
-        self.form.rddtDataExtractor.getExternalContent = False
-        self.form.rddtDataExtractor.getSelftextExternalContent = True
+        self.form._rddtDataExtractor.getSubmissionContent = False
+        self.form._rddtDataExtractor.getExternalContent = False
+        self.form._rddtDataExtractor.getSelftextExternalContent = True
         self.download()
         self.compareHashes(self.imageFileTypes, self.externalSelftextImageHashes, [os.path.join("Downloads", "rddt_data_extractor")])
-        shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"))
-
+        shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"), ignore_errors=True)
 
 if __name__ == "__main__":
     unittest.main()

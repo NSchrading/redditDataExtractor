@@ -9,6 +9,16 @@ from ..downloader import DownloadedContentType
 
 class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
     def __init__(self, startingLstModelObj, model, confirmDialog, saveState):
+        """
+        A nice looking dialog to display the downloads of different users / subreddits, broken up by downloadType
+        :param startingLstModelObj: The user / subreddit lstModelObj that was selected to view downloads for
+        :param model: The list that the user / subreddit is in
+
+        :type startingLstModelObj: RedditDataExtractor.GUI.genericListModelObjects.GenericListModelObj
+        :type model: RedditDataExtractor.GUI.listModel.ListModel
+        :type confirmDialog: function
+        :type saveState: function
+        """
         QDialog.__init__(self)
 
         # Set up the user interface from Designer.
@@ -23,14 +33,14 @@ class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
         self.actionDeleteSelftext = QtGui.QAction("Delete content", self)
         self.actionDeleteSelftextandBlacklist = QtGui.QAction("Delete content and never download again", self)
 
-        self.actionDeleteJSON.triggered.connect(lambda: self.deleteContent(DownloadedContentType.JSON_DATA))
-        self.actionDeleteJSONAndBlacklist.triggered.connect(lambda: self.deleteContentAndBlacklist(DownloadedContentType.JSON_DATA))
-        self.actionDeleteExternal.triggered.connect(lambda: self.deleteContent(DownloadedContentType.EXTERNAL_SUBMISSION_DATA))
-        self.actionDeleteExternalAndBlacklist.triggered.connect(lambda: self.deleteContentAndBlacklist(DownloadedContentType.EXTERNAL_SUBMISSION_DATA))
-        self.actionDeleteComment.triggered.connect(lambda: self.deleteContent(DownloadedContentType.EXTERNAL_COMMENT_DATA))
-        self.actionDeleteCommentandBlacklist.triggered.connect(lambda: self.deleteContentAndBlacklist(DownloadedContentType.EXTERNAL_COMMENT_DATA))
-        self.actionDeleteSelftext.triggered.connect(lambda: self.deleteContent(DownloadedContentType.EXTERNAL_SELFTEXT_DATA))
-        self.actionDeleteSelftextandBlacklist.triggered.connect(lambda: self.deleteContentAndBlacklist(DownloadedContentType.EXTERNAL_SELFTEXT_DATA))
+        self.actionDeleteJSON.triggered.connect(lambda: self._deleteContent(DownloadedContentType.JSON_DATA))
+        self.actionDeleteJSONAndBlacklist.triggered.connect(lambda: self._deleteContentAndBlacklist(DownloadedContentType.JSON_DATA))
+        self.actionDeleteExternal.triggered.connect(lambda: self._deleteContent(DownloadedContentType.EXTERNAL_SUBMISSION_DATA))
+        self.actionDeleteExternalAndBlacklist.triggered.connect(lambda: self._deleteContentAndBlacklist(DownloadedContentType.EXTERNAL_SUBMISSION_DATA))
+        self.actionDeleteComment.triggered.connect(lambda: self._deleteContent(DownloadedContentType.EXTERNAL_COMMENT_DATA))
+        self.actionDeleteCommentandBlacklist.triggered.connect(lambda: self._deleteContentAndBlacklist(DownloadedContentType.EXTERNAL_COMMENT_DATA))
+        self.actionDeleteSelftext.triggered.connect(lambda: self._deleteContent(DownloadedContentType.EXTERNAL_SELFTEXT_DATA))
+        self.actionDeleteSelftextandBlacklist.triggered.connect(lambda: self._deleteContentAndBlacklist(DownloadedContentType.EXTERNAL_SELFTEXT_DATA))
 
         self.submissionJSONLst.addAction(self.actionDeleteJSON)
         self.submissionJSONLst.addAction(self.actionDeleteJSONAndBlacklist)
@@ -41,50 +51,57 @@ class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
         self.selftextLst.addAction(self.actionDeleteSelftext)
         self.selftextLst.addAction(self.actionDeleteSelftextandBlacklist)
 
-        self.userSubredditLst.itemClicked.connect(self.switchModelObj)
+        self.userSubredditLst.itemClicked.connect(self._switchModelObj)
 
-        self.startingLstModelObj = startingLstModelObj
-        self.model = model
-        self.confirmDialog = confirmDialog
-        self.saveState = saveState
+        self._startingLstModelObj = startingLstModelObj
+        self._model = model
+        self._confirmDialog = confirmDialog
+        self._saveState = saveState
 
-        self.initUserSubredditLst()
-        self.initContentLsts()
+        self._initUserSubredditLst()
+        self._initContentLsts()
 
-    def initUserSubredditLst(self):
-        for modelObj in self.model.stringsInLst:
+    def _initUserSubredditLst(self):
+        for modelObj in self._model.stringsInLst:
             self.userSubredditLst.addItem(modelObj)
-        self.userSubredditLst.setCurrentItem(self.userSubredditLst.findItems(self.startingLstModelObj.name, Qt.MatchExactly)[0])
+        self.userSubredditLst.setCurrentItem(self.userSubredditLst.findItems(self._startingLstModelObj.name, Qt.MatchExactly)[0])
 
-    def initContentLsts(self):
-        downloadedContent = self.startingLstModelObj.redditSubmissions
+    def _initContentLsts(self):
+        downloadedContent = self._startingLstModelObj.redditSubmissions
         if downloadedContent is not None and len(downloadedContent) > 0:
             for submissionURL in downloadedContent:
                 for submission in downloadedContent.get(submissionURL):
                     if submission.type == DownloadedContentType.JSON_DATA:
-                        self.addToTab(submission, submissionURL, self.submissionJSONLst)
+                        self._addToTab(submission, submissionURL, self.submissionJSONLst)
                     elif submission.type == DownloadedContentType.EXTERNAL_SUBMISSION_DATA:
-                        self.addToTab(submission, submissionURL, self.submissionExternalLst)
+                        self._addToTab(submission, submissionURL, self.submissionExternalLst)
                     elif submission.type == DownloadedContentType.EXTERNAL_COMMENT_DATA:
-                        self.addToTab(submission, submissionURL, self.commentLst)
+                        self._addToTab(submission, submissionURL, self.commentLst)
                     elif submission.type == DownloadedContentType.EXTERNAL_SELFTEXT_DATA:
-                        self.addToTab(submission, submissionURL, self.selftextLst)
+                        self._addToTab(submission, submissionURL, self.selftextLst)
         else:
-            QMessageBox.information(QMessageBox(), "Reddit Data Extractor",
-                                    self.startingLstModelObj.name + " has no downloaded submissions. Download some by hitting the download button.")
+            QMessageBox.information(QMessageBox(), "Data Extractor for reddit",
+                                    self._startingLstModelObj.name + " has no downloaded submissions. Download some by hitting the download button.")
 
-    def clearLsts(self):
+    def _clearLsts(self):
         self.submissionJSONLst.clear()
         self.submissionExternalLst.clear()
         self.commentLst.clear()
         self.selftextLst.clear()
 
-    def switchModelObj(self, cur):
-        self.clearLsts()
-        self.startingLstModelObj = self.getCurrentLstModelObj()
-        self.initContentLsts()
+    def _switchModelObj(self, cur):
+        self._clearLsts()
+        self._startingLstModelObj = self._getCurrentLstModelObj()
+        self._initContentLsts()
 
-    def addToTab(self, submission, submissionURL, lst):
+    def _addToTab(self, submission, submissionURL, lst):
+        """
+        Add a submission and its representative image to the lst under its tab.
+
+        :type submission: praw.objects.Submission
+        :type submissionURL: str
+        :type lst: QListWidget
+        """
         image = submission.representativeImage
         if image is not None and os.path.exists(image):
             item = QListWidgetItem(submissionURL, lst)
@@ -107,31 +124,41 @@ class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
                     height) + '" width="' + str(width) + '"><p>' + submissionTitle)
             lst.setItemWidget(item, labelWidget)
 
-    def getCurrentLstModelObj(self):
+    def _getCurrentLstModelObj(self):
         currentLstModelObjName = self.userSubredditLst.currentItem().text()
-        index = self.model.getIndexOfName(currentLstModelObjName)
-        index = self.model.index(index, 0)
-        currentLstModelObj = self.model.getObjectInLst(index)
+        index = self._model.getIndexOfName(currentLstModelObjName)
+        index = self._model.index(index, 0)
+        currentLstModelObj = self._model.getObjectInLst(index)
         return currentLstModelObj
 
-    def getCurrentTabLstItem(self):
+    def _getCurrentTabLstItem(self):
         currentTab = self.tabWidget.currentWidget()
         currentTabLst = currentTab.findChild(QListWidget)
         currentTabLstItem = currentTabLst.currentItem()
         return currentTabLstItem
 
-    def deleteContentAndBlacklist(self, downloadedContentType):
-        currentLstModelObj = self.getCurrentLstModelObj()
-        currentTabLstItem = self.getCurrentTabLstItem()
+    def _deleteContentAndBlacklist(self, downloadedContentType):
+        """
+        Delete the selected content and blacklist it so it is never downloaded again.
+
+        :type downloadedContentType: RedditDataExtractor.downloader.DownloadedContentType
+        """
+        currentLstModelObj = self._getCurrentLstModelObj()
+        currentTabLstItem = self._getCurrentTabLstItem()
         submissionURL = currentTabLstItem.text()
 
-        deleted = self.deleteContent(downloadedContentType)
+        deleted = self._deleteContent(downloadedContentType)
         if deleted:
-            currentLstModelObj.blacklist.add(submissionURL)
-            self.saveState()
+            currentLstModelObj._blacklist.add(submissionURL)
+            self._saveState()
 
-    def deleteContent(self, downloadedContentType):
-        currentLstModelObj = self.getCurrentLstModelObj()
+    def _deleteContent(self, downloadedContentType):
+        """
+        Delete the selected content
+
+        :type downloadedContentType: RedditDataExtractor.downloader.DownloadedContentType
+        """
+        currentLstModelObj = self._getCurrentLstModelObj()
         currentTab = self.tabWidget.currentWidget()
         currentTabLst = currentTab.findChild(QListWidget)
         currentTabLstItem = currentTabLst.currentItem()
@@ -143,12 +170,12 @@ class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
             if content.type == downloadedContentType:
                 files = content.files
                 numFiles = len(files)
-                if numFiles <= 20:
+                if numFiles <= 20: # avoid making a super long list that is hard to read
                     fileStr = "".join([str(file) + "\n" for file in files])
                 else:
                     fileStr = "".join([str(file) + "\n" for file in files[:20]])
                     fileStr += "\n...\nand " + str(numFiles - 20) + " others. "
-                msgBox = self.confirmDialog("This will delete these files: \n" + fileStr + "Are you sure you want to delete them?")
+                msgBox = self._confirmDialog("This will delete these files: \n" + fileStr + "Are you sure you want to delete them?")
                 ret = msgBox.exec_()
                 if ret == QMessageBox.Yes:
                     downloadedContentForSubmission.remove(content)
@@ -161,11 +188,11 @@ class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
                             if externalURL in currentLstModelObj.externalDownloads:
                                 currentLstModelObj.externalDownloads.remove(externalURL)
                     item = currentTabLst.takeItem(currentTabLst.currentRow())
-                    del item
+                    del item # PyQt documentation says the item won't be garbage collected automatically after using takeItem()
                     content.deleteFiles()
                     del content
-                    QMessageBox.information(QMessageBox(), "Reddit Data Extractor", "Successfully removed requested files.")
-                    self.saveState()
+                    QMessageBox.information(QMessageBox(), "Data Extractor for reddit", "Successfully removed requested files.")
+                    self._saveState()
                     return True
                 return False
         return False

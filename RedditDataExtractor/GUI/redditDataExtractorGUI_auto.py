@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'redditDataExtractorGUI.ui'
 #
-# Created: Thu Jul 24 19:52:44 2014
+# Created: Sun Jul 27 02:00:51 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -171,6 +171,8 @@ class Ui_RddtDataExtractorMainWindow(object):
         self.actionRemove_Selected_User.setObjectName(_fromUtf8("actionRemove_Selected_User"))
         self.actionAbout = QtGui.QAction(RddtDataExtractorMainWindow)
         self.actionAbout.setObjectName(_fromUtf8("actionAbout"))
+        self.actionRemaining_Imgur_Requests = QtGui.QAction(RddtDataExtractorMainWindow)
+        self.actionRemaining_Imgur_Requests.setObjectName(_fromUtf8("actionRemaining_Imgur_Requests"))
         self.menuNew.addAction(self.actionUser_List)
         self.menuNew.addAction(self.actionNew_User)
         self.menuNew.addAction(self.actionSubreddit_List)
@@ -187,6 +189,7 @@ class Ui_RddtDataExtractorMainWindow(object):
         self.menuType.addAction(self.actionExit)
         self.menuView.addAction(self.actionDownloaded_Reddit_User_Posts)
         self.menuView.addAction(self.actionDownloaded_Subreddit_Posts)
+        self.menuView.addAction(self.actionRemaining_Imgur_Requests)
         self.menuHelp.addAction(self.actionAbout)
         self.menubar.addAction(self.menuType.menuAction())
         self.menubar.addAction(self.menuView.menuAction())
@@ -196,7 +199,7 @@ class Ui_RddtDataExtractorMainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(RddtDataExtractorMainWindow)
 
     def retranslateUi(self, RddtDataExtractorMainWindow):
-        RddtDataExtractorMainWindow.setWindowTitle(_translate("RddtDataExtractorMainWindow", "Reddit Data Extractor", None))
+        RddtDataExtractorMainWindow.setWindowTitle(_translate("RddtDataExtractorMainWindow", "Data Extractor for reddit", None))
         self.userLabel.setToolTip(_translate("RddtDataExtractorMainWindow", "Reddit usernames to download content from.", None))
         self.userLabel.setText(_translate("RddtDataExtractorMainWindow", "Users to Download From", None))
         self.userListChooser.setToolTip(_translate("RddtDataExtractorMainWindow", "<html><head/><body><p>Lists of Users you can download from. </p><p>If you want to download from separate users / subreddits, make a new list.</p></body></html>", None))
@@ -253,4 +256,5 @@ class Ui_RddtDataExtractorMainWindow(object):
         self.actionRemove_Selected_User.setText(_translate("RddtDataExtractorMainWindow", "Remove Selected User", None))
         self.actionRemove_Selected_User.setShortcut(_translate("RddtDataExtractorMainWindow", "Ctrl+Alt+U", None))
         self.actionAbout.setText(_translate("RddtDataExtractorMainWindow", "About", None))
+        self.actionRemaining_Imgur_Requests.setText(_translate("RddtDataExtractorMainWindow", "&Remaining Imgur Requests", None))
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>621</width>
-    <height>394</height>
+    <height>424</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,51 +16,7 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="2" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QLabel" name="defaultSubredditListLabel">
-         <property name="toolTip">
-          <string>The subreddit list that will display on starting the application.</string>
-         </property>
-         <property name="text">
-          <string>Default Subreddit List</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="defaultSubredditListComboBox"/>
-       </item>
-      </layout>
-     </item>
-     <item row="5" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <item>
-        <widget class="QLabel" name="label_2">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of posts to retrieve from the subreddit. A max of 100 can be downloaded at a time. Download again at a later date to get the next (most recent) 100.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>Max Posts Retrieved in Subreddit Content Download [1-100]</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="subLimitTextEdit">
-         <property name="text">
-          <string>10</string>
-         </property>
-         <property name="cursorPosition">
-          <number>2</number>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="7" column="0">
+     <item row="15" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout_6">
        <item>
         <widget class="QCheckBox" name="getExternalContentCheckBox">
@@ -87,6 +43,50 @@
        </item>
       </layout>
      </item>
+     <item row="2" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="defaultSubredditListLabel">
+         <property name="toolTip">
+          <string>The subreddit list that will display on starting the application.</string>
+         </property>
+         <property name="text">
+          <string>Default Subreddit List</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="defaultSubredditListComboBox"/>
+       </item>
+      </layout>
+     </item>
+     <item row="13" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of posts to retrieve from the subreddit. A max of 100 can be downloaded at a time. Download again at a later date to get the next (most recent) 100.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Max Posts Retrieved in Subreddit Content Download [1-100]</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="subLimitTextEdit">
+         <property name="text">
+          <string>10</string>
+         </property>
+         <property name="cursorPosition">
+          <number>2</number>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
      <item row="0" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout_5">
        <item>
@@ -104,7 +104,7 @@
        </item>
       </layout>
      </item>
-     <item row="4" column="0">
+     <item row="12" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
         <widget class="QLabel" name="label">
@@ -166,8 +166,42 @@
        </property>
       </widget>
      </item>
-     <item row="6" column="0">
+     <item row="14" column="0">
       <widget class="Line" name="line_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout_9">
+       <item>
+        <widget class="QCheckBox" name="showImgurAPINotificationCheckBox">
+         <property name="toolTip">
+          <string>If you don't want to get bothered by the pop-up on startup, uncheck this.</string>
+         </property>
+         <property name="text">
+          <string>Display Imgur API Notification on Startup if No Client-id is Set</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="resetClientIdCheckBox">
+         <property name="toolTip">
+          <string>Check this to reset or change your client-id.</string>
+         </property>
+         <property name="text">
+          <string>Change / Reset Client-id</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="11" column="0">
+      <widget class="Line" name="line_5">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
