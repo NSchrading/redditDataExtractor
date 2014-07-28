@@ -15,8 +15,7 @@
     along with The reddit Data Extractor.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os
-import shutil
+import pathlib
 from PyQt4.Qt import QObject, QThreadPool, pyqtSlot, pyqtSignal, QRunnable
 from enum import Enum
 
@@ -60,12 +59,12 @@ class DownloadedContent():
             # Always remove the submissions's files (that's the point of the function) but,
             # comments from the same user can come from different submissions so only remove the folder if the folder
             # becomes empty after deleting the files.
-            commentFolders = {os.path.dirname(file) for file in self.files if os.path.exists(file)}
-            [os.remove(file) for file in self.files if os.path.exists(file)]
-            [shutil.rmtree(commentFolder) for commentFolder in commentFolders if len(os.listdir(commentFolder)) <= 0]
+            commentFolders = {file.parent for file in self.files if file.exists}
+            [file.unlink() for file in self.files if file.exists()]
+            [commentFolder.rmdir() for commentFolder in commentFolders if len(list(commentFolder.glob('*'))) <= 0]
         else:
             # Other types just have the files, so remove them
-            [os.remove(file) for file in self.files if os.path.exists(file)]
+            [file.unlink() for file in self.files if file.exists()]
         self.files.clear()
 
 
@@ -222,7 +221,7 @@ class SubmissionWorker(QRunnable):
         self._downloadedContent = downloadedContent
         self._lstModelType = lstModelType
         self._setMostRecentDownloadTimestamp = setMostRecentDownloadTimestamp
-        self._downloadedContent.representativeImage = "RedditDataExtractor/images/jsonImage.png"
+        self._downloadedContent.representativeImage = pathlib.Path("RedditDataExtractor/images/jsonImage.png")
 
     def run(self):
         title = self._submission.title

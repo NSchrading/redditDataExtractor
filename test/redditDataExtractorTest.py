@@ -20,9 +20,9 @@ import sys
 import time
 import os
 import shutil
-import glob
 import itertools
 import json
+import pathlib
 from hashlib import sha256
 from queue import Queue
 
@@ -40,6 +40,10 @@ class rddtDataExtractorTest(unittest.TestCase):
     def setUp(self):
         self.app = QApplication(sys.argv)
         rddtDataExtractor = RedditDataExtractor()
+        rddtDataExtractor.defaultPath = pathlib.Path('Downloads')
+        if not rddtDataExtractor.defaultPath.exists():
+            rddtDataExtractor.defaultPath.mkdir()
+        rddtDataExtractor.defaultPath = rddtDataExtractor.defaultPath.resolve()
         queue = Queue()
         self.thread = QThread()
         self.recv = QueueMessageReceiver(queue)
@@ -82,6 +86,7 @@ class rddtDataExtractorTest(unittest.TestCase):
             '2bby9l_comment_4 1.gif': b'\x03\xba\xa8\xdeC\xd1\xba\xb4\x84\xad[d]\x16\xff\x11\xa3\xbeb/\xbc\xfd\xa3C\xa32l\xfd\xe8y\x10h',
             '2bcnhu_comment_1 1.jpg': b'\xd5r8\xb0e\x7f\\M\xbe\x14\xe7\x13\xcd\xe4};s\xe0\x1ad\x14\x9b(H\xb1\\[/\x1b\x9b\xe8\xbe',
             '2bby9l_comment_4 2.gif': b'4\x86rl/CAq6Bn\xe8\xbc\x1fb5ie\x1c$\x88!\xb8\x9fw\x8cP\xadYs\x9bF'}
+
 
         self.externalSelftextImageHashes = {
             '2bcokj_selftext_2 1.png': b"\xba\xe37g\xb1\x8f\x97\xdc\xdeB\x12S\x12\xd7\xa1\xc2g\xfbL\x18\xf698R\xa3\x06?\x0b'V\xb0\xa1",
@@ -153,7 +158,7 @@ class rddtDataExtractorTest(unittest.TestCase):
 
     def hashfile(self, fileName, blocksize=65536):
         hasher = sha256()
-        with open(fileName, 'rb') as file:
+        with fileName.open('rb') as file:
             buf = file.read(blocksize)
             while len(buf) > 0:
                 hasher.update(buf)
@@ -164,17 +169,17 @@ class rddtDataExtractorTest(unittest.TestCase):
         downloadedFilesSet = set()
         for filePath in downloadedFilePaths:
             downloadedFilesSet = downloadedFilesSet.union(
-                set(itertools.chain(*[glob.glob(os.path.join(filePath, fileType)) for fileType in fileTypes])))
-        hashesDownloaded = {os.path.basename(fileName): self.hashfile(fileName) for fileName in downloadedFilesSet}
+                set(itertools.chain(*[filePath.glob(fileType) for fileType in fileTypes])))
+        hashesDownloaded = {fileName.stem + fileName.suffix: self.hashfile(fileName) for fileName in downloadedFilesSet}
         print(hashesDownloaded)
         self.assertEqual(hashesDownloaded, knownGoodHashes)
 
     def compareJSON(self, fileNames):
         for fileName in fileNames:
-            goodJSONFilePath = os.path.join("knownGoodTestFiles", fileName)
-            testJSONFilePath = os.path.join("Downloads", "rddt_data_extractor", fileName)
-            with open(goodJSONFilePath) as goodJSONFile:
-                with open(testJSONFilePath) as testJSONFile:
+            goodJSONFilePath = pathlib.Path("knownGoodTestFiles", fileName)
+            testJSONFilePath = pathlib.Path("Downloads", "rddt_data_extractor", fileName)
+            with goodJSONFilePath.open() as goodJSONFile:
+                with testJSONFilePath.open() as testJSONFile:
                     goodJSON = json.load(goodJSONFile)
                     testJSON = json.load(testJSONFile)
                     # some items change by a small amount like created so check specific things that should never change
@@ -199,11 +204,11 @@ class rddtDataExtractorTest(unittest.TestCase):
 
     def compareJSONFiles(self, fileTypes):
         downloadedFilesSet = set(itertools.chain(
-            *[glob.glob(os.path.join("Downloads", "rddt_data_extractor", fileType)) for fileType in fileTypes]))
+            *[pathlib.Path("Downloads", "rddt_data_extractor").glob(fileType) for fileType in fileTypes]))
         knownGoodJSONFilesSet = set(itertools.chain(
-            *[glob.glob(os.path.join("knownGoodTestFiles", fileType)) for fileType in fileTypes]))
-        knownGoodJSONFiles = {os.path.basename(fileName) for fileName in knownGoodJSONFilesSet}
-        filesDownloaded = {os.path.basename(fileName) for fileName in downloadedFilesSet}
+            *[pathlib.Path("knownGoodTestFiles").glob(fileType) for fileType in fileTypes]))
+        knownGoodJSONFiles = {pathlib.Path(fileName).stem + pathlib.Path(fileName).suffix for fileName in knownGoodJSONFilesSet}
+        filesDownloaded = {pathlib.Path(fileName).stem + pathlib.Path(fileName).suffix for fileName in downloadedFilesSet}
         self.assertEqual(filesDownloaded, knownGoodJSONFiles)
         self.compareJSON(filesDownloaded)
 
@@ -241,8 +246,8 @@ class rddtDataExtractorTest(unittest.TestCase):
         self.form._rddtDataExtractor.getCommentExternalContent = True
         self.download()
         self.compareHashes(self.imageFileTypes, self.externalCommentImageHashes,
-                                           [os.path.join("Downloads", "rddt_data_extractor", "rddt_data_extractor"),
-                                            os.path.join("Downloads", "rddt_data_extractor", "GfycatLinkFixerBot")])
+                                           [pathlib.Path("Downloads", "rddt_data_extractor", "rddt_data_extractor"),
+                                            pathlib.Path("Downloads", "rddt_data_extractor", "GfycatLinkFixerBot")])
         shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"), ignore_errors=True)
 
     def testDownloadSubmission(self):
@@ -258,7 +263,7 @@ class rddtDataExtractorTest(unittest.TestCase):
         self.form._rddtDataExtractor.getSubmissionContent = False
         self.form._rddtDataExtractor.getExternalContent = True
         self.download()
-        self.compareHashes(self.imageFileTypes, self.externalImageHashes, [os.path.join("Downloads", "rddt_data_extractor")])
+        self.compareHashes(self.imageFileTypes, self.externalImageHashes, [pathlib.Path("Downloads", "rddt_data_extractor")])
         shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"), ignore_errors=True)
 
     def testDownloadSelftextExternals(self):
@@ -267,7 +272,7 @@ class rddtDataExtractorTest(unittest.TestCase):
         self.form._rddtDataExtractor.getExternalContent = False
         self.form._rddtDataExtractor.getSelftextExternalContent = True
         self.download()
-        self.compareHashes(self.imageFileTypes, self.externalSelftextImageHashes, [os.path.join("Downloads", "rddt_data_extractor")])
+        self.compareHashes(self.imageFileTypes, self.externalSelftextImageHashes, [pathlib.Path("Downloads", "rddt_data_extractor")])
         shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"), ignore_errors=True)
 
 if __name__ == "__main__":

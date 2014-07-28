@@ -63,7 +63,7 @@ class ImageFinder():
         :type submissionID: str
         :type URL: str
         :type redditSubmissionURL: str
-        :type defaultPath: str
+        :type defaultPath: pathlib.Path
         :type count: int
         :type iterContent: generator
         :type specialString: str
@@ -145,7 +145,7 @@ class ImageFinder():
     def getImages(self, submission, defaultPath, userOrSub, specialString=None, specialCount=None, specialPath=None):
         """
         :type submission: praw.objects.Submission
-        :type defaultPath: str
+        :type defaultPath: pathlib.Path
         :type userOrSub: RedditDataExtractor.GUI.genericListModelObjects.GenericListModelObj
         :type specialString: str
         :type specialCount int

@@ -16,6 +16,7 @@
 """
 
 import os
+import pathlib
 import shelve
 import operator
 import re
@@ -138,7 +139,7 @@ class RedditDataExtractor():
         # for a single submission
         self._commentCache = {}
 
-        self.defaultPath = os.path.abspath(os.path.expanduser('Downloads'))
+        self.defaultPath = pathlib.Path(os.path.expanduser('~')) / 'Downloads'
 
         # The list of default subs to start with on a fresh run of the program
         self.subredditLists = {'Default Subs': ListModel(
@@ -439,21 +440,22 @@ class RedditDataExtractor():
         :param user: Optional parameter specifying where this submission data is going to be saved to. If user is not empty string, it goes in a user folder, otherwise it goes in a subreddit folder
         :type submission: praw.objects.Submission
         :type user: str
+        :rtype: tuple
         """
         MAX_PATH = 260  # Windows is stupid and only lets you make paths up to a length of 260 chars
         if user != "":
-            directory = os.path.abspath(os.path.join(self.defaultPath, user))
+            directory = self.defaultPath / user
         else:
             subreddit = submission.subreddit.display_name
-            directory = os.path.abspath(os.path.join(self.defaultPath, subreddit))
+            directory = self.defaultPath / subreddit
         title = re.sub('[^\w\-_\. ]', '', submission.title)
-        path = os.path.join(directory, title + '.txt')
-        if len(path) > MAX_PATH:
-            lenOver = len(path) - MAX_PATH
+        path = directory / (title + '.txt')
+        if len(str(path)) > MAX_PATH:
+            lenOver = len(str(path)) - MAX_PATH
             title = title[:-(lenOver + len('.txt'))]
-            path = os.path.join(directory, title + '.txt')
+            path = directory / (title + '.txt')
         try:
-            with open(path, 'w') as f:
+            with path.open('w') as f:
                 json.dump(self._getSubmissionData(submission), f, ensure_ascii=True)
                 return True, path
         except:
@@ -525,9 +527,9 @@ class RedditDataExtractor():
         Make a directory in the default path with name of dirName
         :type dirName: str
         """
-        directory = os.path.abspath(os.path.join(self.defaultPath, dirName))
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+        directory = self.defaultPath / dirName
+        if not directory.exists():
+            directory.mkdir(parents=True)
 
     def mapFilterTextToOper(self, text):
         """
@@ -589,7 +591,7 @@ class RedditDataExtractor():
                 userListSettings[key] = val.lst
             for key, val in subredditListModels.items():
                 subredditListSettings[key] = val.lst
-            shelf = shelve.open(os.path.join("RedditDataExtractor", "saves", "settings.db"))
+            shelf = shelve.open(str(pathlib.Path("RedditDataExtractor", "saves", "settings.db")))
             try:
                 self.userLists = None  # QAbstractListModel is not pickleable so set this to None
                 self.subredditLists = None

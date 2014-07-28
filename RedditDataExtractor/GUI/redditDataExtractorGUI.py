@@ -15,8 +15,8 @@
     along with The reddit Data Extractor.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os
 import requests
+import pathlib
 
 from PyQt4.Qt import (QInputDialog, QObject, pyqtSignal, pyqtSlot, QListView, Qt, QLineEdit, QMessageBox, QMainWindow,
     QThread, QFileDialog, QTextCursor, QDialog, QIcon, QPixmap)
@@ -338,7 +338,7 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
     def setup(self):
         self.init()
 
-        self.directoryBox.setText(self._rddtDataExtractor.defaultPath)
+        self.directoryBox.setText(str(self._rddtDataExtractor.defaultPath))
 
         self.directorySelectBtn.clicked.connect(self.selectDirectory)
         self.addUserBtn.clicked.connect(self.userList.addToList)
@@ -535,10 +535,12 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
 
     def selectDirectory(self):
         directory = QFileDialog.getExistingDirectory(QFileDialog())
-        if len(directory) > 0 and os.path.exists(directory):
-            self._rddtDataExtractor.defaultPath = directory
-            self.directoryBox.setText(directory)
-            self.setUnsavedChanges(True)
+        if len(directory) > 0:
+            directory = pathlib.Path(directory).resolve()
+            if directory.exists():
+                self._rddtDataExtractor.defaultPath = directory
+                self.directoryBox.setText(str(directory))
+                self.setUnsavedChanges(True)
 
     def convertFilterTableToFilters(self, settings):
         """

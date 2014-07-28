@@ -17,7 +17,7 @@
 
 import shelve
 import sys
-import os
+import pathlib
 from queue import Queue
 
 from PyQt4.Qt import QApplication, QThread, QObject, pyqtSignal, pyqtSlot
@@ -61,7 +61,7 @@ def loadState():
     """
     Attempt to load the program from a pickled state in the saves directory.
     """
-    shelf = shelve.open(os.path.join("RedditDataExtractor", "saves", "settings.db"))
+    shelf = shelve.open(str(pathlib.Path("RedditDataExtractor", "saves", "settings.db")))
     rddtDataExtractor = None
     try:
         rddtDataExtractor = shelf['rddtDataExtractor']

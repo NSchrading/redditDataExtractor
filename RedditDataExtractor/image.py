@@ -15,8 +15,8 @@
     along with The reddit Data Extractor.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os
 import warnings
+import pathlib
 
 # Without this we get tons of warnings about unclosed sockets.
 # Not sure if it's something I'm doing wrong or if it's a bug in Requests / PRAW / urllib
@@ -44,7 +44,7 @@ class Image():
         :type userOrSubName: str
         :type submissionID: str
         :type fileType: str
-        :type defaultPath: str
+        :type defaultPath: pathlib.Path
         :type URL: str
         :type redditSubmissionURL: str
         :type iterContent: generator
@@ -78,19 +78,19 @@ class Image():
             else:
                 imageFile = self.submissionID + self.specialString + str(self.specialCount) + self.fileType
         if self.specialPath is not None:
-            directory = os.path.abspath(os.path.join(self.defaultPath, self.userOrSubName, self.specialPath))
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            self.savePath = os.path.abspath(os.path.join(directory, imageFile))
+            directory = self.defaultPath / self.userOrSubName / self.specialPath
+            if not directory.exists():
+                directory.mkdir(parents=True)
+            self.savePath = directory / imageFile
         else:
-            self.savePath = os.path.abspath(os.path.join(self.defaultPath, self.userOrSubName, imageFile))
+            self.savePath = self.defaultPath / self.userOrSubName / imageFile
 
     def _isActuallyGif(self):
         """
         If this image is actually a gif but the URL indicated it was a .jpg or .png we want to save it as a .gif and
         set its information to indicate that it is, in fact, a gif.
         """
-        with open(self.savePath, 'rb') as f:
+        with self.savePath.open('rb') as f:
             for i in range(3):
                 if hex(ord(f.read(1))) != Image.gifHeader[i]:
                     return False
@@ -98,14 +98,16 @@ class Image():
 
     def download(self):
         try:
-            with open(self.savePath, 'wb') as fo:
+            with self.savePath.open('wb') as fo:
                 for chunk in self._iterContent:
                     fo.write(chunk)
-            filePath, fileExtension = os.path.splitext(self.savePath)
+            filePath = self.savePath.parent
+            fileName = self.savePath.stem
+            fileExtension = self.savePath.suffix
             if fileExtension in {".jpg", ".jpeg", ".png"}:
                 if self._isActuallyGif():
-                    newPath = filePath + ".gif"
-                    os.rename(self.savePath, newPath)
+                    newPath = filePath / (fileName + ".gif")
+                    self.savePath.rename(newPath)
                     self.savePath = newPath
                     self.fileType = ".gif"
             return True

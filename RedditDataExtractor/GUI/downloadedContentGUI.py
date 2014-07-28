@@ -15,7 +15,7 @@
     along with The reddit Data Extractor.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os
+import pathlib
 
 from PyQt4.Qt import QDialog, QMessageBox, QListWidgetItem, QListWidget, Qt, QLabel, QSize, QPixmap
 from PyQt4 import QtGui
@@ -119,8 +119,8 @@ class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
         :type submissionURL: str
         :type lst: QListWidget
         """
-        image = submission.representativeImage
-        if image is not None and os.path.exists(image):
+        imagePath = submission.representativeImage
+        if imagePath is not None and imagePath.exists():
             item = QListWidgetItem(submissionURL, lst)
             item.setTextColor(Qt.transparent)
             labelWidget = QLabel()
@@ -129,15 +129,15 @@ class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
             size = QSize(128, 158)
             item.setSizeHint(size)
             size = QSize(128, 128)
-            if(image.endswith(".webm")):
-                image = "RedditDataExtractor/images/webmImage.png"
-            pixmap = QPixmap(image)
+            if imagePath.suffix == ".webm":
+                imagePath = pathlib.Path("RedditDataExtractor", "images", "webmImage.png").resolve()
+            pixmap = QPixmap(str(imagePath))
             pixmap = pixmap.scaled(size, Qt.KeepAspectRatio)
             height = pixmap.height()
             width = pixmap.width()
             submissionTitle = submissionURL[submissionURL[0:-1].rfind("/") + 1:-1]
             labelWidget.setText(
-                '<a href="' + submissionURL + '"><img src="' + str(image) + '" height="' + str(
+                '<a href="' + submissionURL + '"><img src="' + str(imagePath) + '" height="' + str(
                     height) + '" width="' + str(width) + '"><p>' + submissionTitle)
             lst.setItemWidget(item, labelWidget)
 
