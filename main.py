@@ -61,7 +61,10 @@ def loadState():
     """
     Attempt to load the program from a pickled state in the saves directory.
     """
-    shelf = shelve.open(str(pathlib.Path("RedditDataExtractor", "saves", "settings.db")))
+    savePath = pathlib.Path("RedditDataExtractor", "saves")
+    if not savePath.exists():
+        savePath.mkdir()
+    shelf = shelve.open(str(savePath / "settings.db"))
     rddtDataExtractor = None
     try:
         rddtDataExtractor = shelf['rddtDataExtractor']

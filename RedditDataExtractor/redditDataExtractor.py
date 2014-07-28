@@ -16,6 +16,7 @@
 """
 
 import os
+import shutil
 import pathlib
 import shelve
 import operator
@@ -193,6 +194,15 @@ class RedditDataExtractor():
         self.subLimit = 10
         self.restrictDownloadsByCreationDate = True
         self.showImgurAPINotification = True
+
+        try:
+            path = pathlib.Path('RedditDataExtractor')
+            if not path.exists():
+                path.mkdir(parents=True)
+            shutil.copyfile(requests.certs.where(), str(path / 'cacert.pem'))
+        except:
+            pass
+
 
     def _isValidSubmission(self, submission, lstModelObj):
         """ Determines if this is a good submission to download from

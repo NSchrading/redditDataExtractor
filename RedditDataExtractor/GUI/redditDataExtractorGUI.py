@@ -651,7 +651,7 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
             apiURL = "https://api.imgur.com/3/credits"
             requestsSession = requests.session()
             requestsSession.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36'
-            json = exceptionSafeJsonRequest(requestsSession, apiURL, headers=headers, stream=True)
+            json = exceptionSafeJsonRequest(requestsSession, apiURL, headers=headers, stream=True, verify='RedditDataExtractor/cacert.pem')
             if json is not None and json.get('data') is not None and json.get('data').get('ClientRemaining'):
                 msgBox.setText("You have " + str(json.get('data').get('ClientRemaining')) + " requests remaining.")
             else:

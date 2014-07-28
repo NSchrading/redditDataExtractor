@@ -43,6 +43,7 @@ class ImageFinder():
         # Use a session that all requests can use
         self._requestsSession = requests.session()
         self._requestsSession.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36'
+        self._requestsSession.verify = 'RedditDataExtractor/cacert.pem'
         self._queue = queue
 
     def _validURLImage(self, url):
@@ -83,8 +84,7 @@ class ImageFinder():
                 else:
                     return None
         except:
-            # probably should actually do something here like log the error
-            pass
+            self._queue.put(">>> Failed to query json for " + str(*args) + "\n")
         return None
 
     def exceptionSafeImageRequest(self, *args, **kwargs):
@@ -117,8 +117,7 @@ class ImageFinder():
                 else:
                     return None
         except:
-            # probably should actually do something here like log the error
-            pass
+            self._queue.put(">>> Failed to query text for " + str(*args) + "\n")
         return None
 
     @staticmethod

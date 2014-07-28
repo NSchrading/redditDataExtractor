@@ -42,7 +42,7 @@ class ImgurClientIdGUI(QDialog, Ui_ImgurClientIdDialog):
     def _validClientId(self):
         headers = {'Authorization': 'Client-ID ' + self.clientIdLineEdit.text()}
         apiURL = "https://api.imgur.com/3/credits"
-        json = exceptionSafeJsonRequest(self._requestsSession, apiURL, headers=headers, stream=True)
+        json = exceptionSafeJsonRequest(self._requestsSession, apiURL, headers=headers, stream=True, verify='RedditDataExtractor/cacert.pem')
         if json is not None and json.get('data') is not None and json.get('data').get('ClientRemaining') is not None and json.get('data').get('ClientRemaining') > 0:
             return True
         return False
