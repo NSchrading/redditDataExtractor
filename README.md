@@ -18,6 +18,7 @@ External content can be downloaded from submission links, comments, and selftext
 Filters can be set to download only those submissions, or those submission's external content, passing the filter criteria.
 
 Here are all the settings available:
+
 ![Settings](http://i.imgur.com/f874li1.png)
 
 Right clicking on a user or subreddit that has already had content downloaded for them will display a preview of the downloaded content, broken up by JSON-encoded submission content, external submission links, comment links, and selftext links.
