@@ -12,7 +12,7 @@ base = None
 if sys.platform == "win32":
     base = "Win32GUI"
 
-includes = ["atexit", "re", "sip", 'requests', 'http.cookiejar', 'http.client', 'dummy_threading']
+includes = ["atexit", "re", "sip"]
 
 packages = []
 
@@ -25,7 +25,7 @@ for dbmodule in ['dbhash', 'gdbm', 'dbm', 'dumbdbm']:
         # If we found the module, ensure it's copied to the build directory.
         packages.append(dbmodule)
 
-include_files = [('RedditDataExtractor/images', 'RedditDataExtractor/images'), (requests.certs.where(),'RedditDataExtractor/cacert.pem')]
+include_files = [('RedditDataExtractor/images', 'RedditDataExtractor/images'), (requests.certs.where(),'RedditDataExtractor/cacert.pem'), ('C:/Python34/Lib/site-packages/praw/praw.ini', 'praw.ini')]
 
 setup(
     name='RedditDataExtractor',
@@ -36,8 +36,8 @@ setup(
     author='J Nicolas Schrading',
     author_email='NSchrading@gmail.com',
     description='The reddit Data Extractor is a GUI tool for downloading almost any content posted to reddit.',
-    options = {"build_exe": {'includes': includes, 'packages': packages, 'include_files': include_files, 'copy_dependent_files': True}},
-    executables = [Executable("main.py", base=base)]
+    options = {"build_exe": {'includes': includes, 'packages': packages, 'include_files': include_files, 'copy_dependent_files': True, 'icon': 'RedditDataExtractor/images/logo.ico'}},
+    executables = [Executable("main.py", base=base, targetName="redditDataExtractor.exe")]
 )
 
-shutil.copyfile('C:/Python34/Lib/site-packages/praw/praw.ini', os.path.join(os.path.expanduser('~'), 'AppData', 'Roaming', 'praw.ini'))
+#shutil.copyfile('C:/Python34/Lib/site-packages/praw/praw.ini', os.path.join(os.path.expanduser('~'), 'AppData', 'Roaming', 'praw.ini'))

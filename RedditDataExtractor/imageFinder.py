@@ -16,11 +16,15 @@
 """
 
 import requests
+import warnings
 
 from bs4 import BeautifulSoup
 from contextlib import closing
 from .image import Image
 from enum import Enum
+
+# BeautifulSoup issues deprecation warnings. Hide them.
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 class ImgurLinkTypeEnum(Enum):
     DIRECT = 1
