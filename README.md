@@ -20,6 +20,18 @@ Filters can be set to download only those submissions, or those submission's ext
 Here are all the settings available:
 ![Settings](http://i.imgur.com/f874li1.png)
 
+Right clicking on a user or subreddit that has already had content downloaded for them will display a preview of the downloaded content, broken up by JSON-encoded submission content, external submission links, comment links, and selftext links.
+
+![Downloaded content gui](http://i.imgur.com/hFS58uy.png)
+
+Clicking on the display images will take you to the reddit submission from which the content was downloaded. Right clicking the submission (to the right of the image) will allow you to delete the content. Deselecting the 'restrict retrieved submissions to creation dates after the last downloaded submission' checkbox in the settings will then allow you to redownload the content. Or if you never want to download that content again, you can select 'delete content and never download again' which will blacklist it.
+
+The reddit data extractor will remember your settings and the users and subreddits you downloaded from, as long as you save before exiting. If you wish to delete a save, remove the 3 files under RedditDataExtractor/saves called settings.db.bak, settings.db.dat, and settings.db.dir.
+
+If you remove a user or subreddit from the list, the program will lose all memory of having downloaded content from them, allowing you to redownload everything again. Removing them will not delete their already downloaded content from your computer, however.
+
+The reddit data extractor is tested and working for Windows 8.
+
 <dl>
   <dt>The following file types are supported:</dt>
   <dd>jpg, png, gif, webm</dd>
