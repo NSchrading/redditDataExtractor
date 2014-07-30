@@ -31,7 +31,30 @@ The reddit data extractor will remember your settings and the users and subreddi
 
 If you remove a user or subreddit from the list, the program will lose all memory of having downloaded content from them, allowing you to redownload everything again. Removing them will not delete their already downloaded content from your computer, however.
 
-### Running / Installing the reddit Data Extractor
+<dl>
+  <dt>The following file types are supported:</dt>
+  <dd>jpg, png, gif, webm</dd>
+</dl>
+  
+<dl>
+  <dt>Site specific notes:</dt>
+  <dd>Imgur page, gallery, and album links will only be downloadable if you obtain an Imgur API client-id and enter it into the reddit data extractor.</dd>
+  <dd>Minus galleries are not currently supported - only page and direct links.</dd>
+</dl>
+
+### Running the reddit Data Extractor
+
+If you downloaded the executable files, open the folder that was downloaded. Inside you will see a bunch of .dll files or .so files. Also included in the mess of files is the executable:
+
+![Executable](http://i.imgur.com/i3W9uF4.png)
+
+On windows it is called redditDataExtractor.exe. On Linux it is called redditDataExtractor. On linux, run it by typing in the console:
+
+        ./redditDataExtractor
+        
+On windows, simply double click the .exe.
+
+### Installing the reddit Data Extractor from Source
 
 The reddit Data Extractor has been tested and is working for 64-bit versions of both Windows 8 and Linux Mint 16. Precompiled versions of the program are available for download if you don't want to go through the arduous process of installing PyQt.
 
@@ -88,14 +111,3 @@ Download the PyQt4 64-bit installer built for python 3.4: http://sourceforge.net
 And now you should be ready to run the reddit Data Extractor! main.py is where all the magic starts.
 
     python main.py
-
-<dl>
-  <dt>The following file types are supported:</dt>
-  <dd>jpg, png, gif, webm</dd>
-</dl>
-  
-<dl>
-  <dt>Site specific notes:</dt>
-  <dd>Imgur page, gallery, and album links will only be downloadable if you obtain an Imgur API client-id and enter it into the reddit data extractor.</dd>
-  <dd>Minus galleries are not currently supported - only page and direct links.</dd>
-</dl>
