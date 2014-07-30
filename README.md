@@ -1,4 +1,4 @@
-redditDataExtractor
+The reddit Data Extractor
 ===================
 
 ![Main application](http://i.imgur.com/ekuaFS9.png)
@@ -31,6 +31,8 @@ The reddit data extractor will remember your settings and the users and subreddi
 
 If you remove a user or subreddit from the list, the program will lose all memory of having downloaded content from them, allowing you to redownload everything again. Removing them will not delete their already downloaded content from your computer, however.
 
+### Running / Installing the reddit Data Extractor
+
 The reddit Data Extractor has been tested and is working for 64-bit versions of both Windows 8 and Linux Mint 16. Precompiled versions of the program are available for download if you don't want to go through the arduous process of installing PyQt.
 
 If you do wish to run the program from source, below are the steps I took to run them on Windows and Linux. A slightly different process may be required for versions of linux not based off of Ubuntu. In general, Python 3.4, PyQt4, PRAW, BeautifulSoup4, and Requests are required.
@@ -54,9 +56,13 @@ Extract both tarballs
     make
     [sudo] make install
 
-<span style="color:red;">Warning: Compiling / linking PyQt will take a while.</span>
+###### Warning: Compiling / linking PyQt will take a while.
 When that's done:
 
+    [sudo] pip install -r requirements.txt
+    
+    ~OR~
+    
     [sudo] pip install praw
     [sudo] pip install requests
     [sudo] pip install beautifulsoup4
@@ -70,6 +76,10 @@ And now you should be ready to run the reddit Data Extractor! main.py is where a
 Download the PyQt4 64-bit installer built for python 3.4: http://sourceforge.net/projects/pyqt/files/PyQt4/PyQt-4.11.1/PyQt4-4.11.1-gpl-Py3.4-Qt4.8.6-x64.exe
     
     Run the installer.
+    
+    pip install -r requirements.txt
+    
+    ~OR~
     
     pip install praw
     pip install requests
