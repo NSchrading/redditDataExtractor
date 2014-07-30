@@ -1,0 +1,3 @@
+praw>=2.1.17
+beautifulsoup4>=4.3.2
+requests>=2.3.0
