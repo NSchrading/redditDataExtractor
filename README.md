@@ -31,7 +31,53 @@ The reddit data extractor will remember your settings and the users and subreddi
 
 If you remove a user or subreddit from the list, the program will lose all memory of having downloaded content from them, allowing you to redownload everything again. Removing them will not delete their already downloaded content from your computer, however.
 
-The reddit data extractor is tested and working for Windows 8.
+The reddit Data Extractor has been tested and is working for 64-bit versions of both Windows 8 and Linux Mint 16. Precompiled versions of the program are available for download if you don't want to go through the arduous process of installing PyQt.
+
+If you do wish to run the program from source, below are the steps I took to run them on Windows and Linux. A slightly different process may be required for versions of linux not based off of Ubuntu. In general, Python 3.4, PyQt4, PRAW, BeautifulSoup4, and Requests are required.
+
+##### Linux
+    [sudo] apt-get install libxext-dev python-qt4 qt4-dev-tools libqt4-dev libqt4-core libqt4-gui build-essential
+
+Download SIP: http://sourceforge.net/projects/pyqt/files/sip/sip-4.16.2/sip-4.16.2.tar.gz/
+
+Download PyQt: http://sourceforge.net/projects/pyqt/files/PyQt4/PyQt-4.11.1/PyQt-x11-gpl-4.11.1.tar.gz/
+
+Extract both tarballs
+
+    cd sip-4.16.2
+    python configure.py
+    make
+    [sudo] make install
+    
+    cd PyQt-x11-gpl-4.11.1
+    python configure.py
+    make
+    [sudo] make install
+
+<span style="color:red;">Warning: Compiling / linking PyQt will take a while.</span>
+When that's done:
+
+    [sudo] pip install praw
+    [sudo] pip install requests
+    [sudo] pip install beautifulsoup4
+    
+And now you should be ready to run the reddit Data Extractor! main.py is where all the magic starts.
+
+    python main.py
+    
+##### Windows
+
+Download the PyQt4 64-bit installer built for python 3.4: http://sourceforge.net/projects/pyqt/files/PyQt4/PyQt-4.11.1/PyQt4-4.11.1-gpl-Py3.4-Qt4.8.6-x64.exe
+    
+    Run the installer.
+    
+    pip install praw
+    pip install requests
+    pip install beautifulsoup4
+    
+And now you should be ready to run the reddit Data Extractor! main.py is where all the magic starts.
+
+    python main.py
 
 <dl>
   <dt>The following file types are supported:</dt>
