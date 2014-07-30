@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'redditDataExtractorGUI.ui'
 #
-# Created: Sun Jul 27 02:00:51 2014
-#      by: PyQt4 UI code generator 4.10.4
+# Created: Wed Jul 30 18:45:38 2014
+#      by: PyQt4 UI code generator 4.11.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -212,11 +212,11 @@ class Ui_RddtDataExtractorMainWindow(object):
         self.deleteUserBtn.setText(_translate("RddtDataExtractorMainWindow", "-", None))
         self.directoryBox.setToolTip(_translate("RddtDataExtractorMainWindow", "Directory to download content to.", None))
         self.userSubBtn.setToolTip(_translate("RddtDataExtractorMainWindow", "Download content from the users in the users list only if they have posted in the subreddits in the subreddit list.", None))
-        self.userSubBtn.setText(_translate("RddtDataExtractorMainWindow", "Constrain Selected Users To Selected Subreddits", None))
+        self.userSubBtn.setText(_translate("RddtDataExtractorMainWindow", "Constrain Users in List To Subreddits in List", None))
         self.allUserBtn.setToolTip(_translate("RddtDataExtractorMainWindow", "Download content from users in the users list, from any subreddit.", None))
-        self.allUserBtn.setText(_translate("RddtDataExtractorMainWindow", "Selected Users\' Content in All Subreddits", None))
+        self.allUserBtn.setText(_translate("RddtDataExtractorMainWindow", "Users in List in All Subreddits", None))
         self.allSubBtn.setToolTip(_translate("RddtDataExtractorMainWindow", "Download content from the subreddits in the subreddits list.", None))
-        self.allSubBtn.setText(_translate("RddtDataExtractorMainWindow", "Selected Subreddits\' Content", None))
+        self.allSubBtn.setText(_translate("RddtDataExtractorMainWindow", "Subreddits in List", None))
         self.downloadBtn.setToolTip(_translate("RddtDataExtractorMainWindow", "Begin to download content.", None))
         self.downloadBtn.setText(_translate("RddtDataExtractorMainWindow", "Download!", None))
         self.addSubredditBtn.setToolTip(_translate("RddtDataExtractorMainWindow", "Add a subreddit.", None))

@@ -143,7 +143,7 @@
            <string>Download content from the users in the users list only if they have posted in the subreddits in the subreddit list.</string>
           </property>
           <property name="text">
-           <string>Constrain Selected Users To Selected Subreddits</string>
+           <string>Constrain Users in List To Subreddits in List</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -156,7 +156,7 @@
            <string>Download content from users in the users list, from any subreddit.</string>
           </property>
           <property name="text">
-           <string>Selected Users' Content in All Subreddits</string>
+           <string>Users in List in All Subreddits</string>
           </property>
           <property name="checked">
            <bool>false</bool>
@@ -169,7 +169,7 @@
            <string>Download content from the subreddits in the subreddits list.</string>
           </property>
           <property name="text">
-           <string>Selected Subreddits' Content</string>
+           <string>Subreddits in List</string>
           </property>
          </widget>
         </item>
