@@ -1,6 +1,4 @@
 import sys
-import shutil
-import os
 import requests.certs
 from cx_Freeze import setup, Executable
 
@@ -39,5 +37,3 @@ setup(
     options = {"build_exe": {'includes': includes, 'packages': packages, 'include_files': include_files, 'copy_dependent_files': True, 'icon': 'RedditDataExtractor/images/logo.ico'}},
     executables = [Executable("main.py", base=base, targetName="redditDataExtractor.exe")]
 )
-
-#shutil.copyfile('C:/Python34/Lib/site-packages/praw/praw.ini', os.path.join(os.path.expanduser('~'), 'AppData', 'Roaming', 'praw.ini'))

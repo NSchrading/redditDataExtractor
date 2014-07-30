@@ -622,6 +622,12 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         msgBox.setText("""
             <p>This program uses the following open source software:<br>
             <a href="http://www.riverbankcomputing.co.uk/software/pyqt/intro">PyQt</a> under the GNU GPL v3 license
+            <br>
+            <a href="https://praw.readthedocs.org/en/v2.1.16/">PRAW (Python Reddit API Wrapper)</a> under the GNU GPL v3 license
+            <br>
+            <a href="http://docs.python-requests.org/en/latest/">Requests</a> under the Apache2 license
+            <br>
+            <a href="http://www.crummy.com/software/BeautifulSoup/">Beautiful Soup</a> under a simplified BSD licence
             </p>
 
             <p>This program makes use of a modified version of <a href="https://www.videolan.org/vlc/">VLC's</a> logo:<br>
@@ -638,7 +644,7 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
 
             <p>This program is released under the GNU GPL v3 license<br>
             <a href="https://www.gnu.org/licenses/quick-guide-gplv3.html">GNU GPL v3 license page</a><br>
-            See LICENSE.txt for more information.
+            See <a href="https://github.com/NSchrading/redditDataExtractor/blob/master/LICENSE.txt">LICENSE.txt</a> for more information.
             </p>
         """)
         msgBox.exec()
