@@ -1,4 +1,4 @@
-redditDataExtractor
+The reddit Data Extractor
 ===================
 
 ![Main application](http://i.imgur.com/ekuaFS9.png)
@@ -31,6 +31,31 @@ The reddit data extractor will remember your settings and the users and subreddi
 
 If you remove a user or subreddit from the list, the program will lose all memory of having downloaded content from them, allowing you to redownload everything again. Removing them will not delete their already downloaded content from your computer, however.
 
+<dl>
+  <dt>The following file types are supported:</dt>
+  <dd>jpg, png, gif, webm</dd>
+</dl>
+  
+<dl>
+  <dt>Site specific notes:</dt>
+  <dd>Imgur page, gallery, and album links will only be downloadable if you obtain an Imgur API client-id and enter it into the reddit data extractor.</dd>
+  <dd>Minus galleries are not currently supported - only page and direct links.</dd>
+</dl>
+
+### Running the reddit Data Extractor
+
+If you downloaded the executable files, open the folder that was downloaded. Inside you will see a bunch of .dll files or .so files. Also included in the mess of files is the executable:
+
+![Executable](http://i.imgur.com/i3W9uF4.png)
+
+On windows it is called redditDataExtractor.exe. On Linux it is called redditDataExtractor. On linux, run it by typing in the console:
+
+        ./redditDataExtractor
+        
+On windows, simply double click the .exe.
+
+### Installing the reddit Data Extractor from Source
+
 The reddit Data Extractor has been tested and is working for 64-bit versions of both Windows 8 and Linux Mint 16. Precompiled versions of the program are available for download if you don't want to go through the arduous process of installing PyQt.
 
 If you do wish to run the program from source, below are the steps I took to run them on Windows and Linux. A slightly different process may be required for versions of linux not based off of Ubuntu. In general, Python 3.4, PyQt4, PRAW, BeautifulSoup4, and Requests are required.
@@ -54,9 +79,13 @@ Extract both tarballs
     make
     [sudo] make install
 
-<span style="color:red;">Warning: Compiling / linking PyQt will take a while.</span>
+###### Warning: Compiling / linking PyQt will take a while.
 When that's done:
 
+    [sudo] pip install -r requirements.txt
+    
+    ~OR~
+    
     [sudo] pip install praw
     [sudo] pip install requests
     [sudo] pip install beautifulsoup4
@@ -71,6 +100,10 @@ Download the PyQt4 64-bit installer built for python 3.4: http://sourceforge.net
     
     Run the installer.
     
+    pip install -r requirements.txt
+    
+    ~OR~
+    
     pip install praw
     pip install requests
     pip install beautifulsoup4
@@ -78,14 +111,3 @@ Download the PyQt4 64-bit installer built for python 3.4: http://sourceforge.net
 And now you should be ready to run the reddit Data Extractor! main.py is where all the magic starts.
 
     python main.py
-
-<dl>
-  <dt>The following file types are supported:</dt>
-  <dd>jpg, png, gif, webm</dd>
-</dl>
-  
-<dl>
-  <dt>Site specific notes:</dt>
-  <dd>Imgur page, gallery, and album links will only be downloadable if you obtain an Imgur API client-id and enter it into the reddit data extractor.</dd>
-  <dd>Minus galleries are not currently supported - only page and direct links.</dd>
-</dl>
