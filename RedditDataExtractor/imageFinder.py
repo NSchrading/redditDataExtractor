@@ -197,7 +197,6 @@ class ImgurImageFinder(ImageFinder):
         json = self.exceptionSafeJsonRequest(apiURL, headers=headers, stream=True)
         if json is not None:
             self._alreadyQueriedURLs.add(apiURL)
-            print(apiURL)
             status = json.get('status')
             success = json.get('success')
             if (status is None and json.get('error') is not None) or (not success):
@@ -333,7 +332,6 @@ class GfycatImageFinder(ImageFinder):
         apiCall = "http://gfycat.com/cajax/get/" + endOfURL
         json = self.exceptionSafeJsonRequest(apiCall)
         validURL = None
-        print(apiCall)
         if json is not None:
             gfyItem = json.get("gfyItem")
             if gfyItem is not None and gfyItem.get("webmUrl") is not None:

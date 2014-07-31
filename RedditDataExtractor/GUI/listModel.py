@@ -41,7 +41,6 @@ class ListModel(QAbstractListModel):
         """
         self.stringsInLst.remove(oldStr.lower())
         self.stringsInLst.add(newStr.lower())
-        print(self.stringsInLst)
 
     def removeFromStringsInLst(self, string):
         """

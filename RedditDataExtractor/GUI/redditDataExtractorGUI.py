@@ -110,9 +110,7 @@ class ListViewAndChooser(QListView):
         self._rddtDataExtractor = self._gui._rddtDataExtractor
 
         for lstKey in self._chooserDict:
-            print("Adding to chooser: " + str(lstKey))
             self._lstChooser.addItem(lstKey)
-        print("default list: " + str(defaultLstName))
         model = chooserDict.get(defaultLstName)
         self.setModel(model)
         index = self._lstChooser.findText(defaultLstName)
@@ -166,6 +164,9 @@ class ListViewAndChooser(QListView):
         """
         Show the downloaded content dialog GUI for the selected user / subreddit
         """
+        if self._rddtDataExtractor.currentlyDownloading:
+            QMessageBox.warning(QMessageBox(), "Data Extractor for reddit", "Cannot view downloads while currently downloading. Please wait.")
+            return
         model = self.model()
         index = self.getCurrentSelectedIndex()
         if model is not None and index is not None:
@@ -194,7 +195,6 @@ class UserListViewAndChooser(ListViewAndChooser):
 
     def chooseNewList(self, listIndex):
         listName = self._lstChooser.itemText(listIndex)
-        print("Choosing new list: " + listName)
         self._rddtDataExtractor.currentUserListName = listName
         model = self._chooserDict.get(listName)
         self.setModel(model)
@@ -215,7 +215,6 @@ class UserListViewAndChooser(ListViewAndChooser):
         self.chooseNewList(index)
 
     def removeLastLst(self):
-        print('deleting last list')
         self._rddtDataExtractor.currentUserListName = None
         self._rddtDataExtractor.defaultUserListName = None
         self.setModel(ListModel([], GenericListModelObj))
@@ -258,7 +257,6 @@ class SubredditListViewAndChooser(ListViewAndChooser):
 
     def chooseNewList(self, listIndex):
         listName = self._lstChooser.itemText(listIndex)
-        print("Choosing new list: " + listName)
         self._rddtDataExtractor.currentSubredditListName = listName
         model = self._chooserDict.get(listName)
         self.setModel(model)
@@ -279,7 +277,6 @@ class SubredditListViewAndChooser(ListViewAndChooser):
         self.chooseNewList(index)
 
     def removeLastLst(self):
-        print('deleting last list')
         self._rddtDataExtractor.currentSubredditListName = None
         self._rddtDataExtractor.defaultSubredditListName = None
         self.setModel(ListModel([], GenericListModelObj))
@@ -416,6 +413,10 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
     def beginDownload(self):
         self.downloadBtn.setText("Downloading...")
         self.downloadBtn.setEnabled(False)
+        self.addUserBtn.setEnabled(False)
+        self.addSubredditBtn.setEnabled(False)
+        self.deleteUserBtn.setEnabled(False)
+        self.deleteSubredditBtn.setEnabled(False)
         self.logTextEdit.clear()
         if self._rddtDataExtractor.downloadType is DownloadType.USER_SUBREDDIT_CONSTRAINED:
             # need to validate both subreddits and redditors, start downloading user data once done
@@ -440,7 +441,7 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         self.downloader.moveToThread(self.thread)
         self.thread.started.connect(self.downloader.run)
         self.downloader.finished.connect(self.thread.quit)
-        self.downloader.finished.connect(self.activateDownloadBtn)
+        self.downloader.finished.connect(self.reactivateBtns)
         self.downloader.finished.connect(self.downloader.deleteLater)
         self.downloader.finished.connect(lambda: self.setUnsavedChanges(True))
         self.thread.finished.connect(self.thread.deleteLater)
@@ -455,12 +456,16 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         self.logTextEdit.moveCursor(QTextCursor.End)
         self.logTextEdit.insertPlainText(text)
 
-    def activateDownloadBtn(self):
+    def reactivateBtns(self):
         """
-        Let the user click on the download button because the download has finished
+        Let the user click on the buttons again because the download has finished
         """
         self.downloadBtn.setText("Download!")
         self.downloadBtn.setEnabled(True)
+        self.addUserBtn.setEnabled(True)
+        self.addSubredditBtn.setEnabled(True)
+        self.deleteUserBtn.setEnabled(True)
+        self.deleteSubredditBtn.setEnabled(True)
         self._rddtDataExtractor.currentlyDownloading = False
 
     def getValidRedditors(self, startDownload=False):
@@ -559,7 +564,6 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
             else:
                 connector = None  # We are just filtering by a single thing
             for row in range(filterTable.rowCount()):
-                print("row: " + str(row))
                 type = filterTable.cellWidget(row, settings.filtTableTypeCol).currentText()
                 prop = filterTable.cellWidget(row, settings.filtTablePropCol).currentText()
                 oper = self._rddtDataExtractor.mapFilterTextToOper(
@@ -576,16 +580,12 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
                     submissionFilts.append(filt)
                 elif type == "Comment":
                     commentFilts.append(filt)
-        print(submissionFilts, commentFilts, connector)
         return submissionFilts, commentFilts, connector
 
     def showSettings(self):
         settings = SettingsGUI(self._rddtDataExtractor, self.notifyImgurAPI)
         ret = settings.exec_()
         if ret == QDialog.Accepted:
-            print(
-                "Saving settings:\n" + str(settings.currentUserListName) + "\n" + str(
-                    settings.currentSubredditListName))
             self._rddtDataExtractor.defaultUserListName = settings.currentUserListName
             self._rddtDataExtractor.defaultSubredditListName = settings.currentSubredditListName
 
@@ -703,14 +703,11 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         """
         If there are unsaved changes, let the user know before closing the window
         """
-        print("Attempting to close program.")
         close = self.checkSaveState()
         if close:
             self.recv.stop()
-            print("Closing program.")
             event.accept()
         else:
-            print("Ignoring close attempt.")
             event.ignore()
 
     def saveState(self):

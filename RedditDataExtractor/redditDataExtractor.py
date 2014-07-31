@@ -608,10 +608,8 @@ class RedditDataExtractor():
                 shelf['rddtDataExtractor'] = self
                 shelf['userLists'] = userListSettings  # Save QAbstractList data as a simple dict of list
                 shelf['subredditLists'] = subredditListSettings
-                print("Saving program")
                 successful = True
             except KeyError:
-                print("save fail")
                 successful = False
             finally:
                 shelf.close()

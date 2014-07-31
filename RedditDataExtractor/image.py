@@ -111,8 +111,5 @@ class Image():
                     self.savePath = newPath
                     self.fileType = ".gif"
             return True
-        except Exception as e:
-            print(type(e))
-            print(e.args)
-            print(e)
+        except Exception:
             return False

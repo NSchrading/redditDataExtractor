@@ -183,7 +183,6 @@ class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
 
         downloadedContentForSubmission = currentLstModelObj.redditSubmissions.get(submissionURL)
         for content in downloadedContentForSubmission:
-            print(content)
             if content.type == downloadedContentType:
                 files = content.files
                 numFiles = len(files)

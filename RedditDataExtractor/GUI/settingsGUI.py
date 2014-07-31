@@ -72,7 +72,6 @@ class ConnectCombobox(QComboBox):
         ConnectCombobox.text = self.currentText()
         for row in range(self.filterTable.rowCount() - 1):
             self.filterTable.removeCellWidget(row, self.filtTableConnectCol)
-            print("Row: " + str(row) + " changing to text: " + ConnectCombobox.text)
             combobox = ConnectCombobox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
             combobox.setCurrentIndex(self.findText(ConnectCombobox.text))
             self.filterTable.setCellWidget(row, self.filtTableConnectCol, combobox)
@@ -294,19 +293,13 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         :type operMap: dict
         :type row: int
         """
-        print("adding for row:" + str(row))
         self.addFilter(row, self.filtTableTypeCol, type)
-        typeCombobox = self.filterTable.cellWidget(row, self.filtTableTypeCol)
-        print(typeCombobox.currentText())
         propCombobox = self.filterTable.cellWidget(row, self.filtTablePropCol)
         propCombobox.setCurrentIndex(propCombobox.findText(prop))
-        print(prop)
         operCombobox = self.filterTable.cellWidget(row, self.filtTableOperCol)
         operCombobox.setCurrentIndex(operCombobox.findText(findKey(operMap, oper)))
-        print(findKey(operMap, oper))
         valTextWidget = self.filterTable.cellWidget(row, self.filtTableValCol)
         valTextWidget.setPlainText(str(val))
-        print(val)
 
     def constructFilterTable(self, submissionFilts, commentFilts, connector, operMap, connectMap):
         """
@@ -320,7 +313,6 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         numFilts = len(submissionFilts) + len(commentFilts)
         if numFilts > 0:
             for row in range(1, numFilts): # first row is already added
-                print("Adding row")
                 self.filterTable.insertRow(row)
             row = 0
             for prop, oper, val in submissionFilts:
@@ -332,7 +324,6 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
             connectorText = findKey(connectMap, connector)
             for row in range(self.filterTable.rowCount() - 1):
                 ConnectCombobox.text = connectorText # Set this to whatever the connector is currently so on creation of new ones, it doesn't default to And
-                print("adding connector for row: " + str(row))
                 connectCombobox = ConnectCombobox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
                 connectCombobox.setCurrentIndex(connectCombobox.findText(connectorText))
                 self.filterTable.setCellWidget(row, self.filtTableConnectCol, connectCombobox)
@@ -366,10 +357,8 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
 
     def setSubLimit(self):
         text = self.subLimitTextEdit.text()
-        print(text)
         validState = self.validator.validate(text, 0)[0]  # validate() returns a tuple, the state is the 0 index
         if validState == QValidator.Acceptable:
-            print("valid: " + text + "\n---------------------------------")
             self.subLimit = int(text)
 
     def addFilter(self, row, col, type="Submission"):

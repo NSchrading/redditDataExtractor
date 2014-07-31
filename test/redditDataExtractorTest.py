@@ -232,7 +232,7 @@ class rddtDataExtractorTest(unittest.TestCase):
                 time.sleep(5)
             print("Took " + str(i) + " iterations to complete download.")
 
-            self.form.activateDownloadBtn()
+            self.form.reactivateBtns()
             i = 0
             maxIter = 2
             while self.form.downloadBtn.text() == "Downloading..." and i < maxIter:

@@ -77,8 +77,8 @@ def loadState():
             rddtDataExtractor.userLists[key] = ListModel(val, User)
         for key, val in subredditListSettings.items():
             rddtDataExtractor.subredditLists[key] = ListModel(val, Subreddit)
-    except KeyError as e:
-        print(e)
+    except KeyError:
+        pass
     finally:
         shelf.close()
         return rddtDataExtractor
@@ -87,7 +87,6 @@ def main():
     app = QApplication(sys.argv)
     rddtDataExtractor = loadState()
     if rddtDataExtractor is None:
-        print("rddt data client was None, making new one")
         rddtDataExtractor = RedditDataExtractor()
     rddtDataExtractor.currentlyDownloading = False # If something weird happened to cause currentlyDownloading to be saved as True, set it back to False
 

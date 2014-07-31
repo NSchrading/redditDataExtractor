@@ -101,7 +101,6 @@ class Downloader(QObject):
             self._dataPool.waitForDone()
         self.finished.emit()
         self.finishSignalForTest = True
-        print("FINISHED DOWNLOADING!!!")
 
 
 class Worker(QRunnable):
