@@ -456,9 +456,11 @@ class RedditDataExtractor():
         if user != "":
             directory = self.defaultPath / user
         else:
-            subreddit = submission.subreddit.display_name
+            subreddit = submission.subreddit.display_name.lower()
             directory = self.defaultPath / subreddit
         title = re.sub('[^\w\-_\. ]', '', submission.title)
+        if len(title) > 150: # filenames on some systems can't be too long
+            title = submission.id
         path = directory / (title + '.txt')
         if len(str(path)) > MAX_PATH:
             lenOver = len(str(path)) - MAX_PATH
