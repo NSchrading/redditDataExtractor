@@ -4,14 +4,16 @@ The reddit Data Extractor
 ![Main application](http://i.imgur.com/ekuaFS9.png)
 
 
-The reddit Data Extractor is a GUI tool for downloading almost any content posted to reddit. Downloads from specific users, specific subreddits, users by subreddit, and with filters on the content is supported. Some intelligence is built in to attempt to avoid downloading duplicate external content.
+The reddit Data Extractor is a cross-platform GUI tool for downloading almost any content posted to reddit. Downloads from specific users, specific subreddits, users by subreddit, and with filters on the content is supported. Some intelligence is built in to attempt to avoid downloading duplicate external content.
 
 For data scientists and curious redditors, JSON-encoded text files can be extracted for analysis. These contain all the characteristics of reddit submissions, including the title, a hierarchy of comments, the score, selftext, creation date, and more. Below is a snippet of some of the attributes that are retrieved.
 
 ![JSON encoded submission data](http://i.imgur.com/lKxB3Hl.png)
 
 
-For redditors who want to easily retrieve submitted images, gifs, and webms, or for people interested in training machine learning applications that link semantic content (submission data) with images, the reddit data extractor supports you as well. Imgur, Gfycat, Vidble, and Minus are specifically supported, and any direct link to an image should work as well.
+For redditors who want to easily retrieve submitted images, gifs, and webms, or for people interested in training machine learning applications that link semantic content (submission data) with images, the reddit data extractor supports you as well. Imgur*, Gfycat, Vidble, and Minus are specifically supported, and any direct link to an image should work as well.
+
+\* Imgur requires a client-id for non-direct links - see Site specific notes for more details.
 
 External content can be downloaded from submission links, comments, and selftext.
 
@@ -38,7 +40,7 @@ If you remove a user or subreddit from the list, the program will lose all memor
   
 <dl>
   <dt>Site specific notes:</dt>
-  <dd>Imgur page, gallery, and album links will only be downloadable if you obtain an Imgur API client-id and enter it into the reddit data extractor.</dd>
+  <dd>Imgur page, gallery, and album links will only be downloadable if you obtain an Imgur API client-id and enter it into the reddit data extractor. You can obtain a client-id here: https://api.imgur.com/oauth2/addclient. <br>Suggested data to enter:<br>Application name: reddit Data Extractor<br/>Authorization type: Anonymous usage without user authorization<br/>Authorization callback URL: https://www.google.com (or any valid URL -- it doesn't matter for anonymous usage)<br/>Application website: https://github.com/NSchrading/redditDataExtractor<br/>Email: Your email address to send the client-id to.</dd>
   <dd>Minus galleries are not currently supported - only page and direct links.</dd>
 </dl>
 
