@@ -23,7 +23,25 @@ Here are all the settings available:
 
 ![Settings](http://i.imgur.com/f874li1.png)
 
-Right clicking on a user or subreddit that has already had content downloaded for them will display a preview of the downloaded content, broken up by JSON-encoded submission content, external submission links, comment links, and selftext links.
+* Default User List: The user list that will display on starting the program.
+* Default Subreddit List: The subreddit list that will display on starting the program.
+* Display Imgur API Notification on Startup if No Client-id is Set: Uncheck this to stop the program from notifying you that you need an imgur client-id.
+* Change / Reset Client-id: Check this to change or reset your Imgur client-id.
+* Sort Subreddit Content by: Select the sorting method used when obtaining submissions from subreddits. 'New' is the only method that you will be able to use if want to restrict the retrieved submissions by creation date. (Only affects downloads when using the "Subreddits in List" download option)
+* Max Posts Retrieved in Subreddit Content Download: The number of submissions that will be examined for downloading per subreddit (Only affects downloads when using the "Subreddits in List" download option)
+* Download External Content of Submission: Select this to download the external images / gifs / webms linked by a non-selftext submission to reddit.
+* Download External Content Linked in Comments: Select this to download any external images / gifs / webms linked to by comments in the submission.
+* Download Submission Content: Select this to download JSON-encoded submission data representing the submission's properties.
+* Download External Content Linked in Selftext: Select this to download any external images / gifs / webms linked to in the selftext of a reddit submission.
+* Avoid downloading Duplicate Images If Possible: Select this to attempt to avoid downloading images that have already been downloaded. This works per-user or per-subreddit, so if multiple users submit the same image, the reddit Data Extractor may still download both.
+* Restrict retrieved submissions to creation dates after the last downloaded submission: Select this to prevent the reddit Data Extractor from viewing submissions posted before the last downloaded submission. This will always work for downloads by user, but will only work for downloads by subreddit if you use the "New" sorting method. This option may speed up the time it takes to finish downloading. Deselect this option if you had failures on downloading content and wish to re-attempt to download them.
+* Only download external content when: Select this and then enter values into the table below to filter submissions and only download their external content when they pass the filter.
+* Only download submission content when: Select this and then enter values into the table below to filter submissions and only download their JSON-content when they pass the filter.
+  * If you wish to have multiple filters you can only use one type to group them: AND, OR, or XOR. Not a combination of them.
+  * Filters on comments will pass the submission if *ANY* of the comments pass the filter. Currently there is no way to filter if all comments pass the filter.
+
+
+Right clicking on a user or subreddit in the user or subreddit list that has already had content downloaded for them and selecting 'view downloaded posts' will display a preview of the downloaded content, broken up by JSON-encoded submission content, external submission links, comment links, and selftext links.
 
 ![Downloaded content gui](http://i.imgur.com/hFS58uy.png)
 
