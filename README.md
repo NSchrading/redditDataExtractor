@@ -56,7 +56,7 @@ On windows, simply double click the .exe.
 
 ### Installing the reddit Data Extractor from Source
 
-The reddit Data Extractor has been tested and is working for 64-bit versions of both Windows 8 and Linux Mint 16. Precompiled versions of the program are available for download if you don't want to go through the arduous process of installing PyQt.
+The reddit Data Extractor has been tested and is working for 64-bit versions of both Windows 8 and Linux Mint 16. Precompiled versions of the program are available for download if you don't want to go through the arduous process of installing PyQt. These are found under the releases section: https://github.com/NSchrading/redditDataExtractor/releases
 
 If you do wish to run the program from source, below are the steps I took to run them on Windows and Linux. A slightly different process may be required for versions of linux not based off of Ubuntu. In general, Python 3.4, PyQt4, PRAW, BeautifulSoup4, and Requests are required.
 
