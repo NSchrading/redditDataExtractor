@@ -1,3 +1,13 @@
+Requirements
+==================
+* Python3.4
+* PyQt4
+* praw
+* beautifulsoup4
+* requests
+
+You can download a standalone executable (for Windows or Linux 64-bit) if you don't want to compile from source here: https://github.com/NSchrading/redditDataExtractor/releases
+
 The reddit Data Extractor
 ===================
 
