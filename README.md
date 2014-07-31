@@ -44,7 +44,7 @@ If you remove a user or subreddit from the list, the program will lose all memor
 
 ### Running the reddit Data Extractor
 
-If you downloaded the executable files, open the folder that was downloaded. Inside you will see a bunch of .dll files or .so files. Also included in the mess of files is the executable:
+If you downloaded the executable files (found here: https://github.com/NSchrading/redditDataExtractor/releases), open the folder that was downloaded. Inside you will see a bunch of .dll files or .so files. Also included in the mess of files is the executable:
 
 ![Executable](http://i.imgur.com/i3W9uF4.png)
 
