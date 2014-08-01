@@ -33,10 +33,11 @@ from PyQt4.QtCore import Qt
 from RedditDataExtractor.redditDataExtractor import RedditDataExtractor
 from RedditDataExtractor.GUI.listModel import ListModel
 from RedditDataExtractor.GUI import redditDataExtractorGUI
+from RedditDataExtractor.downloader import DownloadedContentType
 from main import QueueMessageReceiver
 
 
-class rddtDataExtractorTest(unittest.TestCase):
+class DownloadTests(unittest.TestCase):
     def setUp(self):
         self.app = QApplication(sys.argv)
         rddtDataExtractor = RedditDataExtractor()
@@ -56,6 +57,7 @@ class rddtDataExtractorTest(unittest.TestCase):
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.start()
         self.form = w
+
         self.externalImageHashes = {
             '2b8tbe 1.webm': b'\xc3\xea\x97"?,A\xd9\xda\x7f4\xa8\x92\x80\xc2\xd6\\\x04\x8a\xa9iK\xdb\xf3\xd5\x90\xcf\n\xf5\x94\x15\x06',
             '2b9cfw 5.jpg': b'\xa2\x91Y\xbez\x9d\x8c\x03\x18\xa5\x83\\\xde${\xce\xe5M\x88~4\xfe2\x1a,\xe5\x10:\x07\xb9\xad\xf3',
@@ -96,8 +98,25 @@ class rddtDataExtractorTest(unittest.TestCase):
             '2bcokj_selftext_1 1.jpg': b'\xed\t\xd2\x02i%\xd3\x05\x8b}\x85\xb6b\x8d}\xf4J\xb6\xaa\xb6U\xadZ\xa6"_\xaf\x08\xd8[\x93}',
             '2bcokj_selftext_1 2.jpg': b'<\x00|M\xdca\xd5y&G\x10\xbf6\x81\xf4e\xb9\x86\xb9\xe9\xaaF\x9a\xbaS\xd0\xda\xa7^m\xba\xc0'}
 
+        self.userName = "rddt_data_extractor"
+
+        self.userCommentExternalDownloads = {'http://i.imgur.com/kJzROu3.jpg', 'http://i.minus.com/iZfA0KDJtn3rp.gif', 'http://i.imgur.com/9Zgw1z6.gif', 'http://i.imgur.com/QSwFyyg.gif', 'http://i.imgur.com/kLsgG6I.jpg', 'http://zippy.gfycat.com/ThankfulInfiniteAmericancrow.webm', 'http://fat.gfycat.com/UnkemptInsidiousGermanshorthairedpointer.webm'}
+        self.userCommentRedditSubmissions = {'http://www.reddit.com/r/reddit_data_extractor/comments/2bby9l/textpost_no_link_comments_with_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8uyr/gfycat_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcnhu/textpost_link_comments_with_links/'}
+
+        self.userSubmissionExternalDownloads = {'http://www.vidble.com/g8LQqiKCVU_med.jpg', 'http://i.imgur.com/YFSXROu.jpg', 'http://i.minus.com/iTML5h4UapbNx.gif', 'https://s3.amazonaws.com/br-cdn/temp_images/2014/07/04/657f7564a8d7785b8747311b3275abaf.gif?1404508284', 'http://i.imgur.com/OK2RXHQ.jpg', 'http://www.vidble.com/9LPShmlZOn.jpg', 'http://www.vidble.com/LckxM9EYoH_med.jpg', 'http://i.imgur.com/VDjOWMx.jpg', 'http://www.vidble.com/rmiqXMbpPm_med.jpg', 'http://zippy.gfycat.com/ThinVastErin.webm', 'http://www.vidble.com/LZNUFKV1ot_med.jpg', 'http://www.vidble.com/8qzzbdcwJc_med.jpg', 'http://i.minus.com/ibjZuvlB5STFck.gif', 'http://i.imgur.com/gxePU46.jpg', 'http://www.vidble.com/wjDwGwuuKB.gif', 'http://zippy.gfycat.com/RightIndelibleCottonmouth.webm', 'http://i.imgur.com/2wtfRlv.jpg', 'http://i.imgur.com/VpxANpN.gif', 'http://i.imgur.com/X8fICEo.jpg', 'http://fat.gfycat.com/UnkemptInsidiousGermanshorthairedpointer.webm'}
+        self.userSubmissionRedditSubmissions = {'http://www.reddit.com/r/reddit_data_extractor/comments/2b8w9y/minus_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8nag/imgur_album_hashtag/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8vjl/gfycat_gif_hashtag_format/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8s5r/imgur_single_gif/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9cru/vidble_gif_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9dm4/vidble_jpg_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8tbe/gfycat_webm_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b83a2/imgur_single_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8vpe/s3_amazonaws_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8uyr/gfycat_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8wdl/minus_gif_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9cfw/vidble_album/'}
+
+        self.userSelftextExternalDownlads = {'http://i.imgur.com/IvvH2jQ.jpg', 'http://i.imgur.com/QnzS9se.jpg', 'http://i.imgur.com/QwxVxlY.jpg', 'http://www.vidble.com/ubq1myyQQk.jpg', 'http://i.imgur.com/T5CFNo4.jpg', 'http://i.imgur.com/v9Wfk4k.png'}
+        self.userSelftextRedditSubmissions = {'http://www.reddit.com/r/reddit_data_extractor/comments/2bcnhu/textpost_link_comments_with_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcokj/textpost_imgur_gallery_link_comments_without_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcma6/textpost_link_no_comments/'}
+
+        self.userJSONExternalDownloads = set()
+        self.userJSONRedditSubmissions = {'http://www.reddit.com/r/reddit_data_extractor/comments/2b8w9y/minus_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8nag/imgur_album_hashtag/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8380/imgur_single_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcnhu/textpost_link_comments_with_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcokj/textpost_imgur_gallery_link_comments_without_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8s5r/imgur_single_gif/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9cru/vidble_gif_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9dm4/vidble_jpg_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9cfw/vidble_album/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8wdl/minus_gif_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bby9l/textpost_no_link_comments_with_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9geu/textpost_no_link_comments_without_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b83a2/imgur_single_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8vpe/s3_amazonaws_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9gbo/textpost_no_link_no_comments/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8uyr/gfycat_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8tbe/gfycat_webm_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcma6/textpost_link_no_comments/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8vjl/gfycat_gif_hashtag_format/'}
+
         self.imageFileTypes = ["*.jpg", "*.jpeg", "*.gif", "*.png", "*.webm"]
         self.jsonFileTypes = ["*.txt"]
+
+    def tearDown(self):
+        shutil.rmtree(os.path.join("Downloads", self.userName), ignore_errors=True)
 
     def changeToTestConfig(self):
         listName = "test subreddit"
@@ -108,8 +127,8 @@ class rddtDataExtractorTest(unittest.TestCase):
 
         QTest.mouseClick(self.form.addUserBtn, Qt.LeftButton)
         index = self.form.userList.model().createIndex(0, 0)
-        self.form.userList.model().setData(index, "rddt_data_extractor")
-        self.assertIn("rddt_data_extractor", self.form.userList.model().stringsInLst)
+        self.form.userList.model().setData(index, self.userName)
+        self.assertIn(self.userName, self.form.userList.model().stringsInLst)
 
         QTest.mouseClick(self.form.addSubredditBtn, Qt.LeftButton)
         index = self.form.subredditList.model().createIndex(0, 0)
@@ -118,43 +137,6 @@ class rddtDataExtractorTest(unittest.TestCase):
 
         # Please don't steal this client-id. I don't want to get rate-limited.
         self.form._rddtDataExtractor.imgurAPIClientID = 'e0ea61b57d4c3c9'
-
-    def testStartUpDefault(self):
-        self.assertEqual(self.form.userList._lstChooser.currentText(), "Default User List")
-        self.assertEqual(self.form.subredditList._lstChooser.currentText(), "Default Subs")
-        self.assertEqual(self.form.userList._lstChooser.count(), 1)
-        self.assertEqual(self.form.subredditList._lstChooser.count(), 1)
-
-        self.assertEqual(len(self.form.userList.model().stringsInLst), 0)
-        self.assertEqual(len(self.form.subredditList.model().stringsInLst), 15)
-        self.assertIn("funny", self.form.subredditList.model().stringsInLst)
-        self.assertIn("gaming", self.form.subredditList.model().stringsInLst)
-        self.assertIn("gifs", self.form.subredditList.model().stringsInLst)
-        self.assertIn("movies", self.form.subredditList.model().stringsInLst)
-        self.assertIn("music", self.form.subredditList.model().stringsInLst)
-        self.assertIn("pics", self.form.subredditList.model().stringsInLst)
-        self.assertIn("science", self.form.subredditList.model().stringsInLst)
-        self.assertIn("technology", self.form.subredditList.model().stringsInLst)
-        self.assertIn("television", self.form.subredditList.model().stringsInLst)
-        self.assertIn("videos", self.form.subredditList.model().stringsInLst)
-        self.assertIn("wtf", self.form.subredditList.model().stringsInLst)
-
-    def testAddRemoveUser(self):
-        QTest.mouseClick(self.form.addUserBtn, Qt.LeftButton)
-        self.assertEqual(len(self.form.userList.model().stringsInLst), 1)
-        self.assertIn("new list item 1", self.form.userList.model().stringsInLst)
-        QTest.mouseClick(self.form.addUserBtn, Qt.LeftButton)
-        self.assertEqual(len(self.form.userList.model().stringsInLst), 2)
-        self.assertIn("new list item 2", self.form.userList.model().stringsInLst)
-        index = self.form.userList.model().createIndex(0, 0)
-        self.form.userList.model().setData(index, "rddt_data_extractor")
-        self.assertNotIn("new list item 1", self.form.userList.model().stringsInLst)
-        self.assertIn("rddt_data_extractor", self.form.userList.model().stringsInLst)
-        index = self.form.userList.model().createIndex(1, 0)
-        self.form.userList.setCurrentIndex(index)
-        QTest.mouseClick(self.form.deleteUserBtn, Qt.LeftButton)
-        self.assertNotIn("new list item 2", self.form.userList.model().stringsInLst)
-
 
     def hashfile(self, fileName, blocksize=65536):
         hasher = sha256()
@@ -177,7 +159,7 @@ class rddtDataExtractorTest(unittest.TestCase):
     def compareJSON(self, fileNames):
         for fileName in fileNames:
             goodJSONFilePath = pathlib.Path("knownGoodTestFiles", fileName)
-            testJSONFilePath = pathlib.Path("Downloads", "rddt_data_extractor", fileName)
+            testJSONFilePath = pathlib.Path("Downloads", self.userName, fileName)
             with goodJSONFilePath.open() as goodJSONFile:
                 with testJSONFilePath.open() as testJSONFile:
                     goodJSON = json.load(goodJSONFile)
@@ -204,7 +186,7 @@ class rddtDataExtractorTest(unittest.TestCase):
 
     def compareJSONFiles(self, fileTypes):
         downloadedFilesSet = set(itertools.chain(
-            *[pathlib.Path("Downloads", "rddt_data_extractor").glob(fileType) for fileType in fileTypes]))
+            *[pathlib.Path("Downloads", self.userName).glob(fileType) for fileType in fileTypes]))
         knownGoodJSONFilesSet = set(itertools.chain(
             *[pathlib.Path("knownGoodTestFiles").glob(fileType) for fileType in fileTypes]))
         knownGoodJSONFiles = {pathlib.Path(fileName).stem + pathlib.Path(fileName).suffix for fileName in knownGoodJSONFilesSet}
@@ -226,7 +208,6 @@ class rddtDataExtractorTest(unittest.TestCase):
         if len(redditorValidator.validUsersOrSubs) > 0:
             self.form.downloadValidUserOrSub(redditorValidator.validUsersOrSubs)
             i = 0
-            maxIter = 50
             while not self.form.downloader.finishSignalForTest:
                 i += 1
                 time.sleep(5)
@@ -239,6 +220,25 @@ class rddtDataExtractorTest(unittest.TestCase):
                 time.sleep(5)
                 i += 1
 
+    def checkUser(self, userName, blacklist, externalDownloads, redditSubmissions, downloadedContentType, mostRecentDownloadTimestamp=None):
+        user = self.form.userList.model().lst[0]
+        self.assertEqual(user.name, userName)
+        self.assertEqual(user._blacklist, blacklist)
+        self.assertEqual(user.externalDownloads, externalDownloads)
+        self.assertEqual(set(user.redditSubmissions.keys()), redditSubmissions)
+        if mostRecentDownloadTimestamp is not None:
+            self.assertEqual(user._mostRecentDownloadTimestamp, mostRecentDownloadTimestamp)
+        else:
+            self.assertTrue(user._mostRecentDownloadTimestamp is not None)
+        for key in user.redditSubmissions.keys():
+            downloadedContent = user.redditSubmissions.get(key)
+            self.assertEqual(len(downloadedContent), 1)
+            self.assertEqual(downloadedContent[0].type, downloadedContentType)
+            self.assertTrue(len(downloadedContent[0].files) > 0)
+            if downloadedContentType is not DownloadedContentType.JSON_DATA:
+                self.assertTrue(len(downloadedContent[0].externalDownloadURLs) > 0)
+            self.assertTrue(downloadedContent[0].representativeImage is not None)
+
     def testDownloadCommentExternals(self):
         self.changeToTestConfig()
         self.form._rddtDataExtractor.getSubmissionContent = False
@@ -246,9 +246,10 @@ class rddtDataExtractorTest(unittest.TestCase):
         self.form._rddtDataExtractor.getCommentExternalContent = True
         self.download()
         self.compareHashes(self.imageFileTypes, self.externalCommentImageHashes,
-                                           [pathlib.Path("Downloads", "rddt_data_extractor", "rddt_data_extractor"),
-                                            pathlib.Path("Downloads", "rddt_data_extractor", "GfycatLinkFixerBot")])
-        shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"), ignore_errors=True)
+                                           [pathlib.Path("Downloads", self.userName, self.userName),
+                                            pathlib.Path("Downloads", self.userName, "GfycatLinkFixerBot")])
+        self.checkUser(self.userName, set(), self.userCommentExternalDownloads, self.userCommentRedditSubmissions, DownloadedContentType.EXTERNAL_COMMENT_DATA)
+
 
     def testDownloadSubmission(self):
         self.changeToTestConfig()
@@ -256,15 +257,15 @@ class rddtDataExtractorTest(unittest.TestCase):
         # The order of JSON files is not always the same because it's like a dictionary. So we
         # can't use hashes. Must compare the actual JSON
         self.compareJSONFiles(self.jsonFileTypes)
-        shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"), ignore_errors=True)
+        self.checkUser(self.userName, set(), self.userJSONExternalDownloads, self.userJSONRedditSubmissions, DownloadedContentType.JSON_DATA)
 
     def testDownloadExternal(self):
         self.changeToTestConfig()
         self.form._rddtDataExtractor.getSubmissionContent = False
         self.form._rddtDataExtractor.getExternalContent = True
         self.download()
-        self.compareHashes(self.imageFileTypes, self.externalImageHashes, [pathlib.Path("Downloads", "rddt_data_extractor")])
-        shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"), ignore_errors=True)
+        self.compareHashes(self.imageFileTypes, self.externalImageHashes, [pathlib.Path("Downloads", self.userName)])
+        self.checkUser(self.userName, set(), self.userSubmissionExternalDownloads, self.userSubmissionRedditSubmissions, DownloadedContentType.EXTERNAL_SUBMISSION_DATA)
 
     def testDownloadSelftextExternals(self):
         self.changeToTestConfig()
@@ -272,8 +273,9 @@ class rddtDataExtractorTest(unittest.TestCase):
         self.form._rddtDataExtractor.getExternalContent = False
         self.form._rddtDataExtractor.getSelftextExternalContent = True
         self.download()
-        self.compareHashes(self.imageFileTypes, self.externalSelftextImageHashes, [pathlib.Path("Downloads", "rddt_data_extractor")])
-        shutil.rmtree(os.path.join("Downloads", "rddt_data_extractor"), ignore_errors=True)
+        self.compareHashes(self.imageFileTypes, self.externalSelftextImageHashes, [pathlib.Path("Downloads", self.userName)])
+        self.checkUser(self.userName, set(), self.userSelftextExternalDownlads, self.userSelftextRedditSubmissions, DownloadedContentType.EXTERNAL_SELFTEXT_DATA)
+
 
 if __name__ == "__main__":
     unittest.main()
