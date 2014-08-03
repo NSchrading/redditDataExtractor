@@ -26,6 +26,8 @@ from PyQt4.QtCore import Qt
 
 from RedditDataExtractor.redditDataExtractor import RedditDataExtractor
 from RedditDataExtractor.GUI import redditDataExtractorGUI
+from RedditDataExtractor.GUI.settingsGUI import SettingsGUI
+from RedditDataExtractor.GUI.genericListModelObjects import GenericListModelObj
 from main import QueueMessageReceiver
 
 
@@ -85,6 +87,76 @@ class GUITests(unittest.TestCase):
         self.form.userList.setCurrentIndex(index)
         QTest.mouseClick(self.form.deleteUserBtn, Qt.LeftButton)
         self.assertNotIn("new list item 2", self.form.userList.model().stringsInLst)
+
+    def testSettings(self):
+        settings = SettingsGUI(self.form._rddtDataExtractor, self.form.notifyImgurAPI)
+
+        QTest.mouseClick(settings.showImgurAPINotificationCheckBox, Qt.LeftButton)
+        self.assertFalse(settings.showImgurAPINotification)
+        QTest.mouseClick(settings.showImgurAPINotificationCheckBox, Qt.LeftButton)
+        self.assertTrue(settings.showImgurAPINotification)
+
+        # QTest.mousClick() doesn't work for radio buttons for some reason...
+        settings.newBtn.click()
+        self.assertEqual(settings.subSort, "new")
+        self.assertEqual(GenericListModelObj.subSort, "new")
+
+        settings.topBtn.click()
+        self.assertEqual(settings.subSort, "top")
+        self.assertEqual(GenericListModelObj.subSort, "top")
+
+        settings.risingBtn.click()
+        self.assertEqual(settings.subSort, "rising")
+        self.assertEqual(GenericListModelObj.subSort, "rising")
+
+        settings.controversialBtn.click()
+        self.assertEqual(settings.subSort, "controversial")
+        self.assertEqual(GenericListModelObj.subSort, "controversial")
+
+        settings.hotBtn.click()
+        self.assertEqual(settings.subSort, "hot")
+        self.assertEqual(GenericListModelObj.subSort, "hot")
+
+        QTest.mouseClick(settings.getExternalContentCheckBox, Qt.LeftButton)
+        self.assertTrue(settings.getExternalContent)
+        QTest.mouseClick(settings.getExternalContentCheckBox, Qt.LeftButton)
+        self.assertFalse(settings.getExternalContent)
+
+        QTest.mouseClick(settings.avoidDuplCheckBox, Qt.LeftButton)
+        self.assertFalse(settings.avoidDuplicates)
+        QTest.mouseClick(settings.avoidDuplCheckBox, Qt.LeftButton)
+        self.assertTrue(settings.avoidDuplicates)
+
+        QTest.mouseClick(settings.getCommentExternalContentCheckBox, Qt.LeftButton)
+        self.assertTrue(settings.getCommentExternalContent)
+        QTest.mouseClick(settings.getCommentExternalContentCheckBox, Qt.LeftButton)
+        self.assertFalse(settings.getCommentExternalContent)
+
+        QTest.mouseClick(settings.getSelftextExternalContentCheckBox, Qt.LeftButton)
+        self.assertTrue(settings.getSelftextExternalContent)
+        QTest.mouseClick(settings.getSelftextExternalContentCheckBox, Qt.LeftButton)
+        self.assertFalse(settings.getSelftextExternalContent)
+
+        QTest.mouseClick(settings.getSubmissionContentCheckBox, Qt.LeftButton)
+        self.assertFalse(settings.getSubmissionContent)
+        QTest.mouseClick(settings.getSubmissionContentCheckBox, Qt.LeftButton)
+        self.assertTrue(settings.getSubmissionContent)
+
+        QTest.mouseClick(settings.restrictDownloadsByCreationDateCheckBox, Qt.LeftButton)
+        self.assertFalse(settings.restrictDownloadsByCreationDate)
+        QTest.mouseClick(settings.restrictDownloadsByCreationDateCheckBox, Qt.LeftButton)
+        self.assertTrue(settings.restrictDownloadsByCreationDate)
+
+        QTest.mouseClick(settings.filterExternalContentCheckBox, Qt.LeftButton)
+        self.assertTrue(settings.filterExternalContent)
+        QTest.mouseClick(settings.filterExternalContentCheckBox, Qt.LeftButton)
+        self.assertFalse(settings.filterExternalContent)
+
+        QTest.mouseClick(settings.filterSubmissionContentCheckBox, Qt.LeftButton)
+        self.assertTrue(settings.filterSubmissionContent)
+        QTest.mouseClick(settings.filterSubmissionContentCheckBox, Qt.LeftButton)
+        self.assertFalse(settings.filterSubmissionContent)
+
 
 
 if __name__ == "__main__":

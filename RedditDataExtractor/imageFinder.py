@@ -20,7 +20,7 @@ import warnings
 
 from bs4 import BeautifulSoup
 from contextlib import closing
-from .image import Image
+from .content import Image
 from enum import Enum
 
 # BeautifulSoup issues deprecation warnings. Hide them.
@@ -74,7 +74,7 @@ class ImageFinder():
         :type specialString: str
         :type specialCount int
         :type specialPath str
-        :rtype: RedditDataExtractor.image.Image
+        :rtype: RedditDataExtractor.content.Image
         """
         fileType = self.getFileType(URL)
         return Image(userOrSubName, submissionID, fileType, defaultPath, URL, redditSubmissionURL, iterContent,

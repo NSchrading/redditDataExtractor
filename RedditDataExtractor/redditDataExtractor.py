@@ -28,6 +28,7 @@ import requests
 from .imageFinder import ImageFinder, ImgurImageFinder, MinusImageFinder, VidbleImageFinder, GfycatImageFinder
 from .GUI.listModel import ListModel
 from .GUI.genericListModelObjects import User, Subreddit
+from .content import Video
 from enum import Enum
 
 
@@ -338,7 +339,7 @@ class RedditDataExtractor():
         submission.url = url
         return True
 
-    def _getCommentImageURLs(self, submission):
+    def _getCommentURLs(self, submission):
         """
         Get image URLs linked from comments in the submission.
         :type submission: praw.objects.Submission
@@ -364,6 +365,20 @@ class RedditDataExtractor():
                 else:
                     urls[author].extend(matches)
         return urls
+
+    def _attemptToDownloadVideo(self, url):
+        """
+        Determine if we should attempt to download the content in the url as a video. Don't if it's a supported image domain
+        or typical image endings are in the url
+        :param url: The url of the content
+        :type url: str
+        :rtype: bool
+        """
+        for supportedDomain in self._supportedDomains:
+            if supportedDomain in url:
+                return False
+        endings = ['.jpg', '.jpeg', '.png', '.gif']
+        return not any([ending in url for ending in endings])
 
     def getImages(self, submission, lstModelObj, queue, specialString=None, specialCount=None, specialPath=None):
         """
@@ -485,7 +500,7 @@ class RedditDataExtractor():
         """
         origSubmissionURL = submission.url  # We're going to be hijacking these variables to use self.getImages
         origSubmissionDomain = submission.domain
-        commentImageURLs = self._getCommentImageURLs(submission)
+        commentImageURLs = self._getCommentURLs(submission)
         for author in commentImageURLs:
             urls = commentImageURLs.get(author)
             count = 1
@@ -499,6 +514,32 @@ class RedditDataExtractor():
                             yield image
         submission.url = origSubmissionURL  # Restore the submission info back to what it was
         submission.domain = origSubmissionDomain
+
+    def getVideos(self, submission, lstModelObj):
+        if self._attemptToDownloadVideo(submission.url):
+            params = (lstModelObj.name, submission.id, self.defaultPath, submission.url, submission.permalink)
+            video = Video(*params)
+            yield video
+
+    def getCommentVideos(self, submission, lstModelObj):
+        """
+        Get Videos from comments, the youtube-dl package handles if they are valid video URLs.
+        :param lstModelObj: The User or Subreddit "ListModel" Object
+
+        :type submission: praw.objects.Submission
+        :type lstModelObj: RedditDataExtractor.GUI.genericListModelObjects.GenericListModelObj
+        :rtype: generator
+        """
+        commentURLs = self._getCommentURLs(submission)
+        for author in commentURLs:
+            urls = commentURLs.get(author)
+            count = 1
+            for url in urls:
+                if self._attemptToDownloadVideo(url) and url.lstrip().startswith("http"): # sometimes the regex returns matches without http in the front.
+                    params = (lstModelObj.name, submission.id, self.defaultPath, url, submission.permalink, str(count), "_comment_", count, author)
+                    video = Video(*params)
+                    count += 1
+                    yield video
 
     def getSelftextImages(self, submission, lstModelObj, queue):
         """
@@ -525,6 +566,25 @@ class RedditDataExtractor():
                             yield image
         submission.url = origSubmissionURL  # Restore the submission info back to what it was
         submission.domain = origSubmissionDomain
+
+    def getSelftextVideos(self, submission, lstModelObj):
+        """
+        Get Videos from comments, the youtube-dl package handles if they are valid video URLs.
+        :param lstModelObj: The User or Subreddit "ListModel" Object
+
+        :type submission: praw.objects.Submission
+        :type lstModelObj: RedditDataExtractor.GUI.genericListModelObjects.GenericListModelObj
+        :rtype: generator
+        """
+        if submission.is_self:
+            urls = self._urlFinder.findall(submission.selftext)
+            count = 1
+            for url in urls:
+                if self._attemptToDownloadVideo(url) and url.lstrip().startswith("http"): # sometimes the regex returns matches without http in the front.
+                    params = (lstModelObj.name, submission.id, self.defaultPath, url, submission.permalink, str(count), "_selftext_", count)
+                    video = Video(*params)
+                    count += 1
+                    yield video
 
 
     def changeDownloadType(self, downloadType):

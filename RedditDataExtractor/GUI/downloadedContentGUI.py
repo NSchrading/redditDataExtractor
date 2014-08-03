@@ -130,7 +130,7 @@ class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
             item.setSizeHint(size)
             size = QSize(128, 128)
             if imagePath.suffix == ".webm":
-                imagePath = pathlib.Path("RedditDataExtractor", "images", "webmImage.png").resolve()
+                imagePath = pathlib.Path("RedditDataExtractor", "images", "videoImage.png").resolve()
             pixmap = QPixmap(str(imagePath))
             pixmap = pixmap.scaled(size, Qt.KeepAspectRatio)
             height = pixmap.height()

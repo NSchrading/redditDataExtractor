@@ -19,7 +19,7 @@ import requests
 import pathlib
 
 from PyQt4.Qt import (QInputDialog, QObject, pyqtSignal, pyqtSlot, QListView, Qt, QLineEdit, QMessageBox, QMainWindow,
-    QThread, QFileDialog, QTextCursor, QDialog, QIcon, QPixmap)
+    QThread, QFileDialog, QTextCursor, QDialog, QIcon, QPixmap, QPushButton)
 
 from .redditDataExtractorGUI_auto import Ui_RddtDataExtractorMainWindow
 from .settingsGUI import SettingsGUI
@@ -46,8 +46,10 @@ def isNumber(s):
 
 class Validator(QObject):
 
-    finished = pyqtSignal(list)
+    finished = pyqtSignal()
     invalid = pyqtSignal(str)
+    download = pyqtSignal(list)
+    stopped = pyqtSignal()
 
     def __init__(self, rddtDataExtractor, queue, userOrSub, listType):
         """
@@ -65,7 +67,11 @@ class Validator(QObject):
         self._queue = queue
         self._userOrSub = userOrSub
         self._listType = listType
+        self._continueOperation = True
         self.validUsersOrSubs = []
+
+    def stop(self):
+        self._continueOperation = False
 
     @pyqtSlot()
     def run(self):
@@ -76,14 +82,21 @@ class Validator(QObject):
             s = "subreddit "
             validateFunc = self._rddtDataExtractor.getSubreddit
         for userOrSubLstModelObj in self._userOrSub:
-            name = userOrSubLstModelObj.name
-            self._queue.put("Validating " + s + name + "\n")
-            validatedPRAWUserOrSub = validateFunc(name)
-            if validatedPRAWUserOrSub is None:
-                self.invalid.emit(name)
+            if self._continueOperation:
+                name = userOrSubLstModelObj.name
+                self._queue.put("Validating " + s + name + "\n")
+                validatedPRAWUserOrSub = validateFunc(name)
+                if validatedPRAWUserOrSub is None:
+                    self.invalid.emit(name)
+                else:
+                    self.validUsersOrSubs.append((userOrSubLstModelObj, validatedPRAWUserOrSub))
             else:
-                self.validUsersOrSubs.append((userOrSubLstModelObj, validatedPRAWUserOrSub))
-        self.finished.emit(self.validUsersOrSubs)
+                break
+        if self._continueOperation:
+            self.download.emit(self.validUsersOrSubs) # emit to begin downloading the validated users
+        else:
+            self.stopped.emit() # emit to indicate that the validation process was stopped prematurely
+        self.finished.emit() # emit to delete the ended thread
 
 
 class ListViewAndChooser(QListView):
@@ -130,12 +143,18 @@ class ListViewAndChooser(QListView):
         return index
 
     def addToList(self):
+        if self._rddtDataExtractor.currentlyDownloading:
+            QMessageBox.warning(QMessageBox(), "Data Extractor for reddit", "Cannot add while currently downloading. Please wait.")
+            return
         model = self.model()
         if model is not None:
             model.insertRows(model.rowCount(), 1)
             self._gui.setUnsavedChanges(True)
 
     def deleteFromList(self):
+        if self._rddtDataExtractor.currentlyDownloading:
+            QMessageBox.warning(QMessageBox(), "Data Extractor for reddit", "Cannot remove while currently downloading. Please wait.")
+            return
         model = self.model()
         index = self.getCurrentSelectedIndex()
         if model is not None and index is not None:
@@ -409,15 +428,53 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         icon.addPixmap(QPixmap("RedditDataExtractor/images/logo.png"), QIcon.Normal, QIcon.Off)
         self.setWindowIcon(icon)
 
+    def stopDownload(self):
+        try:
+            self.redditorValidator.stop()
+        except AttributeError: # the redditorValidator object hasn't been made
+            pass
+        try:
+            self.subredditValidator.stop()
+        except AttributeError: # the subredditValidator object hasn't been made
+            pass
+        try:
+            self.downloader.stop()
+        except AttributeError: # the downloader object hasn't been made
+            pass
+        self.stopBtn.setEnabled(False)
+
     @pyqtSlot()
-    def beginDownload(self):
-        self.downloadBtn.setText("Downloading...")
-        self.downloadBtn.setEnabled(False)
+    def reactivateBtns(self):
+        self.gridLayout.removeWidget(self.stopBtn)
+        self.downloadBtn = QPushButton(self.centralwidget)
+        self.downloadBtn.setObjectName("downloadBtn")
+        self.downloadBtn.setText("Download!")
+        self.downloadBtn.clicked.connect(self.beginDownload)
+        self.gridLayout.addWidget(self.downloadBtn, 6, 0, 1, 2)
+        self.addUserBtn.setEnabled(True)
+        self.addSubredditBtn.setEnabled(True)
+        self.deleteUserBtn.setEnabled(True)
+        self.deleteSubredditBtn.setEnabled(True)
+        self._rddtDataExtractor.currentlyDownloading = False
+
+    def enterDownloadMode(self):
+        self._rddtDataExtractor.currentlyDownloading = True
+        self.logTextEdit.clear()
+        self.stopBtn = QPushButton(self.centralwidget)
+        self.stopBtn.setObjectName("stopBtn")
+        self.stopBtn.setText("Downloading... Press here to stop the download.")
+        self.stopBtn.clicked.connect(self.stopDownload)
+        self.gridLayout.removeWidget(self.downloadBtn)
+        del self.downloadBtn
+        self.gridLayout.addWidget(self.stopBtn, 6, 0, 1, 2)
         self.addUserBtn.setEnabled(False)
         self.addSubredditBtn.setEnabled(False)
         self.deleteUserBtn.setEnabled(False)
         self.deleteSubredditBtn.setEnabled(False)
-        self.logTextEdit.clear()
+
+    @pyqtSlot()
+    def beginDownload(self):
+        self.enterDownloadMode()
         if self._rddtDataExtractor.downloadType is DownloadType.USER_SUBREDDIT_CONSTRAINED:
             # need to validate both subreddits and redditors, start downloading user data once done
             self.getValidSubreddits()
@@ -456,18 +513,6 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         self.logTextEdit.moveCursor(QTextCursor.End)
         self.logTextEdit.insertPlainText(text)
 
-    def reactivateBtns(self):
-        """
-        Let the user click on the buttons again because the download has finished
-        """
-        self.downloadBtn.setText("Download!")
-        self.downloadBtn.setEnabled(True)
-        self.addUserBtn.setEnabled(True)
-        self.addSubredditBtn.setEnabled(True)
-        self.deleteUserBtn.setEnabled(True)
-        self.deleteSubredditBtn.setEnabled(True)
-        self._rddtDataExtractor.currentlyDownloading = False
-
     def getValidRedditors(self, startDownload=False):
         """
         Validate the users in the user list
@@ -484,10 +529,11 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         self.redditorValidator.invalid.connect(self.notifyInvalidRedditor)
         # When the validation finishes, start the downloading process on the validated users
         if startDownload:
-            self.redditorValidator.finished.connect(self.downloadValidUserOrSub)
+            self.redditorValidator.download.connect(self.downloadValidUserOrSub)
         self.redditorValidator.finished.connect(self.redditorValidatorThread.quit)
         self.redditorValidator.finished.connect(self.redditorValidator.deleteLater)
         self.redditorValidatorThread.finished.connect(self.redditorValidatorThread.deleteLater)
+        self.redditorValidator.stopped.connect(self.reactivateBtns)
         self.redditorValidatorThread.start()
 
     @pyqtSlot(str)
@@ -518,10 +564,11 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         self.subredditValidatorThread.started.connect(self.subredditValidator.run)
         self.subredditValidator.invalid.connect(self.notifyInvalidSubreddit)
         if startDownload:
-            self.subredditValidator.finished.connect(self.downloadValidUserOrSub)
+            self.subredditValidator.download.connect(self.downloadValidUserOrSub)
         self.subredditValidator.finished.connect(self.subredditValidatorThread.quit)
         self.subredditValidator.finished.connect(self.subredditValidator.deleteLater)
         self.subredditValidatorThread.finished.connect(self.subredditValidatorThread.deleteLater)
+        self.subredditValidator.stopped.connect(self.reactivateBtns)
         self.subredditValidatorThread.start()
 
     @pyqtSlot(str)
@@ -665,7 +712,6 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         else:
             msgBox.setText("You do not currently have an Imgur client-id set. To set one, go to settings and check 'Change / Reset Client-id'")
         msgBox.exec()
-
 
     def setUnsavedChanges(self, unsaved):
         """

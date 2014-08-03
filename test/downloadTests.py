@@ -87,7 +87,8 @@ class DownloadTests(unittest.TestCase):
             '2bby9l_comment_3 1.jpg': b'\xa6\xc8p\x86\t\x0c\xef\xf1d\x8c\x93S\x94\xa6\xa3\xf0a\x7fp\xac\xe2\xd3Q\x17\x06\xd3\xbf)P\xfb\xf8\xf7',
             '2bby9l_comment_4 1.gif': b'\x03\xba\xa8\xdeC\xd1\xba\xb4\x84\xad[d]\x16\xff\x11\xa3\xbeb/\xbc\xfd\xa3C\xa32l\xfd\xe8y\x10h',
             '2bcnhu_comment_1 1.jpg': b'\xd5r8\xb0e\x7f\\M\xbe\x14\xe7\x13\xcd\xe4};s\xe0\x1ad\x14\x9b(H\xb1\\[/\x1b\x9b\xe8\xbe',
-            '2bby9l_comment_4 2.gif': b'4\x86rl/CAq6Bn\xe8\xbc\x1fb5ie\x1c$\x88!\xb8\x9fw\x8cP\xadYs\x9bF'}
+            '2bby9l_comment_4 2.gif': b'4\x86rl/CAq6Bn\xe8\xbc\x1fb5ie\x1c$\x88!\xb8\x9fw\x8cP\xadYs\x9bF',
+            '2cebx6_comment_1 1_00001.mp4': b'@\xf0\xe7"\x8e[e\xdb\xea\x9c\x9f\xd5\x004q\xf8\x1d\xa6\xcc\\\xe8pfu\xc5\xa4O\xffsU2\x87'}
 
 
         self.externalSelftextImageHashes = {
@@ -96,23 +97,24 @@ class DownloadTests(unittest.TestCase):
             '2bcokj_selftext_1 3.jpg': b'\xbf<\x15\x8b#\xd5\x9dZ\xa2~\x8d\xa9j\xf4\x84/\xd0K\x08-}I\xb4]9\xdc\xb3\x8d\xd1\xf9;\x95',
             '2bcnhu_selftext_1 1.jpg': b'+%\xf7\xc1\x8d\x14 J)\x84\xfc=\xf3\xeb\x943\xc7\xa8\xa3\xc8\xf8\xd6\x17;D;\x8f\xbe\xc2\xdc5%',
             '2bcokj_selftext_1 1.jpg': b'\xed\t\xd2\x02i%\xd3\x05\x8b}\x85\xb6b\x8d}\xf4J\xb6\xaa\xb6U\xadZ\xa6"_\xaf\x08\xd8[\x93}',
-            '2bcokj_selftext_1 2.jpg': b'<\x00|M\xdca\xd5y&G\x10\xbf6\x81\xf4e\xb9\x86\xb9\xe9\xaaF\x9a\xbaS\xd0\xda\xa7^m\xba\xc0'}
+            '2bcokj_selftext_1 2.jpg': b'<\x00|M\xdca\xd5y&G\x10\xbf6\x81\xf4e\xb9\x86\xb9\xe9\xaaF\x9a\xbaS\xd0\xda\xa7^m\xba\xc0',
+            '2cecdc_selftext_1 1_00001.mp4': b'\xdd{lG\x82h\xbbH\xf6Y~c\xc0"\xa9iq\x1d\xbd\xe2\x0c[r\\y\xa0M\x1dv\xad>\xc0'}
 
         self.userName = "rddt_data_extractor"
 
-        self.userCommentExternalDownloads = {'http://i.imgur.com/kJzROu3.jpg', 'http://i.minus.com/iZfA0KDJtn3rp.gif', 'http://i.imgur.com/9Zgw1z6.gif', 'http://i.imgur.com/QSwFyyg.gif', 'http://i.imgur.com/kLsgG6I.jpg', 'http://zippy.gfycat.com/ThankfulInfiniteAmericancrow.webm', 'http://fat.gfycat.com/UnkemptInsidiousGermanshorthairedpointer.webm'}
-        self.userCommentRedditSubmissions = {'http://www.reddit.com/r/reddit_data_extractor/comments/2bby9l/textpost_no_link_comments_with_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8uyr/gfycat_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcnhu/textpost_link_comments_with_links/'}
+        self.userCommentExternalDownloads = {'http://i.imgur.com/kJzROu3.jpg', 'http://i.minus.com/iZfA0KDJtn3rp.gif', 'http://i.imgur.com/9Zgw1z6.gif', 'http://i.imgur.com/QSwFyyg.gif', 'http://i.imgur.com/kLsgG6I.jpg', 'http://zippy.gfycat.com/ThankfulInfiniteAmericancrow.webm', 'http://fat.gfycat.com/UnkemptInsidiousGermanshorthairedpointer.webm', 'http://www.cnn.com/video/data/2.0/video/bestoftv/2013/09/20/ab-anthony-bourdain-parts-unknown-new-mexico-3.cnn.html'}
+        self.userCommentRedditSubmissions = {'http://www.reddit.com/r/reddit_data_extractor/comments/2bby9l/textpost_no_link_comments_with_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8uyr/gfycat_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcnhu/textpost_link_comments_with_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2cebx6/selftext_no_link_comment_with_video_link/'}
 
-        self.userSubmissionExternalDownloads = {'http://www.vidble.com/g8LQqiKCVU_med.jpg', 'http://i.imgur.com/YFSXROu.jpg', 'http://i.minus.com/iTML5h4UapbNx.gif', 'https://s3.amazonaws.com/br-cdn/temp_images/2014/07/04/657f7564a8d7785b8747311b3275abaf.gif?1404508284', 'http://i.imgur.com/OK2RXHQ.jpg', 'http://www.vidble.com/9LPShmlZOn.jpg', 'http://www.vidble.com/LckxM9EYoH_med.jpg', 'http://i.imgur.com/VDjOWMx.jpg', 'http://www.vidble.com/rmiqXMbpPm_med.jpg', 'http://zippy.gfycat.com/ThinVastErin.webm', 'http://www.vidble.com/LZNUFKV1ot_med.jpg', 'http://www.vidble.com/8qzzbdcwJc_med.jpg', 'http://i.minus.com/ibjZuvlB5STFck.gif', 'http://i.imgur.com/gxePU46.jpg', 'http://www.vidble.com/wjDwGwuuKB.gif', 'http://zippy.gfycat.com/RightIndelibleCottonmouth.webm', 'http://i.imgur.com/2wtfRlv.jpg', 'http://i.imgur.com/VpxANpN.gif', 'http://i.imgur.com/X8fICEo.jpg', 'http://fat.gfycat.com/UnkemptInsidiousGermanshorthairedpointer.webm'}
-        self.userSubmissionRedditSubmissions = {'http://www.reddit.com/r/reddit_data_extractor/comments/2b8w9y/minus_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8nag/imgur_album_hashtag/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8vjl/gfycat_gif_hashtag_format/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8s5r/imgur_single_gif/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9cru/vidble_gif_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9dm4/vidble_jpg_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8tbe/gfycat_webm_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b83a2/imgur_single_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8vpe/s3_amazonaws_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8uyr/gfycat_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8wdl/minus_gif_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9cfw/vidble_album/'}
+        self.userSubmissionExternalDownloads = {'http://www.vidble.com/g8LQqiKCVU_med.jpg', 'http://i.imgur.com/YFSXROu.jpg', 'http://i.minus.com/iTML5h4UapbNx.gif', 'https://s3.amazonaws.com/br-cdn/temp_images/2014/07/04/657f7564a8d7785b8747311b3275abaf.gif?1404508284', 'http://i.imgur.com/OK2RXHQ.jpg', 'http://www.vidble.com/9LPShmlZOn.jpg', 'http://www.vidble.com/LckxM9EYoH_med.jpg', 'http://i.imgur.com/VDjOWMx.jpg', 'http://www.vidble.com/rmiqXMbpPm_med.jpg', 'http://zippy.gfycat.com/ThinVastErin.webm', 'http://www.vidble.com/LZNUFKV1ot_med.jpg', 'http://www.vidble.com/8qzzbdcwJc_med.jpg', 'http://i.minus.com/ibjZuvlB5STFck.gif', 'http://i.imgur.com/gxePU46.jpg', 'http://www.vidble.com/wjDwGwuuKB.gif', 'http://zippy.gfycat.com/RightIndelibleCottonmouth.webm', 'http://i.imgur.com/2wtfRlv.jpg', 'http://i.imgur.com/VpxANpN.gif', 'http://i.imgur.com/X8fICEo.jpg', 'http://fat.gfycat.com/UnkemptInsidiousGermanshorthairedpointer.webm', 'https://www.youtube.com/watch?v=sVR1JunnuGE'}
+        self.userSubmissionRedditSubmissions = {'http://www.reddit.com/r/reddit_data_extractor/comments/2b8w9y/minus_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8nag/imgur_album_hashtag/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8vjl/gfycat_gif_hashtag_format/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8s5r/imgur_single_gif/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9cru/vidble_gif_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9dm4/vidble_jpg_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8tbe/gfycat_webm_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b83a2/imgur_single_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8vpe/s3_amazonaws_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8uyr/gfycat_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8wdl/minus_gif_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9cfw/vidble_album/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2ce0l1/youtube_video/'}
 
-        self.userSelftextExternalDownlads = {'http://i.imgur.com/IvvH2jQ.jpg', 'http://i.imgur.com/QnzS9se.jpg', 'http://i.imgur.com/QwxVxlY.jpg', 'http://www.vidble.com/ubq1myyQQk.jpg', 'http://i.imgur.com/T5CFNo4.jpg', 'http://i.imgur.com/v9Wfk4k.png'}
-        self.userSelftextRedditSubmissions = {'http://www.reddit.com/r/reddit_data_extractor/comments/2bcnhu/textpost_link_comments_with_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcokj/textpost_imgur_gallery_link_comments_without_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcma6/textpost_link_no_comments/'}
+        self.userSelftextExternalDownloads = {'http://i.imgur.com/IvvH2jQ.jpg', 'http://i.imgur.com/QnzS9se.jpg', 'http://i.imgur.com/QwxVxlY.jpg', 'http://www.vidble.com/ubq1myyQQk.jpg', 'http://i.imgur.com/T5CFNo4.jpg', 'http://i.imgur.com/v9Wfk4k.png', 'http://www.dailymotion.com/video/x22mrag_cristiano-ronaldo-amazing-goal-bayern-munich-vs-real-madrid-0-4-29-04-2014_sport'}
+        self.userSelftextRedditSubmissions = {'http://www.reddit.com/r/reddit_data_extractor/comments/2bcnhu/textpost_link_comments_with_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcokj/textpost_imgur_gallery_link_comments_without_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcma6/textpost_link_no_comments/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2cecdc/selftext_dailymotion_video_link_no_comments/'}
 
         self.userJSONExternalDownloads = set()
-        self.userJSONRedditSubmissions = {'http://www.reddit.com/r/reddit_data_extractor/comments/2b8w9y/minus_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8nag/imgur_album_hashtag/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8380/imgur_single_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcnhu/textpost_link_comments_with_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcokj/textpost_imgur_gallery_link_comments_without_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8s5r/imgur_single_gif/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9cru/vidble_gif_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9dm4/vidble_jpg_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9cfw/vidble_album/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8wdl/minus_gif_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bby9l/textpost_no_link_comments_with_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9geu/textpost_no_link_comments_without_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b83a2/imgur_single_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8vpe/s3_amazonaws_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9gbo/textpost_no_link_no_comments/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8uyr/gfycat_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8tbe/gfycat_webm_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcma6/textpost_link_no_comments/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8vjl/gfycat_gif_hashtag_format/'}
+        self.userJSONRedditSubmissions = {'http://www.reddit.com/r/reddit_data_extractor/comments/2b8w9y/minus_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8nag/imgur_album_hashtag/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8380/imgur_single_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcnhu/textpost_link_comments_with_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcokj/textpost_imgur_gallery_link_comments_without_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8s5r/imgur_single_gif/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9cru/vidble_gif_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9dm4/vidble_jpg_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9cfw/vidble_album/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8wdl/minus_gif_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bby9l/textpost_no_link_comments_with_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9geu/textpost_no_link_comments_without_links/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b83a2/imgur_single_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8vpe/s3_amazonaws_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b9gbo/textpost_no_link_no_comments/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8uyr/gfycat_gif_direct/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8tbe/gfycat_webm_page/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2bcma6/textpost_link_no_comments/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2b8vjl/gfycat_gif_hashtag_format/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2cebx6/selftext_no_link_comment_with_video_link/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2ce0l1/youtube_video/', 'http://www.reddit.com/r/reddit_data_extractor/comments/2cecdc/selftext_dailymotion_video_link_no_comments/'}
 
-        self.imageFileTypes = ["*.jpg", "*.jpeg", "*.gif", "*.png", "*.webm"]
+        self.contentFileTypes = ["*.jpg", "*.jpeg", "*.gif", "*.png", "*.webm", "*.mp4", "*.mkv", "*.flv"]
         self.jsonFileTypes = ["*.txt"]
 
     def tearDown(self):
@@ -153,6 +155,8 @@ class DownloadTests(unittest.TestCase):
             downloadedFilesSet = downloadedFilesSet.union(
                 set(itertools.chain(*[filePath.glob(fileType) for fileType in fileTypes])))
         hashesDownloaded = {fileName.stem + fileName.suffix: self.hashfile(fileName) for fileName in downloadedFilesSet}
+        if hashesDownloaded.get('2ce0l1_00001.mp4') is not None:
+            del hashesDownloaded['2ce0l1_00001.mp4'] # Youtube hashes change :(
         print(hashesDownloaded)
         self.assertEqual(hashesDownloaded, knownGoodHashes)
 
@@ -245,11 +249,10 @@ class DownloadTests(unittest.TestCase):
         self.form._rddtDataExtractor.getExternalContent = False
         self.form._rddtDataExtractor.getCommentExternalContent = True
         self.download()
-        self.compareHashes(self.imageFileTypes, self.externalCommentImageHashes,
+        self.compareHashes(self.contentFileTypes, self.externalCommentImageHashes,
                                            [pathlib.Path("Downloads", self.userName, self.userName),
                                             pathlib.Path("Downloads", self.userName, "GfycatLinkFixerBot")])
         self.checkUser(self.userName, set(), self.userCommentExternalDownloads, self.userCommentRedditSubmissions, DownloadedContentType.EXTERNAL_COMMENT_DATA)
-
 
     def testDownloadSubmission(self):
         self.changeToTestConfig()
@@ -264,7 +267,7 @@ class DownloadTests(unittest.TestCase):
         self.form._rddtDataExtractor.getSubmissionContent = False
         self.form._rddtDataExtractor.getExternalContent = True
         self.download()
-        self.compareHashes(self.imageFileTypes, self.externalImageHashes, [pathlib.Path("Downloads", self.userName)])
+        self.compareHashes(self.contentFileTypes, self.externalImageHashes, [pathlib.Path("Downloads", self.userName)])
         self.checkUser(self.userName, set(), self.userSubmissionExternalDownloads, self.userSubmissionRedditSubmissions, DownloadedContentType.EXTERNAL_SUBMISSION_DATA)
 
     def testDownloadSelftextExternals(self):
@@ -273,8 +276,8 @@ class DownloadTests(unittest.TestCase):
         self.form._rddtDataExtractor.getExternalContent = False
         self.form._rddtDataExtractor.getSelftextExternalContent = True
         self.download()
-        self.compareHashes(self.imageFileTypes, self.externalSelftextImageHashes, [pathlib.Path("Downloads", self.userName)])
-        self.checkUser(self.userName, set(), self.userSelftextExternalDownlads, self.userSelftextRedditSubmissions, DownloadedContentType.EXTERNAL_SELFTEXT_DATA)
+        self.compareHashes(self.contentFileTypes, self.externalSelftextImageHashes, [pathlib.Path("Downloads", self.userName)])
+        self.checkUser(self.userName, set(), self.userSelftextExternalDownloads, self.userSelftextRedditSubmissions, DownloadedContentType.EXTERNAL_SELFTEXT_DATA)
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@
 """
 
 class GenericListModelObj():
-    slots = ('name', '_blacklist', '_mostRecentDownloadTimestamp', 'redditSubmissions', 'externalDownloads')
+
     subSort = "Hot"
 
     def __init__(self, name):
