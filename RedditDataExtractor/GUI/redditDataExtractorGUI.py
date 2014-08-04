@@ -448,8 +448,11 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
 
     @pyqtSlot()
     def reactivateBtns(self):
-        self.gridLayout.removeWidget(self.stopBtn)
-        self.stopBtn.deleteLater()
+        try:
+            self.gridLayout.removeWidget(self.stopBtn)
+            self.stopBtn.deleteLater()
+        except:
+            pass
         self.downloadBtn = QPushButton(self.centralwidget)
         self.downloadBtn.setObjectName("downloadBtn")
         self.downloadBtn.setText("Download!")
@@ -468,8 +471,11 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         self.stopBtn.setObjectName("stopBtn")
         self.stopBtn.setText("Downloading... Press here to stop the download.")
         self.stopBtn.clicked.connect(self.stopDownload)
-        self.gridLayout.removeWidget(self.downloadBtn)
-        self.downloadBtn.deleteLater()
+        try:
+            self.gridLayout.removeWidget(self.downloadBtn)
+            self.downloadBtn.deleteLater()
+        except:
+            pass
         self.gridLayout.addWidget(self.stopBtn, 6, 0, 1, 2)
         self.addUserBtn.setEnabled(False)
         self.addSubredditBtn.setEnabled(False)

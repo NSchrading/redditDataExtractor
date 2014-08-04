@@ -233,7 +233,10 @@ class RedditDataExtractor():
         passes = False
         comments = []
         if len(self.commentFilts) > 0:
-            comments = praw.helpers.flatten_tree(submission.comments)
+            try:
+                comments = praw.helpers.flatten_tree(submission.comments)
+            except:
+                return passes
             self._cacheComments(comments, submission.id)
         if self.connector is not None:
             passes = self.connector([self.connector(
@@ -351,7 +354,10 @@ class RedditDataExtractor():
         """
         urls = {}
         if self._commentCache.get(submission.id) is None:
-            allComments = praw.helpers.flatten_tree(submission.comments)
+            try:
+                allComments = praw.helpers.flatten_tree(submission.comments)
+            except:
+                return urls
             self._cacheComments(allComments, submission.id)
         else:
             allComments = self._commentCache.get(submission.id)
