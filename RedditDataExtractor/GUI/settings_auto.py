@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'settings.ui'
 #
-# Created: Sat Jul 26 17:53:19 2014
-#      by: PyQt4 UI code generator 4.10.4
+# Created: Sun Aug  3 18:20:04 2014
+# by: PyQt4 UI code generator 4.11.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -17,16 +17,18 @@ except AttributeError:
 
 try:
     _encoding = QtGui.QApplication.UnicodeUTF8
+
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
 
+
 class Ui_SettingsDialog(object):
     def setupUi(self, SettingsDialog):
         SettingsDialog.setObjectName(_fromUtf8("SettingsDialog"))
-        SettingsDialog.resize(621, 424)
+        SettingsDialog.resize(621, 474)
         self.verticalLayout = QtGui.QVBoxLayout(SettingsDialog)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.gridLayout = QtGui.QGridLayout()
@@ -36,10 +38,9 @@ class Ui_SettingsDialog(object):
         self.getExternalContentCheckBox = QtGui.QCheckBox(SettingsDialog)
         self.getExternalContentCheckBox.setObjectName(_fromUtf8("getExternalContentCheckBox"))
         self.horizontalLayout_6.addWidget(self.getExternalContentCheckBox)
-        self.avoidDuplCheckBox = QtGui.QCheckBox(SettingsDialog)
-        self.avoidDuplCheckBox.setChecked(True)
-        self.avoidDuplCheckBox.setObjectName(_fromUtf8("avoidDuplCheckBox"))
-        self.horizontalLayout_6.addWidget(self.avoidDuplCheckBox)
+        self.getCommentExternalContentCheckBox = QtGui.QCheckBox(SettingsDialog)
+        self.getCommentExternalContentCheckBox.setObjectName(_fromUtf8("getCommentExternalContentCheckBox"))
+        self.horizontalLayout_6.addWidget(self.getCommentExternalContentCheckBox)
         self.gridLayout.addLayout(self.horizontalLayout_6, 15, 0, 1, 1)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
@@ -57,7 +58,7 @@ class Ui_SettingsDialog(object):
         self.horizontalLayout_4.addWidget(self.label_2)
         self.subLimitTextEdit = QtGui.QLineEdit(SettingsDialog)
         self.subLimitTextEdit.setCursorPosition(2)
-        self.subLimitTextEdit.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.subLimitTextEdit.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.subLimitTextEdit.setObjectName(_fromUtf8("subLimitTextEdit"))
         self.horizontalLayout_4.addWidget(self.subLimitTextEdit)
         self.gridLayout.addLayout(self.horizontalLayout_4, 13, 0, 1, 1)
@@ -121,17 +122,27 @@ class Ui_SettingsDialog(object):
         self.verticalLayout.addLayout(self.gridLayout)
         self.horizontalLayout_10 = QtGui.QHBoxLayout()
         self.horizontalLayout_10.setObjectName(_fromUtf8("horizontalLayout_10"))
-        self.getCommentExternalContentCheckBox = QtGui.QCheckBox(SettingsDialog)
-        self.getCommentExternalContentCheckBox.setObjectName(_fromUtf8("getCommentExternalContentCheckBox"))
-        self.horizontalLayout_10.addWidget(self.getCommentExternalContentCheckBox)
         self.getSelftextExternalContentCheckBox = QtGui.QCheckBox(SettingsDialog)
         self.getSelftextExternalContentCheckBox.setObjectName(_fromUtf8("getSelftextExternalContentCheckBox"))
         self.horizontalLayout_10.addWidget(self.getSelftextExternalContentCheckBox)
-        self.verticalLayout.addLayout(self.horizontalLayout_10)
         self.getSubmissionContentCheckBox = QtGui.QCheckBox(SettingsDialog)
         self.getSubmissionContentCheckBox.setChecked(True)
         self.getSubmissionContentCheckBox.setObjectName(_fromUtf8("getSubmissionContentCheckBox"))
-        self.verticalLayout.addWidget(self.getSubmissionContentCheckBox)
+        self.horizontalLayout_10.addWidget(self.getSubmissionContentCheckBox)
+        self.verticalLayout.addLayout(self.horizontalLayout_10)
+        self.horizontalLayout_11 = QtGui.QHBoxLayout()
+        self.horizontalLayout_11.setObjectName(_fromUtf8("horizontalLayout_11"))
+        self.avoidVideosCheckBox = QtGui.QCheckBox(SettingsDialog)
+        self.avoidVideosCheckBox.setObjectName(_fromUtf8("avoidVideosCheckBox"))
+        self.horizontalLayout_11.addWidget(self.avoidVideosCheckBox)
+        self.getAuthorsCommentsOnlyCheckBox = QtGui.QCheckBox(SettingsDialog)
+        self.getAuthorsCommentsOnlyCheckBox.setObjectName(_fromUtf8("getAuthorsCommentsOnlyCheckBox"))
+        self.horizontalLayout_11.addWidget(self.getAuthorsCommentsOnlyCheckBox)
+        self.verticalLayout.addLayout(self.horizontalLayout_11)
+        self.avoidDuplCheckBox = QtGui.QCheckBox(SettingsDialog)
+        self.avoidDuplCheckBox.setChecked(True)
+        self.avoidDuplCheckBox.setObjectName(_fromUtf8("avoidDuplCheckBox"))
+        self.verticalLayout.addWidget(self.avoidDuplCheckBox)
         self.line = QtGui.QFrame(SettingsDialog)
         self.line.setFrameShape(QtGui.QFrame.HLine)
         self.line.setFrameShadow(QtGui.QFrame.Sunken)
@@ -186,7 +197,7 @@ class Ui_SettingsDialog(object):
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.dialogButtonBox = QtGui.QDialogButtonBox(SettingsDialog)
         self.dialogButtonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.dialogButtonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Save)
+        self.dialogButtonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel | QtGui.QDialogButtonBox.Save)
         self.dialogButtonBox.setObjectName(_fromUtf8("dialogButtonBox"))
         self.verticalLayout.addWidget(self.dialogButtonBox)
 
@@ -197,56 +208,113 @@ class Ui_SettingsDialog(object):
 
     def retranslateUi(self, SettingsDialog):
         SettingsDialog.setWindowTitle(_translate("SettingsDialog", "Settings", None))
-        self.getExternalContentCheckBox.setToolTip(_translate("SettingsDialog", "Select to attempt to download images / gifs / gfys linked to by a reddit submission.", None))
-        self.getExternalContentCheckBox.setText(_translate("SettingsDialog", "Download External Content of Submission", None))
-        self.avoidDuplCheckBox.setToolTip(_translate("SettingsDialog", "Attempt to avoid downloading images, gifs, or gfys that have already been downloaded for the same user or subreddit.", None))
-        self.avoidDuplCheckBox.setText(_translate("SettingsDialog", "Avoid Downloading Duplicate Images If Possible", None))
-        self.defaultSubredditListLabel.setToolTip(_translate("SettingsDialog", "The subreddit list that will display on starting the application.", None))
+        self.getExternalContentCheckBox.setToolTip(_translate("SettingsDialog",
+                                                              "Select to attempt to download images / gifs / webms / videos linked to by a reddit submission.",
+                                                              None))
+        self.getExternalContentCheckBox.setText(
+            _translate("SettingsDialog", "Download External Content Linked By Submission", None))
+        self.getCommentExternalContentCheckBox.setToolTip(_translate("SettingsDialog",
+                                                                     "Select to attempt to download images / gifs / webms / videos from the comments in a submission.",
+                                                                     None))
+        self.getCommentExternalContentCheckBox.setText(
+            _translate("SettingsDialog", "Download External Content Linked In Comments", None))
+        self.defaultSubredditListLabel.setToolTip(
+            _translate("SettingsDialog", "The subreddit list that will display on starting the application.", None))
         self.defaultSubredditListLabel.setText(_translate("SettingsDialog", "Default Subreddit List", None))
-        self.label_2.setToolTip(_translate("SettingsDialog", "<html><head/><body><p>The number of posts to retrieve from the subreddit. A max of 100 can be downloaded at a time. Download again at a later date to get the next (most recent) 100.</p></body></html>", None))
-        self.label_2.setText(_translate("SettingsDialog", "Max Posts Retrieved in Subreddit Content Download [1-100]", None))
+        self.label_2.setToolTip(_translate("SettingsDialog",
+                                           "<html><head/><body><p>The number of posts to retrieve from the subreddit. A max of 100 can be downloaded at a time. Download again at a later date to get the next (most recent) 100.</p></body></html>",
+                                           None))
+        self.label_2.setText(
+            _translate("SettingsDialog", "Max Posts Retrieved in Subreddit Content Download [1-100]", None))
         self.subLimitTextEdit.setText(_translate("SettingsDialog", "10", None))
-        self.defaultUserListLabel.setToolTip(_translate("SettingsDialog", "The user list that will display on starting the application.", None))
+        self.defaultUserListLabel.setToolTip(
+            _translate("SettingsDialog", "The user list that will display on starting the application.", None))
         self.defaultUserListLabel.setText(_translate("SettingsDialog", "Default User List", None))
-        self.label.setToolTip(_translate("SettingsDialog", "<html><head/><body><p>When downloading subreddit content, this determines the types of posts that are downloaded. E.g. to get the top 10 new posts in the subreddits, select &quot;New&quot;.</p></body></html>", None))
+        self.label.setToolTip(_translate("SettingsDialog",
+                                         "<html><head/><body><p>When downloading subreddit content, this determines the types of posts that are downloaded. E.g. to get the top 10 new posts in the subreddits, select &quot;New&quot;.</p></body></html>",
+                                         None))
         self.label.setText(_translate("SettingsDialog", "Sort Subreddit Content by: ", None))
         self.hotBtn.setText(_translate("SettingsDialog", "Hot", None))
         self.newBtn.setText(_translate("SettingsDialog", "New", None))
         self.topBtn.setText(_translate("SettingsDialog", "Top", None))
         self.risingBtn.setText(_translate("SettingsDialog", "Rising", None))
         self.controversialBtn.setText(_translate("SettingsDialog", "Controversial", None))
-        self.showImgurAPINotificationCheckBox.setToolTip(_translate("SettingsDialog", "If you don\'t want to get bothered by the pop-up on startup, uncheck this.", None))
-        self.showImgurAPINotificationCheckBox.setText(_translate("SettingsDialog", "Display Imgur API Notification on Startup if No Client-id is Set", None))
-        self.resetClientIdCheckBox.setToolTip(_translate("SettingsDialog", "Check this to reset or change your client-id.", None))
+        self.showImgurAPINotificationCheckBox.setToolTip(
+            _translate("SettingsDialog", "If you don\'t want to get bothered by the pop-up on startup, uncheck this.",
+                       None))
+        self.showImgurAPINotificationCheckBox.setText(
+            _translate("SettingsDialog", "Display Imgur API Notification on Startup if No Client-id is Set", None))
+        self.resetClientIdCheckBox.setToolTip(
+            _translate("SettingsDialog", "Check this to reset or change your client-id.", None))
         self.resetClientIdCheckBox.setText(_translate("SettingsDialog", "Change / Reset Client-id", None))
-        self.getCommentExternalContentCheckBox.setToolTip(_translate("SettingsDialog", "Select to attempt to download images, gifs, and gfys from the comments in a submission.", None))
-        self.getCommentExternalContentCheckBox.setText(_translate("SettingsDialog", "Download External Content Linked In Comments", None))
-        self.getSelftextExternalContentCheckBox.setToolTip(_translate("SettingsDialog", "Select to attempt to download external images, gifs, and gfys in the selftext.", None))
-        self.getSelftextExternalContentCheckBox.setText(_translate("SettingsDialog", "Download External Content Linked In Selftext", None))
-        self.getSubmissionContentCheckBox.setToolTip(_translate("SettingsDialog", "Select to download the title, self-text, comments, upvote statistics, and other information in a json-encoded text file.", None))
-        self.getSubmissionContentCheckBox.setText(_translate("SettingsDialog", "Download Submission Content", None))
-        self.restrictDownloadsByCreationDateCheckBox.setToolTip(_translate("SettingsDialog", "<html><head/><body><p>Always works for users, only works for subreddits when downloading by \'New\'.</p><p>Uncheck this option to gather all available submissions of users and download ones that have not been downloaded already. </p><p>This is useful to attempt to download posts that failed due to a connection loss.</p><p>Checking this option may speed up the downloading process.</p></body></html>", None))
-        self.restrictDownloadsByCreationDateCheckBox.setText(_translate("SettingsDialog", "Restrict retrieved submissions to creation dates after the last downloaded submission", None))
-        self.filterExternalContentCheckBox.setToolTip(_translate("SettingsDialog", "Dowload external images / gifs / gfys only if the following criteria are met.", None))
-        self.filterExternalContentCheckBox.setText(_translate("SettingsDialog", "Only download external content when:", None))
-        self.filterSubmissionContentCheckBox.setToolTip(_translate("SettingsDialog", "Download json encoded submission data only if the following criteria are met.", None))
-        self.filterSubmissionContentCheckBox.setText(_translate("SettingsDialog", "Only download submission content when:", None))
-        self.filterTable.setToolTip(_translate("SettingsDialog", "<html><head/><body><p>Select the filters you would like to apply to the download. </p><p>Will download the content only if the submission or a comment within the submission has the matching criteria.</p><p>Posts with any comment passing the filter will be downloaded - there is currently no way to download only if all comments pass the filter.</p><p>Filters on comment body may slow the download process significantly.</p><p>If the operator is Equals Bool, enter only True or False.</p></body></html>", None))
+        self.getSelftextExternalContentCheckBox.setToolTip(_translate("SettingsDialog",
+                                                                      "Select to attempt to download external images / gifs / webms / videos in the selftext.",
+                                                                      None))
+        self.getSelftextExternalContentCheckBox.setText(
+            _translate("SettingsDialog", "Download External Content Linked In Selftext", None))
+        self.getSubmissionContentCheckBox.setToolTip(_translate("SettingsDialog",
+                                                                "Select to download the title, self-text, comments, upvote statistics, and other information in a json-encoded text file.",
+                                                                None))
+        self.getSubmissionContentCheckBox.setText(
+            _translate("SettingsDialog", "Download JSON-encoded Submission Content", None))
+        self.avoidVideosCheckBox.setToolTip(_translate("SettingsDialog",
+                                                       "Check this to prevent video content (.mp4, .flv, etc) from being downloaded. May speed up the download process.",
+                                                       None))
+        self.avoidVideosCheckBox.setText(_translate("SettingsDialog", "Do Not Download Videos", None))
+        self.getAuthorsCommentsOnlyCheckBox.setToolTip(_translate("SettingsDialog",
+                                                                  "Check this to only download external content linked in comments if it is a comment of the original author of the submission.",
+                                                                  None))
+        self.getAuthorsCommentsOnlyCheckBox.setText(
+            _translate("SettingsDialog", "Only Download Author\'s Comment External Content", None))
+        self.avoidDuplCheckBox.setToolTip(_translate("SettingsDialog",
+                                                     "Attempt to avoid downloading images / gifs / webms / videos that have already been downloaded for the same user or subreddit.",
+                                                     None))
+        self.avoidDuplCheckBox.setText(
+            _translate("SettingsDialog", "Avoid Downloading Duplicate External Content If Possible", None))
+        self.restrictDownloadsByCreationDateCheckBox.setToolTip(_translate("SettingsDialog",
+                                                                           "<html><head/><body><p>Always works for users, only works for subreddits when downloading by \'New\'.</p><p>Uncheck this option to gather all available submissions of users and download ones that have not been downloaded already. </p><p>This is useful to attempt to download posts that failed due to a connection loss.</p><p>Checking this option may speed up the downloading process.</p></body></html>",
+                                                                           None))
+        self.restrictDownloadsByCreationDateCheckBox.setText(_translate("SettingsDialog",
+                                                                        "Restrict retrieved submissions to creation dates after the last downloaded submission",
+                                                                        None))
+        self.filterExternalContentCheckBox.setToolTip(_translate("SettingsDialog",
+                                                                 "Dowload external images / gifs / gfys only if the following criteria are met.",
+                                                                 None))
+        self.filterExternalContentCheckBox.setText(
+            _translate("SettingsDialog", "Only download external content when:", None))
+        self.filterSubmissionContentCheckBox.setToolTip(_translate("SettingsDialog",
+                                                                   "Download json encoded submission data only if the following criteria are met.",
+                                                                   None))
+        self.filterSubmissionContentCheckBox.setText(
+            _translate("SettingsDialog", "Only download submission content when:", None))
+        self.filterTable.setToolTip(_translate("SettingsDialog",
+                                               "<html><head/><body><p>Select the filters you would like to apply to the download. </p><p>Will download the content only if the submission or a comment within the submission has the matching criteria.</p><p>Posts with any comment passing the filter will be downloaded - there is currently no way to download only if all comments pass the filter.</p><p>Filters on comment body may slow the download process significantly.</p><p>If the operator is Equals Bool, enter only True or False.</p></body></html>",
+                                               None))
         item = self.filterTable.verticalHeaderItem(0)
         item.setText(_translate("SettingsDialog", "New Row", None))
         item = self.filterTable.horizontalHeaderItem(0)
         item.setText(_translate("SettingsDialog", "Content Type", None))
-        item.setToolTip(_translate("SettingsDialog", "The type of content to filter by. Either submissions or comments within a submission.", None))
+        item.setToolTip(_translate("SettingsDialog",
+                                   "The type of content to filter by. Either submissions or comments within a submission.",
+                                   None))
         item = self.filterTable.horizontalHeaderItem(1)
         item.setText(_translate("SettingsDialog", "Property", None))
-        item.setToolTip(_translate("SettingsDialog", "The property of the content. E.g. the author of a submission (the redditor), or the score of a comment in the submission.", None))
+        item.setToolTip(_translate("SettingsDialog",
+                                   "The property of the content. E.g. the author of a submission (the redditor), or the score of a comment in the submission.",
+                                   None))
         item = self.filterTable.horizontalHeaderItem(2)
         item.setText(_translate("SettingsDialog", "Operator", None))
-        item.setToolTip(_translate("SettingsDialog", "The operator to search the property with. E.g. contains means a download will occur if the string in the value column is in the property of the submssion / comment.", None))
+        item.setToolTip(_translate("SettingsDialog",
+                                   "The operator to search the property with. E.g. contains means a download will occur if the string in the value column is in the property of the submssion / comment.",
+                                   None))
         item = self.filterTable.horizontalHeaderItem(3)
         item.setText(_translate("SettingsDialog", "Value", None))
-        item.setToolTip(_translate("SettingsDialog", "The value to match by using the operator. If you want a boolean, enter True or False.", None))
+        item.setToolTip(_translate("SettingsDialog",
+                                   "The value to match by using the operator. If you want a boolean, enter True or False.",
+                                   None))
         item = self.filterTable.horizontalHeaderItem(4)
         item.setText(_translate("SettingsDialog", "And / Or / Xor", None))
-        item.setToolTip(_translate("SettingsDialog", "If you want multiple filters, select this box and select the operator to group the filters by. The filters must be the same. E.g. submission author equals \"foo\" AND comment score greater than 100.", None))
+        item.setToolTip(_translate("SettingsDialog",
+                                   "If you want multiple filters, select this box and select the operator to group the filters by. The filters must be the same. E.g. submission author equals \"foo\" AND comment score greater than 100.",
+                                   None))
 

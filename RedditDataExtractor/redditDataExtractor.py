@@ -118,6 +118,7 @@ class DownloadType(Enum):
     USER_SUBREDDIT_ALL = 2
     SUBREDDIT_CONTENT = 3
 
+
 class ListType(Enum):
     USER = 1
     SUBREDDIT = 2
@@ -128,6 +129,7 @@ class RedditDataExtractor():
     The "model" behind the GUI. Most of the code that deals with PRAW data is in this class. This is also the class
     that gets pickled and saved to store user settings and downloaded content information.
     """
+
     def __init__(self):
         self._r = praw.Reddit(user_agent='Data Extractor for reddit v1.0 by /u/VoidXC')
         # domains that are specifically targeted to work for downloading external content
@@ -195,6 +197,8 @@ class RedditDataExtractor():
         self.subLimit = 10
         self.restrictDownloadsByCreationDate = True
         self.showImgurAPINotification = True
+        self.avoidVideos = False
+        self.getAuthorsCommentsOnly = False
 
         try:
             path = pathlib.Path('RedditDataExtractor')
@@ -218,7 +222,7 @@ class RedditDataExtractor():
         :rtype: bool
         """
         return self._isNotXPost(submission) and lstModelObj.submissionNotInBlacklist(submission.permalink) and (
-        not self.restrictDownloadsByCreationDate or lstModelObj.submissionBeforeLastDownload(submission))
+            not self.restrictDownloadsByCreationDate or lstModelObj.submissionBeforeLastDownload(submission))
 
     def _submissionPassesFilter(self, submission):
         """
@@ -237,7 +241,7 @@ class RedditDataExtractor():
                  submission.__dict__.get(prop) is not None]), any([self.connector(
                 [oper(comment.__dict__.get(prop), val) for prop, oper, val in self.commentFilts if
                  comment.__dict__.get(prop) is not None]) for comment in comments if
-                                                             isinstance(comment, praw.objects.Comment)])])
+                                                                   isinstance(comment, praw.objects.Comment)])])
         else:
             if len(self.submissionFilts) > 0:
                 prop, oper, val = self.submissionFilts[0]
@@ -292,7 +296,7 @@ class RedditDataExtractor():
             submissionData['author'] = submission.author.name
         submissionData['subreddit'] = submission.subreddit.display_name
         submissionData['comments'] = self._getAllComments(submission.comments)
-        del submissionData['_comments']  #  objects from praw are not json serializable
+        del submissionData['_comments']  # objects from praw are not json serializable
         del submissionData['_comments_by_id']
         del submissionData['reddit_session']
         return submissionData
@@ -358,6 +362,8 @@ class RedditDataExtractor():
                     author = "[Deleted]"
                 else:
                     author = author.name
+                if self.getAuthorsCommentsOnly and (author != submission.author.name and author != '[Deleted]'):
+                    continue
                 matches = self._urlFinder.findall(comment.body)
                 authorURLs = urls.get(author)
                 if authorURLs is None:
@@ -400,7 +406,8 @@ class RedditDataExtractor():
         """
         imageFinder = None
         imageFinderDomains = {
-            self._supportedDomains[0]: ImgurImageFinder(lstModelObj.externalDownloads, self.avoidDuplicates, queue, self.imgurAPIClientID),
+            self._supportedDomains[0]: ImgurImageFinder(lstModelObj.externalDownloads, self.avoidDuplicates, queue,
+                                                        self.imgurAPIClientID),
             self._supportedDomains[1]: MinusImageFinder(lstModelObj.externalDownloads, self.avoidDuplicates, queue),
             self._supportedDomains[2]: VidbleImageFinder(lstModelObj.externalDownloads, self.avoidDuplicates, queue),
             self._supportedDomains[3]: GfycatImageFinder(lstModelObj.externalDownloads, self.avoidDuplicates, queue)}
@@ -416,7 +423,8 @@ class RedditDataExtractor():
                 break
         if imageFinder is None:
             imageFinder = ImageFinder(queue)  # default to a basic image finder if no supported domain is found
-        images = imageFinder.getImages(submission, self.defaultPath, lstModelObj, specialString, specialCount, specialPath)
+        images = imageFinder.getImages(submission, self.defaultPath, lstModelObj, specialString, specialCount,
+                                       specialPath)
         for image in images:
             yield image
 
@@ -438,7 +446,8 @@ class RedditDataExtractor():
             validSubreddit = validSubreddits is None or subreddit.lower() in validSubreddits
             if validSubreddit and self._isValidSubmission(submission, lstModelObj):
                 yield submission, (
-                not self.filterSubmissionContent and not self.filterExternalContent or self._submissionPassesFilter(submission))
+                    not self.filterSubmissionContent and not self.filterExternalContent or self._submissionPassesFilter(
+                        submission))
 
     def getSubredditSubmissions(self, validSubreddit):
         """
@@ -474,7 +483,7 @@ class RedditDataExtractor():
             subreddit = submission.subreddit.display_name.lower()
             directory = self.defaultPath / subreddit
         title = re.sub('[^\w\-_\. ]', '', submission.title)
-        if len(title) > 150: # filenames on some systems can't be too long
+        if len(title) > 150:  # filenames on some systems can't be too long
             title = submission.id
         path = directory / (title + '.txt')
         if len(str(path)) > MAX_PATH:
@@ -505,7 +514,7 @@ class RedditDataExtractor():
             urls = commentImageURLs.get(author)
             count = 1
             for url in urls:
-                if url.lstrip().startswith("http"): # sometimes the regex returns matches without http in the front.
+                if url.lstrip().startswith("http"):  # sometimes the regex returns matches without http in the front.
                     canDownload = self._fudgeSubmissionDomainAndURL(submission, url)
                     if canDownload:
                         images = self.getImages(submission, lstModelObj, queue, "_comment_", count, author)
@@ -535,8 +544,10 @@ class RedditDataExtractor():
             urls = commentURLs.get(author)
             count = 1
             for url in urls:
-                if self._attemptToDownloadVideo(url) and url.lstrip().startswith("http"): # sometimes the regex returns matches without http in the front.
-                    params = (lstModelObj.name, submission.id, self.defaultPath, url, submission.permalink, str(count), "_comment_", count, author)
+                if self._attemptToDownloadVideo(url) and url.lstrip().startswith(
+                        "http"):  # sometimes the regex returns matches without http in the front.
+                    params = (lstModelObj.name, submission.id, self.defaultPath, url, submission.permalink, str(count),
+                              "_comment_", count, author)
                     video = Video(*params)
                     count += 1
                     yield video
@@ -557,7 +568,7 @@ class RedditDataExtractor():
             urls = self._urlFinder.findall(submission.selftext)
             count = 1
             for url in urls:
-                if url.lstrip().startswith("http"): # sometimes the regex returns matches without http in the front.
+                if url.lstrip().startswith("http"):  # sometimes the regex returns matches without http in the front.
                     canDownload = self._fudgeSubmissionDomainAndURL(submission, url)
                     if canDownload:
                         images = self.getImages(submission, lstModelObj, queue, "_selftext_", count)
@@ -580,8 +591,10 @@ class RedditDataExtractor():
             urls = self._urlFinder.findall(submission.selftext)
             count = 1
             for url in urls:
-                if self._attemptToDownloadVideo(url) and url.lstrip().startswith("http"): # sometimes the regex returns matches without http in the front.
-                    params = (lstModelObj.name, submission.id, self.defaultPath, url, submission.permalink, str(count), "_selftext_", count)
+                if self._attemptToDownloadVideo(url) and url.lstrip().startswith(
+                        "http"):  # sometimes the regex returns matches without http in the front.
+                    params = (lstModelObj.name, submission.id, self.defaultPath, url, submission.permalink, str(count),
+                              "_selftext_", count)
                     video = Video(*params)
                     count += 1
                     yield video

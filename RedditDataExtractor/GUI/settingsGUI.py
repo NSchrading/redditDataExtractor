@@ -28,8 +28,8 @@ def findKey(dict, value):
     """
     return next((k for k, v in dict.items() if v == value), None)
 
-class ConnectCombobox(QComboBox):
 
+class ConnectCombobox(QComboBox):
     # static class variable so it can't be different for other connect comboboxes
     text = "And"
 
@@ -61,7 +61,7 @@ class ConnectCombobox(QComboBox):
         removeAction = menu.addAction("Remove")
         action = menu.exec_(self.mapToGlobal(pos))
         if action == removeAction:
-            while(self.filterTable.rowCount() > self.row + 1):
+            while (self.filterTable.rowCount() > self.row + 1):
                 self.filterTable.removeRow(self.filterTable.rowCount() - 1)
             self.filterTable.removeCellWidget(self.row, self.filtTableConnectCol)
 
@@ -76,8 +76,8 @@ class ConnectCombobox(QComboBox):
             combobox.setCurrentIndex(self.findText(ConnectCombobox.text))
             self.filterTable.setCellWidget(row, self.filtTableConnectCol, combobox)
 
-class TypeCombobox(QComboBox):
 
+class TypeCombobox(QComboBox):
     def __init__(self, row, propCombobox):
         """
         A class to handle the type comboboxes and what happens when the user changes the text
@@ -91,7 +91,7 @@ class TypeCombobox(QComboBox):
         self.addItem("Comment")
         self.propCombobox = propCombobox
         self.currentIndexChanged.connect(self.changePropComboBox)
-        self.setCurrentIndex(1) # just change it to kick off the flow of comboboxes changing to their proper values
+        self.setCurrentIndex(1)  # just change it to kick off the flow of comboboxes changing to their proper values
 
     def changePropComboBox(self, index):
         if self.currentText() == "Submission":
@@ -101,7 +101,6 @@ class TypeCombobox(QComboBox):
 
 
 class PropCombobox(QComboBox):
-
     def __init__(self, row, operCombobox, validOperForPropMap):
         """
         A class to handle the property comboboxes and what happens when the user changes the text
@@ -160,7 +159,6 @@ class PropCombobox(QComboBox):
 
 
 class OperCombobox(QComboBox):
-
     def __init__(self, row):
         """
         A class to handle the operator comboboxes and what happens when the user changes the text
@@ -201,10 +199,12 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.operMap = rddtDataExtractor.operMap
         self.validOperForPropMap = rddtDataExtractor.validOperForPropMap
         self.connectMap = rddtDataExtractor.connectMap
-        self.filterExternalContent= rddtDataExtractor.filterExternalContent
+        self.filterExternalContent = rddtDataExtractor.filterExternalContent
         self.filterSubmissionContent = rddtDataExtractor.filterSubmissionContent
         self.restrictDownloadsByCreationDate = rddtDataExtractor.restrictDownloadsByCreationDate
         self.showImgurAPINotification = rddtDataExtractor.showImgurAPINotification
+        self.avoidVideos = rddtDataExtractor.avoidVideos
+        self.getAuthorsCommentsOnly = rddtDataExtractor.getAuthorsCommentsOnly
         self.notifyImgurAPI = notifyImgurAPI
         self.validator = QIntValidator(1, 100)
         self.filtTableTypeCol = 0
@@ -217,11 +217,19 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.defaultSubredditListComboBox.activated.connect(self.chooseNewSubredditList)
 
         self.avoidDuplCheckBox.clicked.connect(lambda: self.changeCheckBox(self.avoidDuplCheckBox, 'avoidDuplicates'))
-        self.getExternalContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.getExternalContentCheckBox, 'getExternalContent'))
-        self.getCommentExternalContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.getCommentExternalContentCheckBox, 'getCommentExternalContent'))
-        self.getSelftextExternalContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.getSelftextExternalContentCheckBox, 'getSelftextExternalContent'))
-        self.getSubmissionContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.getSubmissionContentCheckBox, 'getSubmissionContent'))
-        self.showImgurAPINotificationCheckBox.clicked.connect(lambda: self.changeCheckBox(self.showImgurAPINotificationCheckBox, 'showImgurAPINotification'))
+        self.getExternalContentCheckBox.clicked.connect(
+            lambda: self.changeCheckBox(self.getExternalContentCheckBox, 'getExternalContent'))
+        self.getCommentExternalContentCheckBox.clicked.connect(
+            lambda: self.changeCheckBox(self.getCommentExternalContentCheckBox, 'getCommentExternalContent'))
+        self.getSelftextExternalContentCheckBox.clicked.connect(
+            lambda: self.changeCheckBox(self.getSelftextExternalContentCheckBox, 'getSelftextExternalContent'))
+        self.getSubmissionContentCheckBox.clicked.connect(
+            lambda: self.changeCheckBox(self.getSubmissionContentCheckBox, 'getSubmissionContent'))
+        self.showImgurAPINotificationCheckBox.clicked.connect(
+            lambda: self.changeCheckBox(self.showImgurAPINotificationCheckBox, 'showImgurAPINotification'))
+        self.avoidVideosCheckBox.clicked.connect(lambda: self.changeCheckBox(self.avoidVideosCheckBox, 'avoidVideos'))
+        self.getAuthorsCommentsOnlyCheckBox.clicked.connect(
+            lambda: self.changeCheckBox(self.getAuthorsCommentsOnlyCheckBox, 'getAuthorsCommentsOnly'))
 
         self.resetClientIdCheckBox.clicked.connect(self.notifyImgurAPI)
 
@@ -236,11 +244,16 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.subLimitTextEdit.setText(str(self.subLimit))
 
         self.filterTable.cellPressed.connect(self.addFilter)
-        self.constructFilterTable(rddtDataExtractor.submissionFilts, rddtDataExtractor.commentFilts, rddtDataExtractor.connector, rddtDataExtractor.operMap, rddtDataExtractor.connectMap)
-        self.filterExternalContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.filterExternalContentCheckBox, 'filterExternalContent'))
-        self.filterSubmissionContentCheckBox.clicked.connect(lambda: self.changeCheckBox(self.filterSubmissionContentCheckBox, 'filterSubmissionContent'))
+        self.constructFilterTable(rddtDataExtractor.submissionFilts, rddtDataExtractor.commentFilts,
+                                  rddtDataExtractor.connector, rddtDataExtractor.operMap, rddtDataExtractor.connectMap)
+        self.filterExternalContentCheckBox.clicked.connect(
+            lambda: self.changeCheckBox(self.filterExternalContentCheckBox, 'filterExternalContent'))
+        self.filterSubmissionContentCheckBox.clicked.connect(
+            lambda: self.changeCheckBox(self.filterSubmissionContentCheckBox, 'filterSubmissionContent'))
 
-        self.restrictDownloadsByCreationDateCheckBox.clicked.connect(lambda: self.changeCheckBox(self.restrictDownloadsByCreationDateCheckBox, 'restrictDownloadsByCreationDate'))
+        self.restrictDownloadsByCreationDateCheckBox.clicked.connect(
+            lambda: self.changeCheckBox(self.restrictDownloadsByCreationDateCheckBox,
+                                        'restrictDownloadsByCreationDate'))
 
         self.initSettings()
 
@@ -260,6 +273,8 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.getCommentExternalContentCheckBox.setChecked(self.getCommentExternalContent)
         self.getSelftextExternalContentCheckBox.setChecked(self.getSelftextExternalContent)
         self.showImgurAPINotificationCheckBox.setChecked(self.showImgurAPINotification)
+        self.avoidVideosCheckBox.setChecked(self.avoidVideos)
+        self.getAuthorsCommentsOnlyCheckBox.setChecked(self.getAuthorsCommentsOnly)
 
         self.getSubmissionContentCheckBox.setChecked(self.getSubmissionContent)
 
@@ -312,7 +327,7 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         """
         numFilts = len(submissionFilts) + len(commentFilts)
         if numFilts > 0:
-            for row in range(1, numFilts): # first row is already added
+            for row in range(1, numFilts):  # first row is already added
                 self.filterTable.insertRow(row)
             row = 0
             for prop, oper, val in submissionFilts:
@@ -323,7 +338,7 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
                 row += 1
             connectorText = findKey(connectMap, connector)
             for row in range(self.filterTable.rowCount() - 1):
-                ConnectCombobox.text = connectorText # Set this to whatever the connector is currently so on creation of new ones, it doesn't default to And
+                ConnectCombobox.text = connectorText  # Set this to whatever the connector is currently so on creation of new ones, it doesn't default to And
                 connectCombobox = ConnectCombobox(row, self.filterTable, self.filtTableConnectCol, self.connectMap)
                 connectCombobox.setCurrentIndex(connectCombobox.findText(connectorText))
                 self.filterTable.setCellWidget(row, self.filtTableConnectCol, connectCombobox)
@@ -390,8 +405,10 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         """
         if self.filterExternalContentCheckBox.isChecked() or self.filterSubmissionContentCheckBox.isChecked():
             for row in range(self.filterTable.rowCount()):
-                if self.filterTable.cellWidget(row, self.filtTableValCol) is None or len(self.filterTable.cellWidget(row, self.filtTableValCol).toPlainText()) <= 0:
-                    QMessageBox.warning(QMessageBox(), "Data Extractor for reddit", "Please enter text in the value column or uncheck that you would like to filter content.")
+                if self.filterTable.cellWidget(row, self.filtTableValCol) is None or len(
+                        self.filterTable.cellWidget(row, self.filtTableValCol).toPlainText()) <= 0:
+                    QMessageBox.warning(QMessageBox(), "Data Extractor for reddit",
+                                        "Please enter text in the value column or uncheck that you would like to filter content.")
                     return False
         return True
 

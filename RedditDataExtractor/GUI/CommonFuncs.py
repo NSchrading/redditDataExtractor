@@ -18,6 +18,7 @@
 from PyQt4.Qt import QMessageBox
 from contextlib import closing
 
+
 def confirmDialog(message):
     """
     Make a simple Yes / No confirmation dialog box with a message
@@ -28,6 +29,7 @@ def confirmDialog(message):
     msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
     msgBox.setDefaultButton(QMessageBox.No)
     return msgBox
+
 
 def exceptionSafeJsonRequest(requestsSession, *args, **kwargs):
     """

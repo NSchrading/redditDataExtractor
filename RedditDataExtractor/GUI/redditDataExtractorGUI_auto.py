@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'redditDataExtractorGUI.ui'
 #
 # Created: Wed Jul 30 18:45:38 2014
-#      by: PyQt4 UI code generator 4.11.1
+# by: PyQt4 UI code generator 4.11.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -17,11 +17,13 @@ except AttributeError:
 
 try:
     _encoding = QtGui.QApplication.UnicodeUTF8
+
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
+
 
 class Ui_RddtDataExtractorMainWindow(object):
     def setupUi(self, RddtDataExtractorMainWindow):
@@ -199,32 +201,50 @@ class Ui_RddtDataExtractorMainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(RddtDataExtractorMainWindow)
 
     def retranslateUi(self, RddtDataExtractorMainWindow):
-        RddtDataExtractorMainWindow.setWindowTitle(_translate("RddtDataExtractorMainWindow", "Data Extractor for reddit", None))
-        self.userLabel.setToolTip(_translate("RddtDataExtractorMainWindow", "Reddit usernames to download content from.", None))
+        RddtDataExtractorMainWindow.setWindowTitle(
+            _translate("RddtDataExtractorMainWindow", "Data Extractor for reddit", None))
+        self.userLabel.setToolTip(
+            _translate("RddtDataExtractorMainWindow", "Reddit usernames to download content from.", None))
         self.userLabel.setText(_translate("RddtDataExtractorMainWindow", "Users to Download From", None))
-        self.userListChooser.setToolTip(_translate("RddtDataExtractorMainWindow", "<html><head/><body><p>Lists of Users you can download from. </p><p>If you want to download from separate users / subreddits, make a new list.</p></body></html>", None))
-        self.subredditLabel.setToolTip(_translate("RddtDataExtractorMainWindow", "Subreddits to download content from.", None))
+        self.userListChooser.setToolTip(_translate("RddtDataExtractorMainWindow",
+                                                   "<html><head/><body><p>Lists of Users you can download from. </p><p>If you want to download from separate users / subreddits, make a new list.</p></body></html>",
+                                                   None))
+        self.subredditLabel.setToolTip(
+            _translate("RddtDataExtractorMainWindow", "Subreddits to download content from.", None))
         self.subredditLabel.setText(_translate("RddtDataExtractorMainWindow", "Subreddits To Download From", None))
-        self.subredditListChooser.setToolTip(_translate("RddtDataExtractorMainWindow", "<html><head/><body><p>Lists of Subreddits you can download from. </p><p>If you want to download from separate users / subreddits, make a new list.</p></body></html>", None))
+        self.subredditListChooser.setToolTip(_translate("RddtDataExtractorMainWindow",
+                                                        "<html><head/><body><p>Lists of Subreddits you can download from. </p><p>If you want to download from separate users / subreddits, make a new list.</p></body></html>",
+                                                        None))
         self.addUserBtn.setToolTip(_translate("RddtDataExtractorMainWindow", "Add a user.", None))
         self.addUserBtn.setText(_translate("RddtDataExtractorMainWindow", "+", None))
         self.deleteUserBtn.setToolTip(_translate("RddtDataExtractorMainWindow", "Remove selected user.", None))
         self.deleteUserBtn.setText(_translate("RddtDataExtractorMainWindow", "-", None))
-        self.directoryBox.setToolTip(_translate("RddtDataExtractorMainWindow", "Directory to download content to.", None))
-        self.userSubBtn.setToolTip(_translate("RddtDataExtractorMainWindow", "Download content from the users in the users list only if they have posted in the subreddits in the subreddit list.", None))
-        self.userSubBtn.setText(_translate("RddtDataExtractorMainWindow", "Constrain Users in List To Subreddits in List", None))
-        self.allUserBtn.setToolTip(_translate("RddtDataExtractorMainWindow", "Download content from users in the users list, from any subreddit.", None))
+        self.directoryBox.setToolTip(
+            _translate("RddtDataExtractorMainWindow", "Directory to download content to.", None))
+        self.userSubBtn.setToolTip(_translate("RddtDataExtractorMainWindow",
+                                              "Download content from the users in the users list only if they have posted in the subreddits in the subreddit list.",
+                                              None))
+        self.userSubBtn.setText(
+            _translate("RddtDataExtractorMainWindow", "Constrain Users in List To Subreddits in List", None))
+        self.allUserBtn.setToolTip(_translate("RddtDataExtractorMainWindow",
+                                              "Download content from users in the users list, from any subreddit.",
+                                              None))
         self.allUserBtn.setText(_translate("RddtDataExtractorMainWindow", "Users in List in All Subreddits", None))
-        self.allSubBtn.setToolTip(_translate("RddtDataExtractorMainWindow", "Download content from the subreddits in the subreddits list.", None))
+        self.allSubBtn.setToolTip(
+            _translate("RddtDataExtractorMainWindow", "Download content from the subreddits in the subreddits list.",
+                       None))
         self.allSubBtn.setText(_translate("RddtDataExtractorMainWindow", "Subreddits in List", None))
         self.downloadBtn.setToolTip(_translate("RddtDataExtractorMainWindow", "Begin to download content.", None))
         self.downloadBtn.setText(_translate("RddtDataExtractorMainWindow", "Download!", None))
         self.addSubredditBtn.setToolTip(_translate("RddtDataExtractorMainWindow", "Add a subreddit.", None))
         self.addSubredditBtn.setText(_translate("RddtDataExtractorMainWindow", "+", None))
-        self.deleteSubredditBtn.setToolTip(_translate("RddtDataExtractorMainWindow", "Remove selected subreddit.", None))
+        self.deleteSubredditBtn.setToolTip(
+            _translate("RddtDataExtractorMainWindow", "Remove selected subreddit.", None))
         self.deleteSubredditBtn.setText(_translate("RddtDataExtractorMainWindow", "-", None))
-        self.logTextEdit.setToolTip(_translate("RddtDataExtractorMainWindow", "Status of the download is displayed here.", None))
-        self.directorySelectBtn.setToolTip(_translate("RddtDataExtractorMainWindow", "Select where downloaded content will be saved to.", None))
+        self.logTextEdit.setToolTip(
+            _translate("RddtDataExtractorMainWindow", "Status of the download is displayed here.", None))
+        self.directorySelectBtn.setToolTip(
+            _translate("RddtDataExtractorMainWindow", "Select where downloaded content will be saved to.", None))
         self.directorySelectBtn.setText(_translate("RddtDataExtractorMainWindow", "Set directory to save to", None))
         self.menuType.setTitle(_translate("RddtDataExtractorMainWindow", "&File", None))
         self.menuNew.setTitle(_translate("RddtDataExtractorMainWindow", "&New", None))
@@ -232,7 +252,8 @@ class Ui_RddtDataExtractorMainWindow(object):
         self.menuView.setTitle(_translate("RddtDataExtractorMainWindow", "&View", None))
         self.menuHelp.setTitle(_translate("RddtDataExtractorMainWindow", "Help", None))
         self.actionExit.setText(_translate("RddtDataExtractorMainWindow", "E&xit", None))
-        self.actionCreate_New_Subreddit_List.setText(_translate("RddtDataExtractorMainWindow", "Create New Subreddit List", None))
+        self.actionCreate_New_Subreddit_List.setText(
+            _translate("RddtDataExtractorMainWindow", "Create New Subreddit List", None))
         self.actionSubreddit_List.setText(_translate("RddtDataExtractorMainWindow", "New &Subreddit List", None))
         self.actionSubreddit_List.setShortcut(_translate("RddtDataExtractorMainWindow", "Ctrl+2", None))
         self.actionUser_List.setText(_translate("RddtDataExtractorMainWindow", "New &User List", None))
@@ -240,21 +261,27 @@ class Ui_RddtDataExtractorMainWindow(object):
         self.actionSettings_2.setText(_translate("RddtDataExtractorMainWindow", "&Settings", None))
         self.actionSave.setText(_translate("RddtDataExtractorMainWindow", "Save", None))
         self.actionSave.setShortcut(_translate("RddtDataExtractorMainWindow", "Ctrl+S", None))
-        self.actionDownloaded_Reddit_User_Posts.setText(_translate("RddtDataExtractorMainWindow", "&Downloaded Reddit User Posts", None))
-        self.actionRemove_Subreddit_List.setText(_translate("RddtDataExtractorMainWindow", "Remove Selected &Subreddit List", None))
+        self.actionDownloaded_Reddit_User_Posts.setText(
+            _translate("RddtDataExtractorMainWindow", "&Downloaded Reddit User Posts", None))
+        self.actionRemove_Subreddit_List.setText(
+            _translate("RddtDataExtractorMainWindow", "Remove Selected &Subreddit List", None))
         self.actionRemove_Subreddit_List.setShortcut(_translate("RddtDataExtractorMainWindow", "Ctrl+4", None))
-        self.actionRemove_User_List.setText(_translate("RddtDataExtractorMainWindow", "Remove Selected &User List", None))
+        self.actionRemove_User_List.setText(
+            _translate("RddtDataExtractorMainWindow", "Remove Selected &User List", None))
         self.actionRemove_User_List.setShortcut(_translate("RddtDataExtractorMainWindow", "Ctrl+3", None))
-        self.actionDownloaded_Subreddit_Posts.setText(_translate("RddtDataExtractorMainWindow", "Downloaded Subreddit Posts", None))
+        self.actionDownloaded_Subreddit_Posts.setText(
+            _translate("RddtDataExtractorMainWindow", "Downloaded Subreddit Posts", None))
         self.actionAdd.setText(_translate("RddtDataExtractorMainWindow", "Add", None))
         self.actionNew_Subreddit.setText(_translate("RddtDataExtractorMainWindow", "New Subreddit", None))
         self.actionNew_Subreddit.setShortcut(_translate("RddtDataExtractorMainWindow", "Ctrl+Shift+S", None))
         self.actionNew_User.setText(_translate("RddtDataExtractorMainWindow", "New User", None))
         self.actionNew_User.setShortcut(_translate("RddtDataExtractorMainWindow", "Ctrl+Shift+U", None))
-        self.actionRemove_Selected_Subreddit.setText(_translate("RddtDataExtractorMainWindow", "Remove Selected Subreddit", None))
+        self.actionRemove_Selected_Subreddit.setText(
+            _translate("RddtDataExtractorMainWindow", "Remove Selected Subreddit", None))
         self.actionRemove_Selected_Subreddit.setShortcut(_translate("RddtDataExtractorMainWindow", "Ctrl+Alt+S", None))
         self.actionRemove_Selected_User.setText(_translate("RddtDataExtractorMainWindow", "Remove Selected User", None))
         self.actionRemove_Selected_User.setShortcut(_translate("RddtDataExtractorMainWindow", "Ctrl+Alt+U", None))
         self.actionAbout.setText(_translate("RddtDataExtractorMainWindow", "About", None))
-        self.actionRemaining_Imgur_Requests.setText(_translate("RddtDataExtractorMainWindow", "&Remaining Imgur Requests", None))
+        self.actionRemaining_Imgur_Requests.setText(
+            _translate("RddtDataExtractorMainWindow", "&Remaining Imgur Requests", None))
 

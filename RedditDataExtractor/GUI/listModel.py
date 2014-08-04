@@ -18,8 +18,8 @@
 from PyQt4.Qt import QAbstractListModel, QObject, QModelIndex, Qt
 from .genericListModelObjects import User, Subreddit
 
-class ListModel(QAbstractListModel):
 
+class ListModel(QAbstractListModel):
     def __init__(self, lst, lstObjType, parent=QObject()):
         """
         A QAbstractListModel for the ListViews in the GUI that show the Users / Subreddits

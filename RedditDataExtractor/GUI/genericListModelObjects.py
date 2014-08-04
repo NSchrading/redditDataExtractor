@@ -15,8 +15,8 @@
     along with The reddit Data Extractor.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-class GenericListModelObj():
 
+class GenericListModelObj():
     subSort = "Hot"
 
     def __init__(self, name):
@@ -72,18 +72,19 @@ class GenericListModelObj():
         downloadedContentOfSubmission = allRedditSubmissionsOfLstModelObj.get(redditURL)
         if len(allRedditSubmissionsOfLstModelObj) <= 0 or downloadedContentOfSubmission is None:
             return True
-        return not any([downloadedContent.type is downloadedContentType for downloadedContent in downloadedContentOfSubmission])
+        return not any(
+            [downloadedContent.type is downloadedContentType for downloadedContent in downloadedContentOfSubmission])
+
 
 class User(GenericListModelObj):
-
     def __init__(self, name):
         """
         A user in a user list
         """
         super().__init__(name)
 
-class Subreddit(GenericListModelObj):
 
+class Subreddit(GenericListModelObj):
     def __init__(self, name):
         """
         A subreddit in a subreddit list
@@ -108,4 +109,5 @@ class Subreddit(GenericListModelObj):
         Override of parent class method - Additionally check that the subreddit sorting type is "new"
         :rtype: bool
         """
-        return GenericListModelObj.subSort != "new" or (self._mostRecentDownloadTimestamp is None or submission.created_utc > self._mostRecentDownloadTimestamp)
+        return GenericListModelObj.subSort != "new" or (
+            self._mostRecentDownloadTimestamp is None or submission.created_utc > self._mostRecentDownloadTimestamp)

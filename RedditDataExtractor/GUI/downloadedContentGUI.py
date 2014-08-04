@@ -51,13 +51,20 @@ class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
         self.actionDeleteSelftextandBlacklist = QtGui.QAction("Delete content and never download again", self)
 
         self.actionDeleteJSON.triggered.connect(lambda: self._deleteContent(DownloadedContentType.JSON_DATA))
-        self.actionDeleteJSONAndBlacklist.triggered.connect(lambda: self._deleteContentAndBlacklist(DownloadedContentType.JSON_DATA))
-        self.actionDeleteExternal.triggered.connect(lambda: self._deleteContent(DownloadedContentType.EXTERNAL_SUBMISSION_DATA))
-        self.actionDeleteExternalAndBlacklist.triggered.connect(lambda: self._deleteContentAndBlacklist(DownloadedContentType.EXTERNAL_SUBMISSION_DATA))
-        self.actionDeleteComment.triggered.connect(lambda: self._deleteContent(DownloadedContentType.EXTERNAL_COMMENT_DATA))
-        self.actionDeleteCommentandBlacklist.triggered.connect(lambda: self._deleteContentAndBlacklist(DownloadedContentType.EXTERNAL_COMMENT_DATA))
-        self.actionDeleteSelftext.triggered.connect(lambda: self._deleteContent(DownloadedContentType.EXTERNAL_SELFTEXT_DATA))
-        self.actionDeleteSelftextandBlacklist.triggered.connect(lambda: self._deleteContentAndBlacklist(DownloadedContentType.EXTERNAL_SELFTEXT_DATA))
+        self.actionDeleteJSONAndBlacklist.triggered.connect(
+            lambda: self._deleteContentAndBlacklist(DownloadedContentType.JSON_DATA))
+        self.actionDeleteExternal.triggered.connect(
+            lambda: self._deleteContent(DownloadedContentType.EXTERNAL_SUBMISSION_DATA))
+        self.actionDeleteExternalAndBlacklist.triggered.connect(
+            lambda: self._deleteContentAndBlacklist(DownloadedContentType.EXTERNAL_SUBMISSION_DATA))
+        self.actionDeleteComment.triggered.connect(
+            lambda: self._deleteContent(DownloadedContentType.EXTERNAL_COMMENT_DATA))
+        self.actionDeleteCommentandBlacklist.triggered.connect(
+            lambda: self._deleteContentAndBlacklist(DownloadedContentType.EXTERNAL_COMMENT_DATA))
+        self.actionDeleteSelftext.triggered.connect(
+            lambda: self._deleteContent(DownloadedContentType.EXTERNAL_SELFTEXT_DATA))
+        self.actionDeleteSelftextandBlacklist.triggered.connect(
+            lambda: self._deleteContentAndBlacklist(DownloadedContentType.EXTERNAL_SELFTEXT_DATA))
 
         self.submissionJSONLst.addAction(self.actionDeleteJSON)
         self.submissionJSONLst.addAction(self.actionDeleteJSONAndBlacklist)
@@ -81,7 +88,8 @@ class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
     def _initUserSubredditLst(self):
         for modelObj in self._model.stringsInLst:
             self.userSubredditLst.addItem(modelObj)
-        self.userSubredditLst.setCurrentItem(self.userSubredditLst.findItems(self._startingLstModelObj.name, Qt.MatchExactly)[0])
+        self.userSubredditLst.setCurrentItem(
+            self.userSubredditLst.findItems(self._startingLstModelObj.name, Qt.MatchExactly)[0])
 
     def _initContentLsts(self):
         downloadedContent = self._startingLstModelObj.redditSubmissions
@@ -186,16 +194,17 @@ class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
             if content.type == downloadedContentType:
                 files = content.files
                 numFiles = len(files)
-                if numFiles <= 20: # avoid making a super long list that is hard to read
+                if numFiles <= 20:  # avoid making a super long list that is hard to read
                     fileStr = "".join([str(file) + "\n" for file in files])
                 else:
                     fileStr = "".join([str(file) + "\n" for file in files[:20]])
                     fileStr += "\n...\nand " + str(numFiles - 20) + " others. "
-                msgBox = self._confirmDialog("This will delete these files: \n" + fileStr + "Are you sure you want to delete them?")
+                msgBox = self._confirmDialog(
+                    "This will delete these files: \n" + fileStr + "Are you sure you want to delete them?")
                 ret = msgBox.exec_()
                 if ret == QMessageBox.Yes:
                     downloadedContentForSubmission.remove(content)
-                    if(len(downloadedContentForSubmission) <= 0):
+                    if (len(downloadedContentForSubmission) <= 0):
                         del currentLstModelObj.redditSubmissions[submissionURL]
                     else:
                         currentLstModelObj.redditSubmissions[submissionURL] = downloadedContentForSubmission
@@ -204,10 +213,11 @@ class DownloadedContentGUI(QDialog, Ui_DownloadedContentWindow):
                             if externalURL in currentLstModelObj.externalDownloads:
                                 currentLstModelObj.externalDownloads.remove(externalURL)
                     item = currentTabLst.takeItem(currentTabLst.currentRow())
-                    del item # PyQt documentation says the item won't be garbage collected automatically after using takeItem()
+                    del item  # PyQt documentation says the item won't be garbage collected automatically after using takeItem()
                     content.deleteFiles()
                     del content
-                    QMessageBox.information(QMessageBox(), "Data Extractor for reddit", "Successfully removed requested files.")
+                    QMessageBox.information(QMessageBox(), "Data Extractor for reddit",
+                                            "Successfully removed requested files.")
                     self._saveState()
                     return True
                 return False

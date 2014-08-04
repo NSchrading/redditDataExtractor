@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>621</width>
-    <height>424</height>
+    <height>474</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,23 +21,20 @@
        <item>
         <widget class="QCheckBox" name="getExternalContentCheckBox">
          <property name="toolTip">
-          <string>Select to attempt to download images / gifs / gfys linked to by a reddit submission.</string>
+          <string>Select to attempt to download images / gifs / webms / videos linked to by a reddit submission.</string>
          </property>
          <property name="text">
-          <string>Download External Content of Submission</string>
+          <string>Download External Content Linked By Submission</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="avoidDuplCheckBox">
+        <widget class="QCheckBox" name="getCommentExternalContentCheckBox">
          <property name="toolTip">
-          <string>Attempt to avoid downloading images, gifs, or gfys that have already been downloaded for the same user or subreddit.</string>
+          <string>Select to attempt to download images / gifs / webms / videos from the comments in a submission.</string>
          </property>
          <property name="text">
-          <string>Avoid Downloading Duplicate Images If Possible</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
+          <string>Download External Content Linked In Comments</string>
          </property>
         </widget>
        </item>
@@ -212,34 +209,61 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_10">
      <item>
-      <widget class="QCheckBox" name="getCommentExternalContentCheckBox">
-       <property name="toolTip">
-        <string>Select to attempt to download images, gifs, and gfys from the comments in a submission.</string>
-       </property>
-       <property name="text">
-        <string>Download External Content Linked In Comments</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QCheckBox" name="getSelftextExternalContentCheckBox">
        <property name="toolTip">
-        <string>Select to attempt to download external images, gifs, and gfys in the selftext.</string>
+        <string>Select to attempt to download external images / gifs / webms / videos in the selftext.</string>
        </property>
        <property name="text">
         <string>Download External Content Linked In Selftext</string>
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QCheckBox" name="getSubmissionContentCheckBox">
+       <property name="toolTip">
+        <string>Select to download the title, self-text, comments, upvote statistics, and other information in a json-encoded text file.</string>
+       </property>
+       <property name="text">
+        <string>Download JSON-encoded Submission Content</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
-    <widget class="QCheckBox" name="getSubmissionContentCheckBox">
+    <layout class="QHBoxLayout" name="horizontalLayout_11">
+     <item>
+      <widget class="QCheckBox" name="avoidVideosCheckBox">
+       <property name="toolTip">
+        <string>Check this to prevent video content (.mp4, .flv, etc) from being downloaded. May speed up the download process.</string>
+       </property>
+       <property name="text">
+        <string>Do Not Download Videos</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="getAuthorsCommentsOnlyCheckBox">
+       <property name="toolTip">
+        <string>Check this to only download external content linked in comments if it is a comment of the original author of the submission.</string>
+       </property>
+       <property name="text">
+        <string>Only Download Author's Comment External Content</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="avoidDuplCheckBox">
      <property name="toolTip">
-      <string>Select to download the title, self-text, comments, upvote statistics, and other information in a json-encoded text file.</string>
+      <string>Attempt to avoid downloading images / gifs / webms / videos that have already been downloaded for the same user or subreddit.</string>
      </property>
      <property name="text">
-      <string>Download Submission Content</string>
+      <string>Avoid Downloading Duplicate External Content If Possible</string>
      </property>
      <property name="checked">
       <bool>true</bool>

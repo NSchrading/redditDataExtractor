@@ -26,14 +26,15 @@ from enum import Enum
 # BeautifulSoup issues deprecation warnings. Hide them.
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+
 class ImgurLinkTypeEnum(Enum):
     DIRECT = 1
     SINGLE_PAGE = 2
     ALBUM = 3
     GALLERY = 4
 
-class ImageFinder():
 
+class ImageFinder():
     __slots__ = ('_requestsSession', '_queue')
 
     def __init__(self, queue):
@@ -46,7 +47,8 @@ class ImageFinder():
         # Set the user-agent to avoid user-agent sniffing
         # Use a session that all requests can use
         self._requestsSession = requests.session()
-        self._requestsSession.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36'
+        self._requestsSession.headers[
+            'User-Agent'] = 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36'
         self._requestsSession.verify = 'RedditDataExtractor/cacert.pem'
         self._queue = queue
 
@@ -62,7 +64,8 @@ class ImageFinder():
             return True, response
         return False, None
 
-    def _makeImage(self, userOrSubName, submissionID, URL, redditSubmissionURL, defaultPath, count, iterContent, specialString=None, specialCount=None, specialPath=None):
+    def _makeImage(self, userOrSubName, submissionID, URL, redditSubmissionURL, defaultPath, count, iterContent,
+                   specialString=None, specialCount=None, specialPath=None):
         """
         :type userOrSubName: str
         :type submissionID: str
@@ -78,7 +81,7 @@ class ImageFinder():
         """
         fileType = self.getFileType(URL)
         return Image(userOrSubName, submissionID, fileType, defaultPath, URL, redditSubmissionURL, iterContent,
-                         str(count), specialString, specialCount, specialPath)
+                     str(count), specialString, specialCount, specialPath)
 
     def exceptionSafeJsonRequest(self, *args, **kwargs):
         try:
@@ -99,7 +102,8 @@ class ImageFinder():
             else:
                 return None
         except:
-            self._queue.put(">>> Failed to connect to " + str(*args) + ".\n>>> To attempt to redownload this file, uncheck 'Restrict retrieved submissions to creation dates after the last downloaded submission' in the settings.\n")
+            self._queue.put(">>> Failed to connect to " + str(
+                *args) + ".\n>>> To attempt to redownload this file, uncheck 'Restrict retrieved submissions to creation dates after the last downloaded submission' in the settings.\n")
         return None
 
     def exceptionSafeWebmRequest(self, *args, **kwargs):
@@ -110,7 +114,8 @@ class ImageFinder():
             else:
                 return None
         except:
-            self._queue.put(">>> Failed to connect to " + str(*args) + ".\n>>> To attempt to redownload this file, uncheck 'Restrict retrieved submissions to creation dates after the last downloaded submission' in the settings.\n")
+            self._queue.put(">>> Failed to connect to " + str(
+                *args) + ".\n>>> To attempt to redownload this file, uncheck 'Restrict retrieved submissions to creation dates after the last downloaded submission' in the settings.\n")
         return None
 
     def exceptionSafeTextRequest(self, *args, **kwargs):
@@ -143,7 +148,7 @@ class ImageFinder():
         elif '.gif' in fileType:
             return '.gif'
         else:
-            return ".jpg" # default to jpg and hope for the best
+            return ".jpg"  # default to jpg and hope for the best
 
     def getImages(self, submission, defaultPath, userOrSub, specialString=None, specialCount=None, specialPath=None):
         """
@@ -157,11 +162,13 @@ class ImageFinder():
         """
         valid, response = self._validURLImage(submission.url)
         if valid:
-            params = (userOrSub.name, submission.id, submission.url, submission.permalink, defaultPath, 1, response, specialString, specialCount, specialPath)
+            params = (userOrSub.name, submission.id, submission.url, submission.permalink, defaultPath, 1, response,
+                      specialString, specialCount, specialPath)
             yield self._makeImage(*params)
 
+
 class ImgurImageFinder(ImageFinder):
-    __slots__ = ('_CLIENT_ID', '_alreadyQueriedURLs','imgurLinkType', 'avoidDuplicates', 'alreadyDownloadedImgurURLs')
+    __slots__ = ('_CLIENT_ID', '_alreadyQueriedURLs', 'imgurLinkType', 'avoidDuplicates', 'alreadyDownloadedImgurURLs')
 
     def __init__(self, alreadyDownloadedImgurURLs, avoidDuplicates, queue, clientId):
         """
@@ -192,7 +199,7 @@ class ImgurImageFinder(ImageFinder):
         else:
             imgurHashID = url[url.rfind('/') + 1:]
             apiURL += 'album/' + imgurHashID
-        if apiURL in self._alreadyQueriedURLs: # Regardless of if we want to avoid duplicates, we always want to reduce API calls
+        if apiURL in self._alreadyQueriedURLs:  # Regardless of if we want to avoid duplicates, we always want to reduce API calls
             return False, None
         json = self.exceptionSafeJsonRequest(apiURL, headers=headers, stream=True)
         if json is not None:
@@ -202,7 +209,7 @@ class ImgurImageFinder(ImageFinder):
             if (status is None and json.get('error') is not None) or (not success):
                 return False, None
             elif (status is not None and status == 200) and (
-                    json.get('image') is not None or json.get('data') is not None) and success:
+                            json.get('image') is not None or json.get('data') is not None) and success:
                 return True, json
             else:
                 return False, None
@@ -217,7 +224,8 @@ class ImgurImageFinder(ImageFinder):
         data = json.get('data')
         if data is not None:
             link = data.get('link')
-            if link is not None and (not self.avoidDuplicates or (self.alreadyDownloadedImgurURLs is not None and link not in self.alreadyDownloadedImgurURLs)):
+            if link is not None and (not self.avoidDuplicates or (
+                    self.alreadyDownloadedImgurURLs is not None and link not in self.alreadyDownloadedImgurURLs)):
                 yield link
 
     def _getImageURLsPage(self, json):
@@ -232,10 +240,11 @@ class ImgurImageFinder(ImageFinder):
             links = image.get('links')
             if links is not None:
                 original = links.get('original')
-                if original is not None and (not self.avoidDuplicates or (self.alreadyDownloadedImgurURLs is not None and original not in self.alreadyDownloadedImgurURLs)):
+                if original is not None and (not self.avoidDuplicates or (
+                        self.alreadyDownloadedImgurURLs is not None and original not in self.alreadyDownloadedImgurURLs)):
                     url = original
                     yield url
-        if url is None: # if the above method doesn't work, try direct
+        if url is None:  # if the above method doesn't work, try direct
             for url in self._getImageURLsDirect(json):
                 yield url
 
@@ -251,7 +260,8 @@ class ImgurImageFinder(ImageFinder):
             if images is not None:
                 for image in images:
                     link = image.get('link')
-                    if link is not None and (not self.avoidDuplicates or (self.alreadyDownloadedImgurURLs is not None and link not in self.alreadyDownloadedImgurURLs)):
+                    if link is not None and (not self.avoidDuplicates or (
+                            self.alreadyDownloadedImgurURLs is not None and link not in self.alreadyDownloadedImgurURLs)):
                         yield link
 
     def _getImageURLs(self, url):
@@ -266,7 +276,7 @@ class ImgurImageFinder(ImageFinder):
                 imageURLs = self._getImageURLsDirect(json)
             elif self.imgurLinkType is ImgurLinkTypeEnum.SINGLE_PAGE:
                 imageURLs = self._getImageURLsPage(json)
-            else: # album and gallery json response is the same
+            else:  # album and gallery json response is the same
                 imageURLs = self._getImageURLsAlbum(json)
             for imageURL in imageURLs:
                 yield imageURL
@@ -293,11 +303,14 @@ class ImgurImageFinder(ImageFinder):
             response = self.exceptionSafeImageRequest(imageURL, stream=True)
             if response is None:
                 continue
-            params = (userOrSub.name, submission.id, imageURL, submission.permalink, defaultPath, count, response, specialString, specialCount, specialPath)
+            params = (
+            userOrSub.name, submission.id, imageURL, submission.permalink, defaultPath, count, response, specialString,
+            specialCount, specialPath)
             image = self._makeImage(*params)
             if image is not None:
                 count += 1
                 yield image
+
 
 class GfycatImageFinder(ImageFinder):
     __slots__ = ('avoidDuplicates', 'alreadyDownloadedURLs')
@@ -344,10 +357,13 @@ class GfycatImageFinder(ImageFinder):
         count = 1
         valid, response = self._validURLImage(imageURL)
         if valid:
-            params = (userOrSub.name, submission.id, imageURL, submission.permalink, defaultPath, count, response, specialString, specialCount, specialPath)
+            params = (
+            userOrSub.name, submission.id, imageURL, submission.permalink, defaultPath, count, response, specialString,
+            specialCount, specialPath)
             image = self._makeImage(*params)
             if image is not None:
                 yield image
+
 
 class MinusImageFinder(ImageFinder):
     __slots__ = ('avoidDuplicates', 'alreadyDownloadedURLs')
@@ -393,7 +409,7 @@ class MinusImageFinder(ImageFinder):
                 if type is not None and type.get('content') is not None:
                     content = type.get('content')
                     if 'gallery' in content:
-                        pass # galleries not currently supported. If I get minus api credentials I might be able to do it
+                        pass  # galleries not currently supported. If I get minus api credentials I might be able to do it
                     elif 'photo' in content:
                         imageHTML = soup.find("a", "item-main is-image")
                         if imageHTML.get("href") is not None:
@@ -406,7 +422,9 @@ class MinusImageFinder(ImageFinder):
             for imageURL in imageURLs:
                 valid, response = self._validURLImage(imageURL)
                 if valid:
-                    params = (userOrSub.name, submission.id, imageURL, submission.permalink, defaultPath, count, response, specialString, specialCount, specialPath)
+                    params = (
+                    userOrSub.name, submission.id, imageURL, submission.permalink, defaultPath, count, response,
+                    specialString, specialCount, specialPath)
                     image = self._makeImage(*params)
                     if image is not None:
                         count += 1
@@ -474,7 +492,9 @@ class VidbleImageFinder(ImageFinder):
             for imageURL in imageURLs:
                 valid, response = self._validURLImage(imageURL)
                 if valid:
-                    params = (userOrSub.name, submission.id, imageURL, submission.permalink, defaultPath, count, response, specialString, specialCount, specialPath)
+                    params = (
+                    userOrSub.name, submission.id, imageURL, submission.permalink, defaultPath, count, response,
+                    specialString, specialCount, specialPath)
                     image = self._makeImage(*params)
                     if image is not None:
                         count += 1

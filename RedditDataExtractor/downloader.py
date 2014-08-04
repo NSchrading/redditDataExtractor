@@ -16,10 +16,12 @@
 """
 
 import pathlib
+import time
 from PyQt4.Qt import QObject, QThreadPool, pyqtSlot, pyqtSignal, QRunnable
 from enum import Enum
 
 from .redditDataExtractor import ListType
+
 
 class DownloadedContentType(Enum):
     EXTERNAL_SUBMISSION_DATA = 1
@@ -91,6 +93,7 @@ class Downloader(QObject):
 
     def stop(self):
         self._continueOperation = False
+        time.sleep(3)  # Currently there is no way to know if all the threads have actually finished. So just wait a bit
         self.finished.emit()
         self.finishSignalForTest = True
 
@@ -143,33 +146,36 @@ class Worker(QRunnable):
         :type submission: praw.objects.Submission
         """
         if self._rddtDataExtractor.getExternalContent and self._lstModelObj.isNewContent(submission,
-                                                                                       DownloadedContentType.EXTERNAL_SUBMISSION_DATA) and not submission.is_self and not "reddit" in submission.domain:
+                                                                                         DownloadedContentType.EXTERNAL_SUBMISSION_DATA) and not submission.is_self and not "reddit" in submission.domain:
             downloadedContent = DownloadedContent(submission.permalink, DownloadedContentType.EXTERNAL_SUBMISSION_DATA)
             images = self._rddtDataExtractor.getImages(submission, self._lstModelObj, self._queue)
-            videos = self._rddtDataExtractor.getVideos(submission, self._lstModelObj)
             self._startDownloadImages(images, downloadedContent, submission)
-            self._startDownloadVideos(videos, downloadedContent, submission)
+            if not self._rddtDataExtractor.avoidVideos:
+                videos = self._rddtDataExtractor.getVideos(submission, self._lstModelObj)
+                self._startDownloadVideos(videos, downloadedContent, submission)
         if self._rddtDataExtractor.getCommentExternalContent and self._lstModelObj.isNewContent(submission,
-                                                                                              DownloadedContentType.EXTERNAL_COMMENT_DATA):
+                                                                                                DownloadedContentType.EXTERNAL_COMMENT_DATA):
             downloadedContent = DownloadedContent(submission.permalink, DownloadedContentType.EXTERNAL_COMMENT_DATA)
             images = self._rddtDataExtractor.getCommentImages(submission, self._lstModelObj, self._queue)
-            videos = self._rddtDataExtractor.getCommentVideos(submission, self._lstModelObj)
             self._startDownloadImages(images, downloadedContent, submission)
-            self._startDownloadVideos(videos, downloadedContent, submission)
+            if not self._rddtDataExtractor.avoidVideos:
+                videos = self._rddtDataExtractor.getCommentVideos(submission, self._lstModelObj)
+                self._startDownloadVideos(videos, downloadedContent, submission)
         if self._rddtDataExtractor.getSelftextExternalContent and self._lstModelObj.isNewContent(submission,
-                                                                                               DownloadedContentType.EXTERNAL_SELFTEXT_DATA):
+                                                                                                 DownloadedContentType.EXTERNAL_SELFTEXT_DATA):
             downloadedContent = DownloadedContent(submission.permalink, DownloadedContentType.EXTERNAL_SELFTEXT_DATA)
             images = self._rddtDataExtractor.getSelftextImages(submission, self._lstModelObj, self._queue)
-            videos = self._rddtDataExtractor.getSelftextVideos(submission, self._lstModelObj)
-            self._startDownloadVideos(videos, downloadedContent, submission)
             self._startDownloadImages(images, downloadedContent, submission)
+            if not self._rddtDataExtractor.avoidVideos:
+                videos = self._rddtDataExtractor.getSelftextVideos(submission, self._lstModelObj)
+                self._startDownloadVideos(videos, downloadedContent, submission)
         if self._rddtDataExtractor.getSubmissionContent and self._lstModelObj.isNewContent(submission,
-                                                                                         DownloadedContentType.JSON_DATA):
+                                                                                           DownloadedContentType.JSON_DATA):
             if not self._downloaderIsStopped():
                 downloadedContent = DownloadedContent(submission.permalink, DownloadedContentType.JSON_DATA)
                 submissionWorker = SubmissionWorker(self._rddtDataExtractor, self._lstModelObj, submission, self._queue,
                                                     downloadedContent, self._lstModelType,
-                                                    self.setMostRecentDownloadTimestamp)
+                                                    self.setMostRecentDownloadTimestamp, self._downloaderIsStopped)
                 self._submissionPool.start(submissionWorker)
 
     def _startDownloadImages(self, images, downloadedContent, submission):
@@ -180,9 +186,12 @@ class Worker(QRunnable):
         """
         if images is not None:
             for image in images:
-                if not self._downloaderIsStopped() and image is not None:
+                if self._downloaderIsStopped():
+                    break
+                elif image is not None:
                     imageWorker = ImageWorker(image, self._lstModelObj, submission, self._queue, downloadedContent,
-                                              self._rddtDataExtractor.avoidDuplicates, self.setMostRecentDownloadTimestamp, self._downloaderIsStopped)
+                                              self._rddtDataExtractor.avoidDuplicates,
+                                              self.setMostRecentDownloadTimestamp, self._downloaderIsStopped)
                     self._imagePool.start(imageWorker)
 
     def _startDownloadVideos(self, videos, downloadedContent, submission):
@@ -191,8 +200,12 @@ class Worker(QRunnable):
         :type downloadedContent: DownloadedContent
         """
         for video in videos:
-            if not self._downloaderIsStopped():
-                videoWorker = VideoWorker(video, self._lstModelObj, submission, self._queue, downloadedContent, self._rddtDataExtractor.avoidDuplicates, self.setMostRecentDownloadTimestamp, self._downloaderIsStopped)
+            if self._downloaderIsStopped():
+                break
+            elif video is not None:
+                videoWorker = VideoWorker(video, self._lstModelObj, submission, self._queue, downloadedContent,
+                                          self._rddtDataExtractor.avoidDuplicates, self.setMostRecentDownloadTimestamp,
+                                          self._downloaderIsStopped)
                 self._videoPool.start(videoWorker)
 
     def run(self):
@@ -229,7 +242,7 @@ class Worker(QRunnable):
 
 class SubmissionWorker(QRunnable):
     def __init__(self, rddtDataExtractor, lstModelObj, submission, queue, downloadedContent, lstModelType,
-                 setMostRecentDownloadTimestamp):
+                 setMostRecentDownloadTimestamp, downloaderIsStopped):
         """
         Thread to download JSON content of a submission.
         :param lstModelObj: The User or Subreddit "ListModel" Object
@@ -240,6 +253,7 @@ class SubmissionWorker(QRunnable):
         :type downloadedContent: DownloadedContent
         :type lstModelType: RedditDataExtractor.redditDataExtractor.ListType
         :type setMostRecentDownloadTimestamp: Worker.setMostRecentDownloadTimestamp
+        :type downloaderIsStopped: function
         """
         super().__init__()
 
@@ -251,25 +265,29 @@ class SubmissionWorker(QRunnable):
         self._lstModelType = lstModelType
         self._setMostRecentDownloadTimestamp = setMostRecentDownloadTimestamp
         self._downloadedContent.representativeImage = pathlib.Path("RedditDataExtractor/images/jsonImage.png")
+        self._downloaderIsStopped = downloaderIsStopped
 
     def run(self):
-        title = self._submission.title
-        if self._lstModelType is ListType.USER:
-            success, savePath = self._rddtDataExtractor.downloadSubmission(self._submission, self._lstModelObj.name)
-        else:
-            success, savePath = self._rddtDataExtractor.downloadSubmission(self._submission)
-        if success:
-            self._downloadedContent.files.add(savePath)
-            downloadedContentOfSubmission = self._lstModelObj.redditSubmissions.get(self._downloadedContent.redditURL)
-            if downloadedContentOfSubmission is None:
-                self._lstModelObj.redditSubmissions[self._downloadedContent.redditURL] = [self._downloadedContent]
-            elif downloadedContentOfSubmission is not None and self._downloadedContent not in downloadedContentOfSubmission:
-                self._lstModelObj.redditSubmissions[self._downloadedContent.redditURL].append(self._downloadedContent)
-            self._setMostRecentDownloadTimestamp(self._submission.created_utc)
-            self._queue.put("Saved submission: " + title + "\n")
-        else:
-            self._queue.put(
-                ">>> Error saving submission: " + title + '.\n>>> To attempt to redownload this file, uncheck "Restrict retrieved submissions to creation dates after the last downloaded submission" in the settings.\n')
+        if not self._downloaderIsStopped():
+            title = self._submission.title
+            if self._lstModelType is ListType.USER:
+                success, savePath = self._rddtDataExtractor.downloadSubmission(self._submission, self._lstModelObj.name)
+            else:
+                success, savePath = self._rddtDataExtractor.downloadSubmission(self._submission)
+            if success:
+                self._downloadedContent.files.add(savePath)
+                downloadedContentOfSubmission = self._lstModelObj.redditSubmissions.get(
+                    self._downloadedContent.redditURL)
+                if downloadedContentOfSubmission is None:
+                    self._lstModelObj.redditSubmissions[self._downloadedContent.redditURL] = [self._downloadedContent]
+                elif downloadedContentOfSubmission is not None and self._downloadedContent not in downloadedContentOfSubmission:
+                    self._lstModelObj.redditSubmissions[self._downloadedContent.redditURL].append(
+                        self._downloadedContent)
+                self._setMostRecentDownloadTimestamp(self._submission.created_utc)
+                self._queue.put("Saved submission: " + title + "\n")
+            else:
+                self._queue.put(
+                    ">>> Error saving submission: " + title + '.\n>>> To attempt to redownload this file, uncheck "Restrict retrieved submissions to creation dates after the last downloaded submission" in the settings.\n')
 
 
 class ImageWorker(QRunnable):
@@ -299,16 +317,19 @@ class ImageWorker(QRunnable):
         self._downloaderIsStopped = downloaderIsStopped
 
     def run(self):
-        if (not self._downloaderIsStopped()) and ((not self._avoidDuplicates) or (self._avoidDuplicates and self._image.URL not in self._lstModelObj.externalDownloads)):
+        if (not self._downloaderIsStopped()) and ((not self._avoidDuplicates) or (
+            self._avoidDuplicates and self._image.URL not in self._lstModelObj.externalDownloads)):
             self._lstModelObj.externalDownloads.add(
                 self._image.URL)  # predict that the download will be successful - helps reduce duplicates when threads are running at similar times and download is for the same image
             if self._image.download():
                 self._setMostRecentDownloadTimestamp(self._submission.created_utc)
-                downloadedContentOfSubmission = self._lstModelObj.redditSubmissions.get(self._downloadedContent.redditURL)
+                downloadedContentOfSubmission = self._lstModelObj.redditSubmissions.get(
+                    self._downloadedContent.redditURL)
                 if downloadedContentOfSubmission is None:
                     self._lstModelObj.redditSubmissions[self._downloadedContent.redditURL] = [self._downloadedContent]
                 elif downloadedContentOfSubmission is not None and self._downloadedContent not in downloadedContentOfSubmission:
-                    self._lstModelObj.redditSubmissions[self._downloadedContent.redditURL].append(self._downloadedContent)
+                    self._lstModelObj.redditSubmissions[self._downloadedContent.redditURL].append(
+                        self._downloadedContent)
                 if self._downloadedContent.representativeImage is None:
                     self._downloadedContent.representativeImage = self._image.savePath
                 self._downloadedContent.files.add(self._image.savePath)
@@ -318,7 +339,8 @@ class ImageWorker(QRunnable):
                 if self._image.URL in self._lstModelObj.externalDownloads:
                     self._lstModelObj.externalDownloads.remove(self._image.URL)
                 self._queue.put(
-                    '>>> Error saving ' + str(self._image.savePath) + '.\n>>> To attempt to redownload this file, uncheck "Restrict retrieved submissions to creation dates after the last downloaded submission" in the settings.\n')
+                    '>>> Error saving ' + str(
+                        self._image.savePath) + '.\n>>> To attempt to redownload this file, uncheck "Restrict retrieved submissions to creation dates after the last downloaded submission" in the settings.\n')
 
 
 class VideoWorker(QRunnable):
@@ -347,16 +369,19 @@ class VideoWorker(QRunnable):
         self._downloaderIsStopped = downloaderIsStopped
 
     def run(self):
-        if (not self._downloaderIsStopped()) and ((not self._avoidDuplicates) or (self._avoidDuplicates and self._video.URL not in self._lstModelObj.externalDownloads)):
+        if (not self._downloaderIsStopped()) and ((not self._avoidDuplicates) or (
+            self._avoidDuplicates and self._video.URL not in self._lstModelObj.externalDownloads)):
             self._lstModelObj.externalDownloads.add(
                 self._video.URL)  # predict that the download will be successful - helps reduce duplicates when threads are running at similar times and download is for the same video
             if self._video.download():
                 self._setMostRecentDownloadTimestamp(self._submission.created_utc)
-                downloadedContentOfSubmission = self._lstModelObj.redditSubmissions.get(self._downloadedContent.redditURL)
+                downloadedContentOfSubmission = self._lstModelObj.redditSubmissions.get(
+                    self._downloadedContent.redditURL)
                 if downloadedContentOfSubmission is None:
                     self._lstModelObj.redditSubmissions[self._downloadedContent.redditURL] = [self._downloadedContent]
                 elif downloadedContentOfSubmission is not None and self._downloadedContent not in downloadedContentOfSubmission:
-                    self._lstModelObj.redditSubmissions[self._downloadedContent.redditURL].append(self._downloadedContent)
+                    self._lstModelObj.redditSubmissions[self._downloadedContent.redditURL].append(
+                        self._downloadedContent)
                 self._downloadedContent.files.add(self._video.savePath)
                 self._downloadedContent.externalDownloadURLs.add(self._video.URL)
                 self._downloadedContent.representativeImage = pathlib.Path("RedditDataExtractor/images/videoImage.png")

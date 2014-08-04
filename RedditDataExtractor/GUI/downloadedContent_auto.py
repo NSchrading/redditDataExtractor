@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'downloadedContent.ui'
 #
 # Created: Fri Jul 25 17:22:48 2014
-#      by: PyQt4 UI code generator 4.10.4
+# by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -17,11 +17,13 @@ except AttributeError:
 
 try:
     _encoding = QtGui.QApplication.UnicodeUTF8
+
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
+
 
 class Ui_DownloadedContentWindow(object):
     def setupUi(self, DownloadedContentWindow):
@@ -98,8 +100,12 @@ class Ui_DownloadedContentWindow(object):
 
     def retranslateUi(self, DownloadedContentWindow):
         DownloadedContentWindow.setWindowTitle(_translate("DownloadedContentWindow", "Downloaded Content", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.submissionJSONTab), _translate("DownloadedContentWindow", "Submission JSON", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.submissionExternalTab), _translate("DownloadedContentWindow", "Submission External", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.commentTab), _translate("DownloadedContentWindow", "Comment External", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.selftextTab), _translate("DownloadedContentWindow", "Selftext External", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.submissionJSONTab),
+                                  _translate("DownloadedContentWindow", "Submission JSON", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.submissionExternalTab),
+                                  _translate("DownloadedContentWindow", "Submission External", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.commentTab),
+                                  _translate("DownloadedContentWindow", "Comment External", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.selftextTab),
+                                  _translate("DownloadedContentWindow", "Selftext External", None))
 

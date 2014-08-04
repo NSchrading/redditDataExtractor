@@ -19,7 +19,7 @@ import requests
 import pathlib
 
 from PyQt4.Qt import (QInputDialog, QObject, pyqtSignal, pyqtSlot, QListView, Qt, QLineEdit, QMessageBox, QMainWindow,
-    QThread, QFileDialog, QTextCursor, QDialog, QIcon, QPixmap, QPushButton)
+                      QThread, QFileDialog, QTextCursor, QDialog, QIcon, QPixmap, QPushButton)
 
 from .redditDataExtractorGUI_auto import Ui_RddtDataExtractorMainWindow
 from .settingsGUI import SettingsGUI
@@ -44,8 +44,8 @@ def isNumber(s):
     except ValueError:
         return False
 
-class Validator(QObject):
 
+class Validator(QObject):
     finished = pyqtSignal()
     invalid = pyqtSignal(str)
     download = pyqtSignal(list)
@@ -93,10 +93,10 @@ class Validator(QObject):
             else:
                 break
         if self._continueOperation:
-            self.download.emit(self.validUsersOrSubs) # emit to begin downloading the validated users
+            self.download.emit(self.validUsersOrSubs)  # emit to begin downloading the validated users
         else:
-            self.stopped.emit() # emit to indicate that the validation process was stopped prematurely
-        self.finished.emit() # emit to delete the ended thread
+            self.stopped.emit()  # emit to indicate that the validation process was stopped prematurely
+        self.finished.emit()  # emit to delete the ended thread
 
 
 class ListViewAndChooser(QListView):
@@ -144,7 +144,8 @@ class ListViewAndChooser(QListView):
 
     def addToList(self):
         if self._rddtDataExtractor.currentlyDownloading:
-            QMessageBox.warning(QMessageBox(), "Data Extractor for reddit", "Cannot add while currently downloading. Please wait.")
+            QMessageBox.warning(QMessageBox(), "Data Extractor for reddit",
+                                "Cannot add while currently downloading. Please wait.")
             return
         model = self.model()
         if model is not None:
@@ -153,7 +154,8 @@ class ListViewAndChooser(QListView):
 
     def deleteFromList(self):
         if self._rddtDataExtractor.currentlyDownloading:
-            QMessageBox.warning(QMessageBox(), "Data Extractor for reddit", "Cannot remove while currently downloading. Please wait.")
+            QMessageBox.warning(QMessageBox(), "Data Extractor for reddit",
+                                "Cannot remove while currently downloading. Please wait.")
             return
         model = self.model()
         index = self.getCurrentSelectedIndex()
@@ -184,7 +186,8 @@ class ListViewAndChooser(QListView):
         Show the downloaded content dialog GUI for the selected user / subreddit
         """
         if self._rddtDataExtractor.currentlyDownloading:
-            QMessageBox.warning(QMessageBox(), "Data Extractor for reddit", "Cannot view downloads while currently downloading. Please wait.")
+            QMessageBox.warning(QMessageBox(), "Data Extractor for reddit",
+                                "Cannot view downloads while currently downloading. Please wait.")
             return
         model = self.model()
         index = self.getCurrentSelectedIndex()
@@ -431,21 +434,22 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
     def stopDownload(self):
         try:
             self.redditorValidator.stop()
-        except AttributeError: # the redditorValidator object hasn't been made
+        except AttributeError:  # the redditorValidator object hasn't been made
             pass
         try:
             self.subredditValidator.stop()
-        except AttributeError: # the subredditValidator object hasn't been made
+        except AttributeError:  # the subredditValidator object hasn't been made
             pass
         try:
             self.downloader.stop()
-        except AttributeError: # the downloader object hasn't been made
+        except AttributeError:  # the downloader object hasn't been made
             pass
         self.stopBtn.setEnabled(False)
 
     @pyqtSlot()
     def reactivateBtns(self):
         self.gridLayout.removeWidget(self.stopBtn)
+        self.stopBtn.deleteLater()
         self.downloadBtn = QPushButton(self.centralwidget)
         self.downloadBtn.setObjectName("downloadBtn")
         self.downloadBtn.setText("Download!")
@@ -465,7 +469,7 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         self.stopBtn.setText("Downloading... Press here to stop the download.")
         self.stopBtn.clicked.connect(self.stopDownload)
         self.gridLayout.removeWidget(self.downloadBtn)
-        del self.downloadBtn
+        self.downloadBtn.deleteLater()
         self.gridLayout.addWidget(self.stopBtn, 6, 0, 1, 2)
         self.addUserBtn.setEnabled(False)
         self.addSubredditBtn.setEnabled(False)
@@ -649,9 +653,10 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
             if settings.filterExternalContent or settings.filterSubmissionContent:
                 self._rddtDataExtractor.submissionFilts, self._rddtDataExtractor.commentFilts, self._rddtDataExtractor.connector = self.convertFilterTableToFilters(
                     settings)
-
             self._rddtDataExtractor.restrictDownloadsByCreationDate = settings.restrictDownloadsByCreationDate
             self._rddtDataExtractor.showImgurAPINotification = settings.showImgurAPINotification
+            self._rddtDataExtractor.avoidVideos = settings.avoidVideos
+            self._rddtDataExtractor.getAuthorsCommentsOnly = settings.getAuthorsCommentsOnly
             self.saveState()
 
     def notifyImgurAPI(self):
@@ -703,14 +708,18 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
             headers = {'Authorization': 'Client-ID ' + self._rddtDataExtractor.imgurAPIClientID}
             apiURL = "https://api.imgur.com/3/credits"
             requestsSession = requests.session()
-            requestsSession.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36'
-            json = exceptionSafeJsonRequest(requestsSession, apiURL, headers=headers, stream=True, verify='RedditDataExtractor/cacert.pem')
+            requestsSession.headers[
+                'User-Agent'] = 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36'
+            json = exceptionSafeJsonRequest(requestsSession, apiURL, headers=headers, stream=True,
+                                            verify='RedditDataExtractor/cacert.pem')
             if json is not None and json.get('data') is not None and json.get('data').get('ClientRemaining'):
                 msgBox.setText("You have " + str(json.get('data').get('ClientRemaining')) + " requests remaining.")
             else:
-                msgBox.setText("A problem occurred using the Imgur API. Check that you are connected to the internet and make sure your client-id is correct.")
+                msgBox.setText(
+                    "A problem occurred using the Imgur API. Check that you are connected to the internet and make sure your client-id is correct.")
         else:
-            msgBox.setText("You do not currently have an Imgur client-id set. To set one, go to settings and check 'Change / Reset Client-id'")
+            msgBox.setText(
+                "You do not currently have an Imgur client-id set. To set one, go to settings and check 'Change / Reset Client-id'")
         msgBox.exec()
 
     def setUnsavedChanges(self, unsaved):

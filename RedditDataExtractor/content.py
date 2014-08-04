@@ -25,11 +25,12 @@ warnings.filterwarnings("ignore", category=ResourceWarning)
 
 
 class Content():
-
     __slots__ = (
-        'userOrSubName', 'submissionID', 'defaultPath', 'URL', 'redditSubmissionURL', 'numInSeq', 'savePath', 'specialString', 'specialCount', 'specialPath')
+        'userOrSubName', 'submissionID', 'defaultPath', 'URL', 'redditSubmissionURL', 'numInSeq', 'savePath',
+        'specialString', 'specialCount', 'specialPath')
 
-    def __init__(self, userOrSubName, submissionID, defaultPath, URL, redditSubmissionURL, numInSeq="", specialString=None, specialCount=None, specialPath=None):
+    def __init__(self, userOrSubName, submissionID, defaultPath, URL, redditSubmissionURL, numInSeq="",
+                 specialString=None, specialCount=None, specialPath=None):
         """
         Class to hold information about a single external file downloaded as content from a Reddit submission
         :param URL: The direct URL that this content is located at
@@ -79,21 +80,24 @@ class Content():
         else:
             self.savePath = self.defaultPath / self.userOrSubName / imageFile
 
-class Image(Content):
 
+class Image(Content):
     # header in hex for image content that makes up a well-formed gif
     gifHeader = [hex(ord("G")), hex(ord("I")), hex(ord("F"))]
 
     __slots__ = (
-        'userOrSubName', 'submissionID', 'fileType', 'defaultPath', 'URL', 'redditSubmissionURL', '_iterContent', 'numInSeq', 'savePath', 'specialString', 'specialCount', 'specialPath')
+        'userOrSubName', 'submissionID', 'fileType', 'defaultPath', 'URL', 'redditSubmissionURL', '_iterContent',
+        'numInSeq', 'savePath', 'specialString', 'specialCount', 'specialPath')
 
-    def __init__(self, userOrSubName, submissionID, fileType, defaultPath, URL, redditSubmissionURL, iterContent, numInSeq="", specialString=None, specialCount=None, specialPath=None):
+    def __init__(self, userOrSubName, submissionID, fileType, defaultPath, URL, redditSubmissionURL, iterContent,
+                 numInSeq="", specialString=None, specialCount=None, specialPath=None):
         """
         Class to hold information about a single image / gif / webm downloaded as content from a Reddit submission
         :param iterContent: The HTTP request's content broken up into chunks by the request library's iter_content generator
         :type iterContent: generator
         """
-        super().__init__(userOrSubName, submissionID, defaultPath, URL, redditSubmissionURL, numInSeq, specialString, specialCount, specialPath)
+        super().__init__(userOrSubName, submissionID, defaultPath, URL, redditSubmissionURL, numInSeq, specialString,
+                         specialCount, specialPath)
         self.fileType = fileType
         self._iterContent = iterContent
         self.savePath = pathlib.Path(str(self.savePath) + self.fileType)
@@ -128,17 +132,22 @@ class Image(Content):
         except:
             return False
 
+
 class Video(Content):
-
     __slots__ = (
-        'userOrSubName', 'submissionID', 'defaultPath', 'URL', 'redditSubmissionURL', 'numInSeq', 'savePath', 'specialString', 'specialCount', 'specialPath', '_ydl')
+        'userOrSubName', 'submissionID', 'defaultPath', 'URL', 'redditSubmissionURL', 'numInSeq', 'savePath',
+        'specialString', 'specialCount', 'specialPath', '_ydl')
 
-    def __init__(self, userOrSubName, submissionID, defaultPath, URL, redditSubmissionURL, numInSeq="", specialString=None, specialCount=None, specialPath=None):
+    def __init__(self, userOrSubName, submissionID, defaultPath, URL, redditSubmissionURL, numInSeq="",
+                 specialString=None, specialCount=None, specialPath=None):
         """
         Class to hold information about a single video downloaded as content from a Reddit submission
         """
-        super().__init__(userOrSubName, submissionID, defaultPath, URL, redditSubmissionURL, numInSeq, specialString, specialCount, specialPath)
-        ydlOpts = {'outtmpl': str(self.savePath) + "_%(autonumber)s.%(ext)s", 'quiet': True, 'restrictfilenames': True, 'no_warnings': True, 'ignoreerrors': True, 'logtostderr': False, 'nooverwrites': False, 'logger': False, 'bidi_workaround': False}
+        super().__init__(userOrSubName, submissionID, defaultPath, URL, redditSubmissionURL, numInSeq, specialString,
+                         specialCount, specialPath)
+        ydlOpts = {'outtmpl': str(self.savePath) + "_%(autonumber)s.%(ext)s", 'quiet': True, 'restrictfilenames': True,
+                   'no_warnings': True, 'ignoreerrors': True, 'logtostderr': False, 'nooverwrites': False,
+                   'logger': False, 'bidi_workaround': False}
         self._ydl = youtube_dl.YoutubeDL(ydlOpts)
         self._ydl.add_default_info_extractors()
         self._ydl.to_stderr = lambda: 1
@@ -148,7 +157,12 @@ class Video(Content):
         try:
             retcode = self._ydl.download([self.URL])
             if retcode == 0:
-                success = True
+                # We don't have the extension or full name of the file yet. Figure it out
+                possibleRealSavePath = pathlib.Path(self.savePath.parent)
+                possibilities = list(possibleRealSavePath.glob(self.savePath.stem + '*'))
+                if len(possibilities) > 0:
+                    self.savePath = possibilities[0]
+                    success = True
         except:
             success = False
         finally:
