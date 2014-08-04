@@ -32,7 +32,7 @@ Filters can be set to download only those submissions, or those submission's ext
 
 Here are all the settings available:
 
-![Settings](http://i.imgur.com/f874li1.png)
+![Settings](http://i.imgur.com/8NJpYBO.png)
 
 * Default User List: The user list that will display on starting the program.
 * Default Subreddit List: The subreddit list that will display on starting the program.
@@ -45,6 +45,8 @@ Here are all the settings available:
 * Download Submission Content: Select this to download JSON-encoded submission data representing the submission's properties.
 * Download External Content Linked in Selftext: Select this to download any external images / gifs / webms linked to in the selftext of a reddit submission.
 * Avoid downloading Duplicate Images If Possible: Select this to attempt to avoid downloading images that have already been downloaded. This works per-user or per-subreddit, so if multiple users submit the same image, the reddit Data Extractor may still download both.
+* Do Not Download Videos: Select this to prevent the downloader from downloading video content linked by the submission, comments, or selftext.
+* Only Download Author's Comment External Content: Select this to only download external content in comments if it is the original author of the submission making the comment. This will also download deleted author comments just in case teh original author was the one that was deleted.
 * Restrict retrieved submissions to creation dates after the last downloaded submission: Select this to prevent the reddit Data Extractor from viewing submissions posted before the last downloaded submission. This will always work for downloads by user, but will only work for downloads by subreddit if you use the "New" sorting method. This option may speed up the time it takes to finish downloading. Deselect this option if you had failures on downloading content and wish to re-attempt to download them.
 * Only download external content when: Select this and then enter values into the table below to filter submissions and only download their external content when they pass the filter.
 * Only download submission content when: Select this and then enter values into the table below to filter submissions and only download their JSON-content when they pass the filter.
