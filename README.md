@@ -5,6 +5,7 @@ Requirements
 * praw
 * beautifulsoup4
 * requests
+* youtube-dl
 
 You can download a standalone executable (for Windows or Linux 64-bit) if you don't want to compile from source here: https://github.com/NSchrading/redditDataExtractor/releases
 
@@ -21,7 +22,7 @@ For data scientists and curious redditors, JSON-encoded text files can be extrac
 ![JSON encoded submission data](http://i.imgur.com/lKxB3Hl.png)
 
 
-For redditors who want to easily retrieve submitted images, gifs, and webms, or for people interested in training machine learning applications that link semantic content (submission data) with images, the reddit data extractor supports you as well. Imgur*, Gfycat, Vidble, and Minus are specifically supported, and any direct link to an image should work as well.
+For redditors who want to easily retrieve submitted images, gifs, webms, and videos, or for people interested in training machine learning applications that link semantic content (submission data) with images, the reddit data extractor supports you as well. Imgur*, Gfycat, Vidble, and Minus are specifically supported, and any direct link to an image should work as well. In addition, any video site supported by the youtube-dl project is also supported (http://rg3.github.io/youtube-dl/supportedsites.html).
 
 \* Imgur requires a client-id for non-direct links - see Site specific notes for more details.
 
@@ -64,6 +65,7 @@ If you remove a user or subreddit from the list, the program will lose all memor
 <dl>
   <dt>The following file types are supported:</dt>
   <dd>jpg, png, gif, webm</dd>
+  <dd>Any video file type supported by the youtube-dl project</dd>
 </dl>
   
 <dl>
@@ -119,6 +121,7 @@ When that's done:
     [sudo] pip install praw
     [sudo] pip install requests
     [sudo] pip install beautifulsoup4
+    [sudo] pip install youtube-dl
     
 And now you should be ready to run the reddit Data Extractor! main.py is where all the magic starts.
 
@@ -137,6 +140,7 @@ Download the PyQt4 64-bit installer built for python 3.4: http://sourceforge.net
     pip install praw
     pip install requests
     pip install beautifulsoup4
+    pip install youtube-dl
     
 And now you should be ready to run the reddit Data Extractor! main.py is where all the magic starts.
 
