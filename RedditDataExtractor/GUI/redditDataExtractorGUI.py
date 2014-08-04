@@ -444,6 +444,10 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
             self.downloader.stop()
         except AttributeError:  # the downloader object hasn't been made
             pass
+        # Try to save the current downloads, just in case it never stops the download (rare cases of network problems)
+        self._rddtDataExtractor.currentlyDownloading = False
+        self._rddtDataExtractor.saveState()
+        self._rddtDataExtractor.currentlyDownloading = True
         self.stopBtn.setEnabled(False)
 
     @pyqtSlot()
