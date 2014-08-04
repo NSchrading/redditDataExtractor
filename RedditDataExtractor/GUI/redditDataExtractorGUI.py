@@ -469,7 +469,7 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         self.logTextEdit.clear()
         self.stopBtn = QPushButton(self.centralwidget)
         self.stopBtn.setObjectName("stopBtn")
-        self.stopBtn.setText("Downloading... Press here to stop the download.")
+        self.stopBtn.setText("Downloading... Press here to stop the download (In progress downloads will continue until done).")
         self.stopBtn.clicked.connect(self.stopDownload)
         try:
             self.gridLayout.removeWidget(self.downloadBtn)

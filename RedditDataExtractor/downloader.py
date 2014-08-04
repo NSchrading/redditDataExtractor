@@ -93,9 +93,6 @@ class Downloader(QObject):
 
     def stop(self):
         self._continueOperation = False
-        time.sleep(3)  # Currently there is no way to know if all the threads have actually finished. So just wait a bit
-        self.finished.emit()
-        self.finishSignalForTest = True
 
     def isStopped(self):
         return not self._continueOperation
@@ -110,7 +107,8 @@ class Downloader(QObject):
                                 self._listModelType, self.isStopped)
                 self._dataPool.start(worker)
             self._dataPool.waitForDone()
-        self.stop()
+        self.finished.emit()
+        self.finishSignalForTest = True
 
 
 class Worker(QRunnable):

@@ -248,7 +248,7 @@
      <item>
       <widget class="QCheckBox" name="getAuthorsCommentsOnlyCheckBox">
        <property name="toolTip">
-        <string>Check this to only download external content linked in comments if it is a comment of the original author of the submission.</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check this to only download external content linked in comments if it is a comment of the original author of the submission &lt;/p&gt;&lt;p&gt;(will also download deleted authors just in case it is from the original author).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
         <string>Only Download Author's Comment External Content</string>
