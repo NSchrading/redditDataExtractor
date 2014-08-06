@@ -52,6 +52,8 @@ Here are all the settings available:
 * Only download submission content when: Select this and then enter values into the table below to filter submissions and only download their JSON-content when they pass the filter.
   * If you wish to have multiple filters you can only use one type to group them: AND, OR, or XOR. Not a combination of them.
   * Filters on comments will pass the submission if *ANY* of the comments pass the filter. Currently there is no way to filter if all comments pass the filter.
+  * The values you enter are case-sensitive.
+  * If you select the "Equals Bool" operator, enter True or False in the Value box.
 
 
 Right clicking on a user or subreddit in the user or subreddit list that has already had content downloaded for them and selecting 'view downloaded posts' will display a preview of the downloaded content, broken up by JSON-encoded submission content, external submission links, comment links, and selftext links.
