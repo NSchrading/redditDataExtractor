@@ -46,7 +46,7 @@ Here are all the settings available:
 * Download External Content Linked in Selftext: Select this to download any external images / gifs / webms linked to in the selftext of a reddit submission.
 * Avoid downloading Duplicate Images If Possible: Select this to attempt to avoid downloading images that have already been downloaded. This works per-user or per-subreddit, so if multiple users submit the same image, the reddit Data Extractor may still download both.
 * Do Not Download Videos: Select this to prevent the downloader from downloading video content linked by the submission, comments, or selftext.
-* Only Download Author's Comment External Content: Select this to only download external content in comments if it is the original author of the submission making the comment. This will also download deleted author comments just in case teh original author was the one that was deleted.
+* Only Download Author's Comment External Content: Select this to only download external content in comments if it is the original author of the submission making the comment. This will also download deleted author comments just in case the original author was the one that was deleted.
 * Restrict retrieved submissions to creation dates after the last downloaded submission: Select this to prevent the reddit Data Extractor from viewing submissions posted before the last downloaded submission. This will always work for downloads by user, but will only work for downloads by subreddit if you use the "New" sorting method. This option may speed up the time it takes to finish downloading. Deselect this option if you had failures on downloading content and wish to re-attempt to download them.
 * Only download external content when: Select this and then enter values into the table below to filter submissions and only download their external content when they pass the filter.
 * Only download submission content when: Select this and then enter values into the table below to filter submissions and only download their JSON-content when they pass the filter.
@@ -60,9 +60,13 @@ Right clicking on a user or subreddit in the user or subreddit list that has alr
 
 Clicking on the display images will take you to the reddit submission from which the content was downloaded. Right clicking the submission (to the right of the image) will allow you to delete the content. Deselecting the 'restrict retrieved submissions to creation dates after the last downloaded submission' checkbox in the settings will then allow you to redownload the content. Or if you never want to download that content again, you can select 'delete content and never download again' which will blacklist it.
 
+Add/Remove Users/Subreddits by clicking the +/- buttons or selecting File->New. Edit their names by double clicking on the "new list item" entry in the lists. Right click on the user/subreddit list dropdown or hit File->New to make new user or subreddit lists to download from. In this way you can organize users or subreddits to download from so that your downloads go faster if you only want to download from a specific subset.
+
 The reddit data extractor will remember your settings and the users and subreddits you downloaded from, as long as you save before exiting. If you wish to delete a save, remove the 3 files under RedditDataExtractor/saves called settings.db.bak, settings.db.dat, and settings.db.dir.
 
 If you remove a user or subreddit from the list, the program will lose all memory of having downloaded content from them, allowing you to redownload everything again. Removing them will not delete their already downloaded content from your computer, however.
+
+Hit View->Remaining Imgur Requests (if you have set an Imgur client-id) to see how many requests you have left to make this day. Do not exceed this limit or you may be rate-limited or banned by Imgur.
 
 <dl>
   <dt>The following file types are supported:</dt>
