@@ -690,6 +690,8 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
             <a href="http://docs.python-requests.org/en/latest/">Requests</a> under the Apache2 license
             <br>
             <a href="http://www.crummy.com/software/BeautifulSoup/">Beautiful Soup</a> under a simplified BSD licence
+            <br>
+            <a href="https://github.com/rg3/youtube-dl">youtube-dl</a> under an unlicense (public domain)
             </p>
 
             <p>This program makes use of a modified version of <a href="https://www.videolan.org/vlc/">VLC's</a> logo:<br>
