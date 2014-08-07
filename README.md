@@ -137,7 +137,13 @@ And now you should be ready to run the reddit Data Extractor! main.py is where a
     
 ##### Windows
 
+Download Python 3.4 for 64-bit or 32-bit systems:
+https://www.python.org/downloads/release/python-340/
+
 Download the PyQt4 64-bit installer built for python 3.4: http://sourceforge.net/projects/pyqt/files/PyQt4/PyQt-4.11.1/PyQt4-4.11.1-gpl-Py3.4-Qt4.8.6-x64.exe
+
+Or the PyQt4 32-bit installer built for python 3.4:
+http://sourceforge.net/projects/pyqt/files/PyQt4/PyQt-4.11.1/PyQt4-4.11.1-gpl-Py3.4-Qt4.8.6-x32.exe
     
     Run the installer.
     
