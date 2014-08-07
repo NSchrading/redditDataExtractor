@@ -35,7 +35,7 @@ class QueueMessageReceiver(QObject):
         """
         A QObject (to be run in a QThread) which sits waiting for data to come through a Queue.Queue().
         It blocks until data is available, and once it has got something from the queue, it sends
-        it to the main GUI thread by emitting the pyqtSignal 'finished'
+        it to the main GUI thread by emitting the pyqtSignal 'queuePutSignal'
 
         :type queue: Queue.queue
         """

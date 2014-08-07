@@ -220,7 +220,7 @@ class DownloadTests(unittest.TestCase):
             self.form.reactivateBtns()
             i = 0
             maxIter = 2
-            while self.form.downloadBtn.text() == "Downloading..." and i < maxIter:
+            while self.form.downloadBtn.text() == "Downloading... Press here to stop the download (In progress downloads will continue until done)." and i < maxIter:
                 time.sleep(5)
                 i += 1
 
