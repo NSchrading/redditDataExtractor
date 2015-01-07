@@ -484,6 +484,15 @@ class VidbleImageFinder(ImageFinder):
                         imgLink = img.get('src')
                         if imgLink is not None:
                             yield ("http://www.vidble.com" + imgLink)
+        else: # could be anything...try to get a list of images and their source
+            text = self.exceptionSafeTextRequest(URL, stream=True)
+            if text is not None:
+                soup = BeautifulSoup(text)
+                imgs = soup.find_all('img')
+                for img in imgs:
+                    imgLink = img.get('src')
+                    if imgLink is not None:
+                        yield ("http://www.vidble.com/" + imgLink)
 
 
     def getImages(self, submission, defaultPath, userOrSub, specialString=None, specialCount=None, specialPath=None):
