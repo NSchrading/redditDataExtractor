@@ -481,7 +481,9 @@ class VidbleImageFinder(ImageFinder):
                 for img in imgs:
                     imgClass = img.get('class')
                     if imgClass is not None and imgClass[0] == 'img2':
-                        yield ("http://www.vidble.com" + img['src'])
+                        imgLink = img.get('src')
+                        if imgLink is not None:
+                            yield ("http://www.vidble.com" + imgLink)
 
 
     def getImages(self, submission, defaultPath, userOrSub, specialString=None, specialCount=None, specialPath=None):
