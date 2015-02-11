@@ -206,7 +206,7 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         self.avoidVideos = rddtDataExtractor.avoidVideos
         self.getAuthorsCommentsOnly = rddtDataExtractor.getAuthorsCommentsOnly
         self.notifyImgurAPI = notifyImgurAPI
-        self.validator = QIntValidator(1, 100)
+        self.validator = QIntValidator(1, 1000)
         self.filtTableTypeCol = 0
         self.filtTablePropCol = 1
         self.filtTableOperCol = 2
@@ -241,7 +241,7 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
 
         self.subLimitTextEdit.textChanged.connect(self.setSubLimit)
         self.subLimitTextEdit.setValidator(self.validator)
-        self.subLimitTextEdit.setText(str(self.subLimit))
+        self.subLimitTextEdit.setText(str(self.subLimit) if self.subLimit is not None else "1000")
 
         self.filterTable.cellPressed.connect(self.addFilter)
         self.constructFilterTable(rddtDataExtractor.submissionFilts, rddtDataExtractor.commentFilts,
@@ -374,7 +374,9 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
         text = self.subLimitTextEdit.text()
         validState = self.validator.validate(text, 0)[0]  # validate() returns a tuple, the state is the 0 index
         if validState == QValidator.Acceptable:
-            self.subLimit = int(text)
+            # set the limit to max (None in PRAW's documentation) if it is equal to 1000
+            # Note: the Reddit API actually only ever returns up to 1000
+            self.subLimit = None if int(text) == 1000 else int(text)
 
     def addFilter(self, row, col, type="Submission"):
         """

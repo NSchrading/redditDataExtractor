@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'settings.ui'
 #
-# Created: Sun Aug  3 21:43:37 2014
+# Created: Tue Feb 10 22:11:24 2015
 #      by: PyQt4 UI code generator 4.11.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -212,8 +212,8 @@ class Ui_SettingsDialog(object):
         self.getCommentExternalContentCheckBox.setText(_translate("SettingsDialog", "Download External Content Linked In Comments", None))
         self.defaultSubredditListLabel.setToolTip(_translate("SettingsDialog", "The subreddit list that will display on starting the application.", None))
         self.defaultSubredditListLabel.setText(_translate("SettingsDialog", "Default Subreddit List", None))
-        self.label_2.setToolTip(_translate("SettingsDialog", "<html><head/><body><p>The number of posts to retrieve from the subreddit. A max of 100 can be downloaded at a time. Download again at a later date to get the next (most recent) 100.</p></body></html>", None))
-        self.label_2.setText(_translate("SettingsDialog", "Max Posts Retrieved in Subreddit Content Download [1-100]", None))
+        self.label_2.setToolTip(_translate("SettingsDialog", "<html><head/><body><p>The number of posts to retrieve from the subreddit. A max of 1000 can be downloaded at a time. Download again at a later date to get the next available posts.</p></body></html>", None))
+        self.label_2.setText(_translate("SettingsDialog", "Max Posts Retrieved in Subreddit Content Download [1-1000]", None))
         self.subLimitTextEdit.setText(_translate("SettingsDialog", "10", None))
         self.defaultUserListLabel.setToolTip(_translate("SettingsDialog", "The user list that will display on starting the application.", None))
         self.defaultUserListLabel.setText(_translate("SettingsDialog", "Default User List", None))

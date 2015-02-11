@@ -62,10 +62,10 @@
        <item>
         <widget class="QLabel" name="label_2">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of posts to retrieve from the subreddit. A max of 100 can be downloaded at a time. Download again at a later date to get the next (most recent) 100.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of posts to retrieve from the subreddit. A max of 1000 can be downloaded at a time. Download again at a later date to get the next available posts.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>Max Posts Retrieved in Subreddit Content Download [1-100]</string>
+          <string>Max Posts Retrieved in Subreddit Content Download [1-1000]</string>
          </property>
         </widget>
        </item>
