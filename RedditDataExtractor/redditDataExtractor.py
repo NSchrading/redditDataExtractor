@@ -500,6 +500,15 @@ class RedditDataExtractor():
             with path.open('w') as f:
                 json.dump(self._getSubmissionData(submission), f, ensure_ascii=True)
                 return True, path
+        except OSError:
+            try:
+                title = submission.id
+                path = directory / (title + '.txt')
+                with path.open('w') as f:
+                    json.dump(self._getSubmissionData(submission), f, ensure_ascii=True)
+                    return True, path
+            except:
+                return False, path
         except:
             return False, path
 
