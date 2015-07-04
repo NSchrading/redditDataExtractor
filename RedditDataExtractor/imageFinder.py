@@ -145,6 +145,8 @@ class ImageFinder():
             return '.png'
         elif '.webm' in fileType:
             return '.webm'
+        elif 'gifv' in fileType:
+            return '.gifv'
         elif '.gif' in fileType:
             return '.gif'
         else:
@@ -215,6 +217,17 @@ class ImgurImageFinder(ImageFinder):
                 return False, None
         return False, None
 
+    def _getImageLink(self, data):
+        link = data.get('link')
+        type = data.get('type')
+        if type is not None and type == "image/gif":
+            webm = data.get('webm')
+            size = data.get('size')
+            # 20MB or over causes link to become a static snapshot from the gif
+            if webm is not None and size is not None and size >= 20000000:
+                link = webm
+        return link
+
     def _getImageURLsDirect(self, json):
         """
         Appends to the valid imageURLs list if the json data is valid
@@ -223,7 +236,7 @@ class ImgurImageFinder(ImageFinder):
         """
         data = json.get('data')
         if data is not None:
-            link = data.get('link')
+            link = self._getImageLink(data)
             if link is not None and (not self.avoidDuplicates or (
                     self.alreadyDownloadedImgurURLs is not None and link not in self.alreadyDownloadedImgurURLs)):
                 yield link
@@ -259,7 +272,7 @@ class ImgurImageFinder(ImageFinder):
             images = data.get('images')
             if images is not None:
                 for image in images:
-                    link = image.get('link')
+                    link = self._getImageLink(image)
                     if link is not None and (not self.avoidDuplicates or (
                             self.alreadyDownloadedImgurURLs is not None and link not in self.alreadyDownloadedImgurURLs)):
                         yield link
@@ -300,7 +313,11 @@ class ImgurImageFinder(ImageFinder):
         imageURLs = self._getImageURLs(submission.url)
         count = 1
         for imageURL in imageURLs:
-            response = self.exceptionSafeImageRequest(imageURL, stream=True)
+            fileType = self.getFileType(imageURL)
+            if fileType == ".webm":
+                response = self.exceptionSafeWebmRequest(imageURL, stream=True)
+            else:
+                response = self.exceptionSafeImageRequest(imageURL, stream=True)
             if response is None:
                 continue
             params = (
