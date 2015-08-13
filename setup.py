@@ -3,19 +3,6 @@ import requests.certs
 import py_compile
 from cx_Freeze import setup, Executable
 
-
-'''
-Note: with version 3.0.0 of PRAW, you need to modify PRAW for downloads to work
-I need to figure out a better way to go about this, but for now this works
-
-add a line to praw/handlers.py
-    def __init__(self):
-        """Establish the HTTP session."""
-        self.http = Session()  # Each instance should have its own session
-        self.http.verify = 'RedditDataExtractor/cacert.pem'       # <-------------- add this
-'''
-
-
 zip_includes = []
 includes = ["atexit", "re", "sip"]
 

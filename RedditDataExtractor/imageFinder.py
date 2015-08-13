@@ -421,7 +421,7 @@ class MinusImageFinder(ImageFinder):
             if text is None:
                 text = self.exceptionSafeTextRequest("http://minus.com/" + endOfURL, stream=True)
             if text is not None:
-                soup = BeautifulSoup(text)
+                soup = BeautifulSoup(text, 'html.parser')
                 type = soup.find(property="og:type")
                 if type is not None and type.get('content') is not None:
                     content = type.get('content')
@@ -486,14 +486,14 @@ class VidbleImageFinder(ImageFinder):
             URL = URL[URL.rfind('/')]
             text = self.exceptionSafeTextRequest("http://www.vidble.com/" + endOfURL, stream=True)
             if text is not None:
-                soup = BeautifulSoup(text)
+                soup = BeautifulSoup(text, 'html.parser')
                 imgs = soup.find_all('img')
                 if len(imgs) == 1:
                     yield ("http://www.vidble.com/" + imgs[0]['src'])
         elif '/album/' in URL:
             text = self.exceptionSafeTextRequest(URL, stream=True)
             if text is not None:
-                soup = BeautifulSoup(text)
+                soup = BeautifulSoup(text, 'html.parser')
                 imgs = soup.find_all('img')
                 for img in imgs:
                     imgClass = img.get('class')
@@ -504,7 +504,7 @@ class VidbleImageFinder(ImageFinder):
         else: # could be anything...try to get a list of images and their source
             text = self.exceptionSafeTextRequest(URL, stream=True)
             if text is not None:
-                soup = BeautifulSoup(text)
+                soup = BeautifulSoup(text, 'html.parser')
                 imgs = soup.find_all('img')
                 for img in imgs:
                     imgLink = img.get('src')

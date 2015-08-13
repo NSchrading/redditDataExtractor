@@ -714,6 +714,10 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         msgBox.exec()
 
     def viewRemainingImgurRequests(self):
+        if self._rddtDataExtractor.currentlyDownloading:
+            QMessageBox.warning(QMessageBox(), "Data Extractor for reddit",
+                                "Cannot view imgur requests while currently downloading. Please wait.")
+            return
         msgBox = QMessageBox()
         msgBox.setWindowTitle("Data Extractor for reddit")
         if self._rddtDataExtractor.imgurAPIClientID is not None:

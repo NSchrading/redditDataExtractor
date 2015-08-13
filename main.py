@@ -18,6 +18,7 @@
 import shelve
 import sys
 import pathlib
+import praw
 from queue import Queue
 
 from PyQt4.Qt import QApplication, QThread, QObject, pyqtSignal, pyqtSlot
@@ -88,7 +89,13 @@ def main():
     rddtDataExtractor = loadState()
     if rddtDataExtractor is None:
         rddtDataExtractor = RedditDataExtractor()
-    rddtDataExtractor.currentlyDownloading = False # If something weird happened to cause currentlyDownloading to be saved as True, set it back to False
+    else:
+        # If something weird happened to cause currentlyDownloading to be saved as True, set it back to False
+        rddtDataExtractor.currentlyDownloading = False
+        # reinstantiate the praw instance because it doesn't shelve properly
+        # praw shelve issue causes http.validate_certs to be uninstantiated
+        rddtDataExtractor._r = praw.Reddit(user_agent='Data Extractor for reddit v1.1 by /u/VoidXC')
+        rddtDataExtractor._r.http.validate_certs = 'RedditDataExtractor/cacert.pem'
 
     queue = Queue()
     thread = QThread()

@@ -132,6 +132,8 @@ class RedditDataExtractor():
 
     def __init__(self):
         self._r = praw.Reddit(user_agent='Data Extractor for reddit v1.0 by /u/VoidXC')
+        # set validate_certs to a path that is always valid for us (even when frozen with cx_Freeze)
+        self._r.http.validate_certs = 'RedditDataExtractor/cacert.pem'
         # domains that are specifically targeted to work for downloading external content
         self._supportedDomains = ['imgur', 'minus', 'vidble', 'gfycat']
         # This is a regex to parse URLs, courtesy of John Gruber, http://daringfireball.net/2010/07/improved_regex_for_matching_urls
@@ -655,8 +657,8 @@ class RedditDataExtractor():
         :rtype: praw.objects.Redditor
         """
         try:
-            redditor = self._r.get_redditor(userName)
-        except requests.exceptions.HTTPError:
+            redditor = self._r.get_redditor(userName, fetch=True)
+        except praw.errors.NotFound:
             redditor = None
         return redditor
 
