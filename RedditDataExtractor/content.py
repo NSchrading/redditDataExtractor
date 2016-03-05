@@ -133,6 +133,19 @@ class Image(Content):
             return False
 
 
+class MockLogger():
+    """
+    Class to mock out youtube-dl's logging which can cause executables to crash.
+    """
+    def debug(self, message):
+        return
+
+    def error(self, message):
+        return
+
+    def warning(self, message):
+        return
+
 class Video(Content):
     __slots__ = (
         'userOrSubName', 'submissionID', 'defaultPath', 'URL', 'redditSubmissionURL', 'numInSeq', 'savePath',
@@ -147,7 +160,7 @@ class Video(Content):
                          specialCount, specialPath)
         ydlOpts = {'outtmpl': str(self.savePath) + "_%(autonumber)s.%(ext)s", 'quiet': True, 'restrictfilenames': True,
                    'no_warnings': True, 'ignoreerrors': True, 'logtostderr': False, 'nooverwrites': False,
-                   'logger': False, 'bidi_workaround': False}
+                   'logger': MockLogger(), 'bidi_workaround': False}
         self._ydl = youtube_dl.YoutubeDL(ydlOpts)
         self._ydl.add_default_info_extractors()
         self._ydl.to_stderr = lambda: 1
