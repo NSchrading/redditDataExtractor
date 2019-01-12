@@ -103,18 +103,18 @@ If you do wish to run the program from source, below are the steps I took to run
 ##### Linux
     [sudo] apt-get install libxext-dev python-qt4 qt4-dev-tools libqt4-dev libqt4-core libqt4-gui build-essential
 
-Download SIP: http://sourceforge.net/projects/pyqt/files/sip/sip-4.16.2/sip-4.16.2.tar.gz/
+Download SIP: https://sourceforge.net/projects/pyqt/files/sip/sip-4.19.13/sip-4.19.13.tar.gz/
 
-Download PyQt: http://sourceforge.net/projects/pyqt/files/PyQt4/PyQt-4.11.1/PyQt-x11-gpl-4.11.1.tar.gz/
+Download PyQt: https://sourceforge.net/projects/pyqt/files/PyQt4/PyQt-4.12.3/PyQt4_gpl_x11-4.12.3.tar.gz/
 
 Extract both tarballs
 
-    cd sip-4.16.2
+    cd sip-4.19.13
     python configure.py
     make
     [sudo] make install
     
-    cd PyQt-x11-gpl-4.11.1
+    cd PyQt-x11-gpl-4.12.3
     python configure.py
     make
     [sudo] make install
