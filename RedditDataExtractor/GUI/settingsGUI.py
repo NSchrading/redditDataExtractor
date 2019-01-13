@@ -41,7 +41,7 @@ class ConnectCombobox(QComboBox):
         :type filtTableConnectCol: int
         :type connectMap: dict
         """
-        super().__init__()
+        QComboBox.__init__(self)
         self.row = row
         self.filterTable = filterTable
         self.filtTableConnectCol = filtTableConnectCol
@@ -85,7 +85,7 @@ class TypeCombobox(QComboBox):
         :type row: int
         :type propCombobox: QComboBox
         """
-        super().__init__()
+        QComboBox.__init__(self)
         self.row = row
         self.addItem("Submission")
         self.addItem("Comment")
@@ -109,7 +109,7 @@ class PropCombobox(QComboBox):
         :type operCombobox: QComboBox
         :type validOperForPropMap: dict
         """
-        super().__init__()
+        QComboBox.__init__(self)
         self.row = row
         self.operCombobox = operCombobox
         self.validOperForPropMap = validOperForPropMap
@@ -164,7 +164,7 @@ class OperCombobox(QComboBox):
         A class to handle the operator comboboxes and what happens when the user changes the text
         :type row: int
         """
-        super().__init__()
+        QComboBox.__init__(self)
         self.row = row
 
     def changeOpers(self, validOpers):
@@ -416,5 +416,5 @@ class SettingsGUI(QDialog, Ui_SettingsDialog):
 
     def accept(self):
         if self.checkFilterTable():
-            super().accept()
+            QDialog.accept(self)
 

@@ -68,4 +68,4 @@ class ImgurClientIdGUI(QDialog, Ui_ImgurClientIdDialog):
 
     def accept(self):
         self.imgurAPIClientID = self.clientIdLineEdit.text()
-        super().accept()
+        QDialog.accept(self)
