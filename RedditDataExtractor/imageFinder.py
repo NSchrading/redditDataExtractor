@@ -179,7 +179,7 @@ class ImgurImageFinder(ImageFinder):
         :type avoidDuplicates: bool
         :type queue: Queue.queue
         """
-        super().__init__(queue)
+        ImageFinder.__init__(self, queue)
         self._CLIENT_ID = clientId  # imgur client ID for API access
         self._alreadyQueriedURLs = set([])
         self.imgurLinkType = None
@@ -339,7 +339,7 @@ class GfycatImageFinder(ImageFinder):
         :type avoidDuplicates: bool
         :type queue: Queue.queue
         """
-        super().__init__(queue)
+        ImageFinder.__init__(self, queue)
         self.avoidDuplicates = avoidDuplicates
         self.alreadyDownloadedURLs = alreadyDownloadedURLs
 
@@ -392,7 +392,7 @@ class MinusImageFinder(ImageFinder):
         :type avoidDuplicates: bool
         :type queue: Queue.queue
         """
-        super().__init__(queue)
+        ImageFinder.__init__(self, queue)
         self.avoidDuplicates = avoidDuplicates
         self.alreadyDownloadedURLs = alreadyDownloadedURLs
 
@@ -458,7 +458,7 @@ class VidbleImageFinder(ImageFinder):
         :type avoidDuplicates: bool
         :type queue: Queue.queue
         """
-        super().__init__(queue)
+        ImageFinder.__init__(self, queue)
         self.avoidDuplicates = avoidDuplicates
         self.alreadyDownloadedURLs = alreadyDownloadedURLs
 
