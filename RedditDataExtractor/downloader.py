@@ -81,7 +81,7 @@ class Downloader(QObject):
         :type queue: Queue.queue
         :type listModelType: RedditDataExtractor.redditDataExtractor.ListType
         """
-        super().__init__()
+        QObject.__init__(self)
         self._rddtDataExtractor = rddtDataExtractor
         self._validUsersOrSubs = validUsersOrSubs
         self._queue = queue
@@ -123,7 +123,7 @@ class Worker(QRunnable):
         :type lstModelType: RedditDataExtractor.redditDataExtractor.ListType
         :type isStopped: function
         """
-        super().__init__()
+        QRunnable.__init__(self)
 
         self._rddtDataExtractor = rddtDataExtractor
         self._lstModelObj = lstModelObj
@@ -253,7 +253,7 @@ class SubmissionWorker(QRunnable):
         :type setMostRecentDownloadTimestamp: Worker.setMostRecentDownloadTimestamp
         :type downloaderIsStopped: function
         """
-        super().__init__()
+        QRunnable.__init__(self)
 
         self._rddtDataExtractor = rddtDataExtractor
         self._lstModelObj = lstModelObj
@@ -303,7 +303,7 @@ class ImageWorker(QRunnable):
         :type setMostRecentDownloadTimestamp: Worker.setMostRecentDownloadTimestamp
         :type downloaderIsStopped: function
         """
-        super().__init__()
+        QRunnable.__init__(self)
 
         self._image = image
         self._lstModelObj = lstModelObj
@@ -356,7 +356,7 @@ class VideoWorker(QRunnable):
         :type setMostRecentDownloadTimestamp: Worker.setMostRecentDownloadTimestamp
         :type downloaderIsStopped: function
         """
-        super().__init__()
+        QRunnable.__init__(self)
         self._video = video
         self._submission = submission
         self._lstModelObj = lstModelObj
