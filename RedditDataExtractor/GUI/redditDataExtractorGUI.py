@@ -62,7 +62,7 @@ class Validator(QObject):
         :type userOrSub: set[RedditDataExtractor.GUI.genericListModelObjects.GenericListModelObj]
         :type listType: RedditDataExtractor.redditDataExtractor.ListType
         """
-        super().__init__()
+        QObject.__init__(self)
         self._rddtDataExtractor = rddtDataExtractor
         self._queue = queue
         self._userOrSub = userOrSub
@@ -112,7 +112,7 @@ class ListViewAndChooser(QListView):
         :type classToUse: function
         :type name: str
         """
-        super().__init__(gui.centralwidget)
+        QListView.__init__(self, gui.centralwidget)
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
         self.setObjectName(name)
         self._lstChooser = lstChooser
@@ -211,7 +211,7 @@ class UserListViewAndChooser(ListViewAndChooser):
         Subclass of ListViewAndChooser specifically for a User View
         :type gui: RedditDataExtractor.GUI.redditDataExtractorGUI.RddtDataExtractorGUI
         """
-        super().__init__(gui, gui.userListChooser, gui._rddtDataExtractor.userLists,
+        ListViewAndChooser.__init__(self, gui, gui.userListChooser, gui._rddtDataExtractor.userLists,
                          gui._rddtDataExtractor.defaultUserListName, User, "user")
         self._rddtDataExtractor.currentUserListName = self._defaultLstName
 
@@ -273,7 +273,7 @@ class SubredditListViewAndChooser(ListViewAndChooser):
         Subclass of ListViewAndChooser specifically for a Subreddit View
         :type gui: RedditDataExtractor.GUI.redditDataExtractorGUI.RddtDataExtractorGUI
         """
-        super().__init__(gui, gui.subredditListChooser, gui._rddtDataExtractor.subredditLists,
+        ListViewAndChooser.__init__(self, gui, gui.subredditListChooser, gui._rddtDataExtractor.subredditLists,
                          gui._rddtDataExtractor.defaultSubredditListName, Subreddit, "subreddit")
         self._rddtDataExtractor.currentSubredditListName = self._defaultLstName
 
@@ -600,7 +600,7 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
                 model.removeRows(index, 1)
 
     def selectDirectory(self):
-        directory = QFileDialog.getExistingDirectory(QFileDialog())
+        directory = str(QFileDialog.getExistingDirectory(QFileDialog()))
         if len(directory) > 0:
             directory = pathlib.Path(directory).resolve()
             if directory.exists():
@@ -711,7 +711,7 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
             See <a href="https://github.com/NSchrading/redditDataExtractor/blob/master/LICENSE.txt">LICENSE.txt</a> for more information.
             </p>
         """)
-        msgBox.exec()
+        msgBox.exec_()
 
     def viewRemainingImgurRequests(self):
         if self._rddtDataExtractor.currentlyDownloading:
@@ -736,7 +736,7 @@ class RddtDataExtractorGUI(QMainWindow, Ui_RddtDataExtractorMainWindow):
         else:
             msgBox.setText(
                 "You do not currently have an Imgur client-id set. To set one, go to settings and check 'Change / Reset Client-id'")
-        msgBox.exec()
+        msgBox.exec_()
 
     def setUnsavedChanges(self, unsaved):
         """

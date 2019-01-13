@@ -81,7 +81,7 @@ class User(GenericListModelObj):
         """
         A user in a user list
         """
-        super().__init__(name)
+        GenericListModelObj.__init__(self, name)
 
 
 class Subreddit(GenericListModelObj):
@@ -89,7 +89,7 @@ class Subreddit(GenericListModelObj):
         """
         A subreddit in a subreddit list
         """
-        super().__init__(name)
+        GenericListModelObj.__init__(self, name)
 
     @GenericListModelObj.mostRecentDownloadTimestamp.setter
     def mostRecentDownloadTimestamp(self, utc):
