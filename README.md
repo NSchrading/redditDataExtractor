@@ -1,3 +1,5 @@
+Note: This project is no longer supported. The frozen executable releases may continue to work; however, changes to the reddit API have rendered the current version built from source obsolete. You are welcome to fork and make improvements if you wish.
+
 Requirements
 ==================
 * Python3.4
