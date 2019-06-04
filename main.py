@@ -19,7 +19,16 @@ import shelve
 import sys
 import pathlib
 import praw
+"""
 from queue import Queue
+"""
+try:
+    import queue
+except ImportError:
+    import Queue as queue
+
+import Queue
+from Queue import *
 
 from PyQt4.Qt import QApplication, QThread, QObject, pyqtSignal, pyqtSlot
 

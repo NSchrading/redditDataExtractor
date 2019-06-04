@@ -21,7 +21,7 @@ import youtube_dl
 
 # Without this we get tons of warnings about unclosed sockets.
 # Not sure if it's something I'm doing wrong or if it's a bug in Requests / PRAW / urllib
-warnings.filterwarnings("ignore", category=ResourceWarning)
+### warnings.filterwarnings("ignore", category=ResourceWarning)
 
 
 class Content():
@@ -96,7 +96,7 @@ class Image(Content):
         :param iterContent: The HTTP request's content broken up into chunks by the request library's iter_content generator
         :type iterContent: generator
         """
-        super().__init__(userOrSubName, submissionID, defaultPath, URL, redditSubmissionURL, numInSeq, specialString,
+        Content.__init__(self, userOrSubName, submissionID, defaultPath, URL, redditSubmissionURL, numInSeq, specialString,
                          specialCount, specialPath)
         self.fileType = fileType
         self._iterContent = iterContent
@@ -156,7 +156,7 @@ class Video(Content):
         """
         Class to hold information about a single video downloaded as content from a Reddit submission
         """
-        super().__init__(userOrSubName, submissionID, defaultPath, URL, redditSubmissionURL, numInSeq, specialString,
+        Content.__init__(self, userOrSubName, submissionID, defaultPath, URL, redditSubmissionURL, numInSeq, specialString,
                          specialCount, specialPath)
         ydlOpts = {'outtmpl': str(self.savePath) + "_%(autonumber)s.%(ext)s", 'quiet': True, 'restrictfilenames': True,
                    'no_warnings': True, 'ignoreerrors': True, 'logtostderr': False, 'nooverwrites': False,

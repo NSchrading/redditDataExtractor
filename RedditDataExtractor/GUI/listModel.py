@@ -28,7 +28,7 @@ class ListModel(QAbstractListModel):
         :type lst: list
         :type lstObjType: function
         """
-        super().__init__(parent)
+        QAbstractListModel.__init__(self, parent)
         self.lst = lst
         self.lstObjType = lstObjType
         self.stringsInLst = set([lstObj.name.lower() for lstObj in self.lst])
@@ -117,6 +117,7 @@ class ListModel(QAbstractListModel):
             row = index.row()
             obj = self.lst[row]
             oldName = obj.name
+            value = str(value.toString())
             if value.lower() in self.stringsInLst:
                 # Can't add duplicates
                 return False

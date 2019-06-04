@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
     This file is part of the reddit Data Extractor.
 
@@ -30,7 +32,6 @@ from .GUI.listModel import ListModel
 from .GUI.genericListModelObjects import User, Subreddit
 from .content import Video
 from enum import Enum
-
 
 def xorLst(lst):
     """
@@ -511,8 +512,8 @@ class RedditDataExtractor():
                     return True, path
             except:
                 return False, path
-        except:
-            return False, path
+        ### except:
+        ###    return False, path
 
     def getCommentImages(self, submission, lstModelObj, queue):
         """
