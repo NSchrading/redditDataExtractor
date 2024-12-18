@@ -1,5 +1,7 @@
 Note: This project is no longer supported. The frozen executable releases may continue to work; however, changes to the reddit API have rendered the current version built from source obsolete. You are welcome to fork and make improvements if you wish.
 
+A similar but still supported tool exists here: https://github.com/MalloyDelacroix/DownloaderForReddit
+
 Requirements
 ==================
 * Python3.4
